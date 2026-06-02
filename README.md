@@ -40,7 +40,7 @@ Plataforma interna de gestão de horas e colaboradores da Squadra. Migração da
 | Testes unitários | Vitest |
 | Testes E2E | Playwright |
 | Package manager | pnpm |
-| Deploy | Vercel |
+| Deploy | Servidor Node.js |
 
 ---
 
@@ -218,7 +218,7 @@ O acesso às rotas depende das permissões da sessão:
 
 A estratégia de deploy usa **coexistência com a SPA vanilla**:
 
-1. Deploy no Vercel em subdomínio paralelo (ex: `horas-next.squadra.com.br`)
+1. Deploy em subdomínio paralelo (ex: `horas-next.squadra.com.br`)
 2. Validação em produção paralela à versão atual
 3. Migração via troca de DNS — sem downtime
 4. Rollback disponível: basta reverter o DNS
