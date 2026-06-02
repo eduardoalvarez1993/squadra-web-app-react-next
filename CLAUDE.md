@@ -108,8 +108,6 @@ Fase 8 → Paridade visual + funcional                                          
 **Pendente para deploy:**
 - Testes Playwright (8 fluxos críticos) — ver `docs/known-issues.md` INCONC-001
 - `PercentualItemRawSchema` — itens não verificáveis (sem dados em jun/2026) — ver `docs/known-issues.md` INCONC-002
-- Confirmar autoria em DELETE posts/comentários na API Squadra — ver `docs/known-issues.md` INCONC-003
-- Confirmar intencionalidade do `sqhorasId` livre em GET /api/ponto — ver `docs/known-issues.md` INCONC-004
 
 **Sugestões de acessibilidade pendentes (não bloqueantes):**
 - `home/page.tsx` sem `<h1>` — adicionar `<h1 className="sr-only">Home</h1>`

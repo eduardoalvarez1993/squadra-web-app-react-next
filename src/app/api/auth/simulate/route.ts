@@ -38,9 +38,8 @@ export async function POST(req: NextRequest) {
   if (id === session.gestorId) return NextResponse.json({ error: 'Não é possível simular a si mesmo' }, { status: 400 });
 
   try {
-    // Buscar dados do alvo em paralelo
-    const [pessoaResult, permissoesResult] = await Promise.allSettled([
-      squadra.auth.pessoa(session.token),
+    // Buscar permissões do alvo
+    const [permissoesResult] = await Promise.allSettled([
       squadra.auth.permissoes(id, session.token),
     ]);
 
@@ -66,10 +65,6 @@ export async function POST(req: NextRequest) {
     let nome      = String(id);
     let cargo     = '';
 
-    if (pessoaResult.status === 'fulfilled') {
-      nome = pessoaResult.value.nome || String(id);
-    }
-
     // Tentar buscar pelo login do alvo
     try {
       const pessoaAlvo = await squadra.pessoas.getById(id, session.token);
@@ -89,8 +84,9 @@ export async function POST(req: NextRequest) {
     session.cargo      = cargo;
     session.bateRep    = permissoes.bateRep;
     session.permissoes = permissoes;
-    session.simulando  = true;
+    session.simulando   = true;
     session.podeSimular = false;
+    session.temEquipe   = undefined; // força recálculo no próximo /api/auth/me
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (session as any)._simOrig = orig;
 

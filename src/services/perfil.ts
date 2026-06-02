@@ -25,16 +25,11 @@ function rawFoto(val: unknown): string {
 }
 
 export async function getPerfil(token: string, pessoaId?: number): Promise<PerfilData> {
-  const data = await squadra.perfil.get(token);
-  // /v1/pessoa retorna kudosWalls: null — busca via /v1/pessoas/{id} que retorna os dados completos
-  if (!Array.isArray((data as Record<string, unknown>)['kudosWalls']) && pessoaId) {
-    try {
-      const pub = await squadra.perfil.getById(pessoaId, token) as Record<string, unknown>;
-      if (Array.isArray(pub['kudosWalls'])) {
-        (data as Record<string, unknown>)['kudosWalls'] = pub['kudosWalls'];
-      }
-    } catch {}
-  }
+  // Quando pessoaId é fornecido (incluindo simulação), busca por ID para garantir dados do alvo.
+  // /v1/pessoa retorna o usuário do token; /v1/pessoas/{id} retorna o alvo correto.
+  const data = pessoaId
+    ? await squadra.perfil.getById(pessoaId, token)
+    : await squadra.perfil.get(token);
   return data;
 }
 

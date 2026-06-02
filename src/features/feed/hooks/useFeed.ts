@@ -103,11 +103,11 @@ export function useFeed(offset = 1) {
   });
 
   const deletarPostMutation = useMutation({
-    mutationFn: async (postId: number) => {
-      const res = await fetch(`/api/feed/posts?postId=${postId}`, { method: 'DELETE' });
+    mutationFn: async ({ postId, remetenteID }: { postId: number; remetenteID: number }) => {
+      const res = await fetch(`/api/feed/posts?postId=${postId}&remetenteID=${remetenteID}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Erro ao deletar post');
     },
-    onMutate: async (postId) => {
+    onMutate: async ({ postId }) => {
       await qc.cancelQueries({ queryKey: ['feed', 'posts', offset] });
       const prev = qc.getQueryData<Post[]>(['feed', 'posts', offset]);
       qc.setQueryData<Post[]>(['feed', 'posts', offset],
@@ -131,6 +131,6 @@ export function useFeed(offset = 1) {
     toggleLike:    (postId: number, liked: boolean) => likeMutation.mutateAsync({ postId, liked }),
     comentar:      (postId: number, texto: string) => comentarMutation.mutateAsync({ postId, texto }),
     isComentando:  comentarMutation.isPending,
-    deletarPost:   (postId: number) => deletarPostMutation.mutateAsync(postId),
+    deletarPost:   (postId: number, remetenteID: number) => deletarPostMutation.mutateAsync({ postId, remetenteID }),
   };
 }

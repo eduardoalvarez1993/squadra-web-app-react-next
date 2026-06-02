@@ -111,7 +111,7 @@ export default function FeedPage() {
                       onLike={(liked) => toggleLike(p.idPost, liked)}
                       onComentar={comentar}
                       isComentando={isComentando}
-                      onDelete={deletarPost}
+                      onDelete={(postId) => deletarPost(postId, p.remetenteID)}
                     />
                   ))
               }

@@ -42,6 +42,7 @@ export const PADRAO_IMAGENS = {
   fluenciaLogo:           '/assets/fluencia-logo.webp',
 
   // Sistema
+  ogImage:                '/og-image.png',
   notFound:               '/assets/notfound-404.webp',
   accessDenied:           '/assets/access-denied.webp',
 } as const;

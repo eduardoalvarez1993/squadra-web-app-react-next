@@ -60,8 +60,28 @@ export async function DELETE(req: NextRequest) {
   const session = await getSession();
   if (!session.token) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
 
-  const id = Number(new URL(req.url).searchParams.get('id') ?? '0');
+  const { searchParams } = new URL(req.url);
+  const id = Number(searchParams.get('id') ?? '0');
   if (!id) return NextResponse.json({ error: 'id obrigatório' }, { status: 400 });
+
+  const postId = Number(searchParams.get('postId') ?? '0');
+  if (!postId) return NextResponse.json({ error: 'postId obrigatório' }, { status: 400 });
+
+  // Verifica autoria buscando os comentários do post e conferindo idAutor
+  let comentariosParaVerificar: Awaited<ReturnType<typeof getComentarios>>;
+  try {
+    comentariosParaVerificar = await getComentarios(postId, session.token);
+  } catch (err) {
+    if (err instanceof SquadraAuthError) return NextResponse.json({ error: 'Sessão expirada' }, { status: 401 });
+    console.error('[DELETE /api/feed/comentarios] Erro ao verificar autoria', err);
+    return NextResponse.json({ error: 'Não foi possível verificar autoria' }, { status: 503 });
+  }
+
+  const comentario = comentariosParaVerificar.find((c) => c.id === id);
+  if (!comentario) return NextResponse.json({ error: 'Comentário não encontrado' }, { status: 404 });
+  if (comentario.idAutor !== session.pessoaId) {
+    return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
+  }
 
   try {
     await deletarComentario(id, session.token);

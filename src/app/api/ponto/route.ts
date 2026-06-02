@@ -34,8 +34,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'inicio e fim obrigatórios (YYYY-MM-DD)' }, { status: 400 });
   }
 
-  // Gestores podem consultar ponto de outro colaborador passando sqhorasId
   const sqhorasIdParam = searchParams.get('sqhorasId');
+  if (sqhorasIdParam && Number(sqhorasIdParam) !== session.sqhorasId) {
+    if (!session.permissoes?.gerenteFuncional) {
+      return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
+    }
+  }
   const sqhorasId = sqhorasIdParam ? Number(sqhorasIdParam) : session.sqhorasId;
 
   try {

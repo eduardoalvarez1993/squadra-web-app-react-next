@@ -102,7 +102,7 @@ export function FeedDrawer({
 
   const deletarComentarioMutation = useMutation({
     mutationFn: async (comentarioId: number) => {
-      const res = await fetch(`/api/feed/comentarios?id=${comentarioId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/feed/comentarios?id=${comentarioId}&postId=${post.idPost}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Erro ao deletar comentário');
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['feed', 'comentarios', post.idPost] }),

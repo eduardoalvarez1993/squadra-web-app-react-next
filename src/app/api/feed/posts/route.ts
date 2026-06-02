@@ -18,8 +18,14 @@ export async function DELETE(req: NextRequest) {
   const session = await getSession();
   if (!session.token) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
 
-  const postId = Number(new URL(req.url).searchParams.get('postId') ?? '0');
+  const { searchParams } = new URL(req.url);
+  const postId = Number(searchParams.get('postId') ?? '0');
   if (!postId) return NextResponse.json({ error: 'postId obrigatório' }, { status: 400 });
+
+  const remetenteID = Number(searchParams.get('remetenteID') ?? '0');
+  if (!remetenteID || remetenteID !== session.pessoaId) {
+    return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
+  }
 
   try {
     await deletarPost(postId, session.token);
