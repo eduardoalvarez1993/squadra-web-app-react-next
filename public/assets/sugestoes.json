@@ -1,0 +1,1252 @@
+﻿[
+  {
+    "nome": ".NET",
+    "variacao": "Dot Net",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": ".Net Core",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Adianti",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Adobe XD",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "ADVPL",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Agile",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Análise de Dados",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Análise de negócios",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Análise de requisitos",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Android",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Android Studio",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Angular",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Ansible",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "APF",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "API REST",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "APM-SERVER",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Appium",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Arduino",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Arquitetura de software",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "ASP .NET Identity",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "ASP Clássico",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "ASP.Net Core",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "ASP.NET MVC",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "ASP.NET WebAPI",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Automação de testes",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "AWS",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Axure RP",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Azure DevOps",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Banco de Dados",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "BDD Cucumber",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Blip",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Bootstrap",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "BPMN",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "C",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "C#",
+    "variacao": "csharp",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "C++",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "CD",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Chatbot",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "CI",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Cloud",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Cobol",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Crystal Reports",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "CSS",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Cypress",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Dart",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "DB2 Server",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "DDD",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Delphi",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "DEPC",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Design",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Design de Produto",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Design Sprint",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Design System",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Design Thinking",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "DevOps",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Django",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Docker",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Doctrine",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Eclipse",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "EF",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Elasticsearch",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Entity Framework",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Excel",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Exploit",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Express",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "ExtJs",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Figma",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Firebase",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Flask",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Flutter",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Gestão de Projetos",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Gimp",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "GIT",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Github",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Gitlab",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Golang",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Google Cloud",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Gradle",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Grafana",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Growth",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Hibernate",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "HTML",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "IA",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "IaaS",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Illustração",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Inovação",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Ionic",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "iOS",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "ITIL",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Jasper report",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Java",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Javascript",
+    "variacao": "JS",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Jboss",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Jenkins",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Jira",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "JMeter",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "JPA",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Jquery",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "JSP",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Kafka",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Kanban",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Kibana",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Kotlin",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Kubernetes",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Laravel",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Lean",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Liferay",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Logstash",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Lumen",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Machine Learning",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "MacOS",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Marketing Digital",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Material-UI",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Materialize",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Maven",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Micro serviços",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Mobile",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Modelagem de Dados",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Modelagem de processo",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "MongoDB",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "MVC",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "MySQL",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Netbeans",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "NHibernate",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "NodeCron",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "NodeJS",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Objective-C",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "OKD",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "OKR",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "OOP",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "OpenGL",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Openshift",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Oracle",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Oracle Cloud",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Oracle Database",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Oracle Weblogic",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "ORM Sequelize",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Outsystems",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "PaaS",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Pentaho",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Perl",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Photoshop",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "PHP",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "PLSQL",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "PostgreSQL",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Postman",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Power Bi",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "PowerQuery",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "PowerShell",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "PrimeFaces",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "PrimeNg",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Product Owner",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Prometheus",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Prototipagem",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Python",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "QA",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Quarkus",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "R",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Razor",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "React",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "React Native",
+    "variacao": "reactnative",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Redux",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Reporting Services",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Requisitos",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Ruby On Rails",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "SaaS",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Scrum",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Selenium",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Service Design",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "SERVICE DESK",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Shell Script",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "SOAP",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "SOLID",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Spring",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Spring boot",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "SQL",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "SQL Server",
+    "variacao": "sqlserver",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "SSIS",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "SSRS",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "SVN",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Swift",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "SysAdmin",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "T-SQl",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "TDD",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Terraform",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "TFS",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "TypeScript",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "UI",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "UX",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "VB .NET",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Visual Basic",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Visual Studio",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "VMware",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Vue",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "WCF",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Web Services",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "WebAPI",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Weblogic",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Windows",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Windows Forms",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Wordpress",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Writing",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Xamarin",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Xcode",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Yii2",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Zabbix",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Zaire",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Zend Framework",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Zend server",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Zope plone",
+    "variacao": "",
+    "tipo": "Hard Skill"
+  },
+  {
+    "nome": "Abstração",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Adaptabilidade",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Analítico(a)",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Autodidata",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Autogestão",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Carisma",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Colaboração",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Comprometimento",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Comunicação",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Criatividade",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Determinação",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Disponibilidade",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Empatia",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Empreendedorismo",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Engajamento",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Equilíbrio Emocional",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Escrita",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Ética",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Flexibilidade",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Foco",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Gentil",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Humildade",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Influência",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Liderança",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Motivação",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Negociação",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Organização",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Paciência",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Pensamento crítico",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Persistência",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Pontualidade",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Positividade",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Proatividade",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Problem Solving",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Resiliência",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Resolução de Problemas",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Responsabilidade",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Sociável",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Trabalho em equipe",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  },
+  {
+    "nome": "Visão do cliente",
+    "variacao": "",
+    "tipo": "Soft Skill"
+  }
+]

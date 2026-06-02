@@ -1,0 +1,35 @@
+# Known Issues / Tuning Pendente — web-app-next
+
+Issues inconclusivos (INCONC) do qa-report e sugestões de acessibilidade que dependem de decisão humana ou dados reais.
+
+---
+
+## Em Aberto
+
+| ID | Área | Descrição | Ciclo QA | Prioridade |
+|----|------|-----------|----------|------------|
+| INCONC-001 | Testes E2E | Testes Playwright pendentes — 8 fluxos críticos (login, ferias, ponto, gestão, feed, perfil, pessoas, holerite). Requerem dados de massa reais. | v2 | Alta |
+| INCONC-002 | Percentual | `PercentualItemRawSchema` — campo `itens` retornou vazio em jun/2026 (período sem lançamentos). Schema defensivo correto mas precisa de verificação com dados reais. | v2 | Média |
+| INCONC-003 | Feed — Segurança | `DELETE /api/feed/posts` e `DELETE /api/feed/comentarios` não validam autoria no servidor. Qualquer usuário autenticado pode enviar a requisição com qualquer ID. A proteção depende da API Squadra upstream rejeitar deleções não autorizadas. **Confirmar comportamento da API.** | v2 | Alta |
+| INCONC-004 | Ponto — Autorização | `GET /api/ponto?sqhorasId=X` — qualquer usuário com `bateRep: true` pode consultar ponto de qualquer sqhorasId sem verificação de vínculo gestor↔colaborador. Pode ser intencional (gestores consultam membros) ou IDOR. **Confirmar com PO se acesso livre é intencional.** | v2 | Média |
+| SUG-A11Y-001 | Acessibilidade | `home/page.tsx` sem `<h1>`. O título da rota aparece no Topbar como `<span>`, não como heading. Screen reader users não têm referência de heading para a homepage. Adicionar `<h1 className="sr-only">Home</h1>` ou transformar o greeting em heading. | Auditoria 2026-06-02 | Baixa |
+| SUG-A11Y-002 | Acessibilidade | Skip link "Pular para o conteúdo" ausente. Usuários de teclado precisam tabular por toda a navegação (Sidebar/Topbar) a cada mudança de rota. Adicionar `<a href="#main-content">` no Shell + `id="main-content"` no `<main>`. | Auditoria 2026-06-02 | Baixa |
+| SUG-A11Y-003 | Acessibilidade | Auditar `<h1>` em todas as páginas de feature. `feed/page.tsx` tem `<h1>` explícito; outras páginas podem não ter. Confirmar e adicionar `<h1 sr-only>` onde faltar. | Auditoria 2026-06-02 | Baixa |
+
+---
+
+## Resolvidos
+
+| ID | Área | Descrição | Resolvido em | Como |
+|----|------|-----------|--------------|------|
+| FAIL-QA-001 | Infraestrutura | `middleware.ts` inexistente — proteções de rota inativas, rate limiting desativado | QA v2 / 2026-06-02 | Criado `src/middleware.ts` com re-export do `proxy.ts` |
+| FAIL-QA-002 | Segurança | POST `/api/auth` sem `checkOrigin` — violação da política CSRF | QA v2 / 2026-06-02 | Adicionado `checkOrigin` na primeira linha do handler |
+| ACESS-001 | Acessibilidade | PostCard div clicável sem role/keyboard (WCAG 2.1.1) | Auditoria 2026-06-02 | `role="button"` + `tabIndex` + `onKeyDown` |
+| ACESS-002 | Acessibilidade | Botões like/comentário sem `aria-label` (WCAG 4.1.2) | Auditoria 2026-06-02 | `aria-label` dinâmico + `aria-pressed` + `aria-hidden` nos emojis |
+| ACESS-003 | Acessibilidade | FluenciaModal sem `DialogTitle` — diálogo sem nome acessível (WCAG 4.1.2) | Auditoria 2026-06-02 | Adicionado `<DialogTitle className="sr-only">` |
+| ACESS-004 | Acessibilidade | Logo link Sidebar sem `focus-visible` (WCAG 2.4.7) | Auditoria 2026-06-02 | `focus-visible:ring-2 focus-visible:ring-ring` |
+| ACESS-005 | Acessibilidade | Botão nome/cargo Topbar sem `focus-visible` (WCAG 2.4.7) | Auditoria 2026-06-02 | `focus-visible:ring-2 focus-visible:ring-ring focus-visible:rounded-md` |
+| ACESS-006 | Acessibilidade | `<aside>` Sidebar sem `aria-label` | Auditoria 2026-06-02 | `aria-label="Menu lateral de navegação"` |
+| ACESS-007 | Acessibilidade | `<nav>` BottomNav sem `aria-label` | Auditoria 2026-06-02 | `aria-label="Menu inferior"` |
+| ACESS-008 | Acessibilidade | Dois botões com mesmo `aria-label="Ir para perfil"` no Topbar (WCAG 1.3.1) | Auditoria 2026-06-02 | Botão nome/cargo alterado para `"Ver perfil de {nome}"` |
+| ACESS-009 | Acessibilidade | Metadado `not-found` sem acentos pt-BR (WCAG 3.1.1) | Auditoria 2026-06-02 | `'Página não encontrada — Horas'` |

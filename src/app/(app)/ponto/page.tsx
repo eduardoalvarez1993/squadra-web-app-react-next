@@ -1,0 +1,362 @@
+'use client';
+
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DrawerForm } from '@/components/shared/DrawerForm';
+import { ErrorSection } from '@/components/shared/ErrorSection';
+import { FormFeedback } from '@/components/shared/FormFeedback';
+import { AccessDenied } from '@/components/shared/AccessDenied';
+import { useUserStore } from '@/store/user';
+import { usePonto, type PontoDiaPendente } from '@/features/ponto/hooks/usePonto';
+import { PontoCalendar } from '@/features/ponto/components/PontoCalendar';
+import { PontosPendentes } from '@/features/ponto/components/PontosPendentes';
+import { ApontamentoForm } from '@/features/ponto/components/ApontamentoForm';
+import type { PontoDia } from '@/services/squadra-client';
+
+const MESES = [
+  'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+  'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro',
+];
+
+function toMin(t: string): number {
+  const [h = 0, m = 0] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function sumHoras(horas: string[]): string {
+  const total = horas.reduce((acc, h) => acc + toMin(h), 0);
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
+type DrawerMode = 'registrar' | 'solicitar' | 'aguardar' | 'apontar' | null;
+
+function PontoPageContent() {
+  const bateRep      = useUserStore((s) => s.permissoes.bateRep);
+  const searchParams = useSearchParams();
+
+  // Ver ponto de outro usuário via search params ?sqhorasId=X&nome=Y
+  const outraSqhorasId = searchParams.get('sqhorasId') ? Number(searchParams.get('sqhorasId')) : undefined;
+  const outraNome      = searchParams.get('nome') ?? undefined;
+
+  const today = new Date();
+  const [year,  setYear]  = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth() + 1);
+
+  const inicio  = `${year}-${String(month).padStart(2, '0')}-01`;
+  const lastDay = new Date(year, month, 0).getDate();
+  const fim     = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+  const {
+    meses,
+    dias,
+    pendentes,
+    projetos,
+    diasSemApontamento,
+    isLoading,
+    isError,
+    registrar,
+    isRegistrando,
+    liberacao,
+    isLiberando,
+    liberacaoError,
+  } = usePonto(inicio, fim, outraSqhorasId);
+
+  const [drawerDia,  setDrawerDia]  = useState<PontoDia | null>(null);
+  const [drawerMode, setDrawerMode] = useState<DrawerMode>(null);
+
+  function openFromPendente(item: PontoDiaPendente) {
+    setDrawerDia(item.dia);
+    setDrawerMode(item.tipo);
+  }
+
+  function openFromCalendar(dia: PontoDia) {
+    setDrawerDia(dia);
+    if (dia.isFalta) {
+      const st     = dia.statusLiberacaoFalta;
+      const gestor = dia.liberacaoGestor;
+      const solId  = dia.solicitacaoLiberacaoFaltaId;
+      if (st === 'A' || gestor === 'S') {
+        setDrawerMode(toMin(dia.horasRealizadas) === 0 ? 'apontar' : 'aguardar');
+      } else if (st === 'P' || solId > 0) {
+        setDrawerMode('aguardar');
+      } else {
+        setDrawerMode('solicitar');
+      }
+    } else {
+      setDrawerMode('registrar');
+    }
+  }
+
+  function openDiaSemApontamento(data: string) {
+    // Navegar para o mês correto e abrir drawer
+    const [, mm, yy] = data.split('/').map(Number);
+    if (mm !== month || yy !== year) {
+      setMonth(mm);
+      setYear(yy);
+    }
+    // Encontra o dia nos dados carregados (ou cria um fake)
+    const diaEncontrado = dias.find((d) => d.data === data);
+    if (diaEncontrado) {
+      openFromCalendar(diaEncontrado);
+    } else {
+      const [dd] = data.split('/');
+      const fake: PontoDia = {
+        data, diaSemana: '', fimDeSemana: false,
+        horasRealizadas: '00:00', horasPrevistas: '08:00', horasAbono: '00:00',
+        projeto: null, falta: false, horaExtra: '00:00', horasFalta: '00:00',
+        isFalta: false, isAbono: false, isTravadoId: 0, solicitacaoTravadoId: 0,
+        solicitacaoTravadoStatus: '', statusAbono: '', descricaoTipoAbono: '',
+        idUnico: 0, confirmaFalta: false, dadosHoraExtra: null, faltaId: 0,
+        solicitacaoLiberacaoFaltaId: 0, liberacaoGestor: '', statusLiberacaoFalta: '',
+        permissaoLiberacao: false,
+      };
+      void dd;
+      setDrawerDia(fake);
+      setDrawerMode('registrar');
+    }
+  }
+
+  function openNovoApontamento() {
+    const hoje = new Date();
+    const d    = String(hoje.getDate()).padStart(2, '0');
+    const m    = String(hoje.getMonth() + 1).padStart(2, '0');
+    const y    = hoje.getFullYear();
+    const fake: PontoDia = {
+      data:                        `${d}/${m}/${y}`,
+      diaSemana:                   '',
+      fimDeSemana:                 false,
+      horasRealizadas:             '00:00',
+      horasPrevistas:              '08:00',
+      horasAbono:                  '00:00',
+      projeto:                     null,
+      falta:                       false,
+      horaExtra:                   '00:00',
+      horasFalta:                  '00:00',
+      isFalta:                     false,
+      isAbono:                     false,
+      isTravadoId:                 0,
+      solicitacaoTravadoId:        0,
+      solicitacaoTravadoStatus:    '',
+      statusAbono:                 '',
+      descricaoTipoAbono:          '',
+      idUnico:                     0,
+      confirmaFalta:               false,
+      dadosHoraExtra:              null,
+      faltaId:                     0,
+      solicitacaoLiberacaoFaltaId: 0,
+      liberacaoGestor:             '',
+      statusLiberacaoFalta:        '',
+      permissaoLiberacao:          false,
+    };
+    setDrawerDia(fake);
+    setDrawerMode('registrar');
+  }
+
+  function closeDrawer() {
+    setDrawerDia(null);
+    setDrawerMode(null);
+  }
+
+  function prevMonth() {
+    if (month === 1) { setMonth(12); setYear((y) => y - 1); }
+    else setMonth((m) => m - 1);
+  }
+  function nextMonth() {
+    if (month === 12) { setMonth(1); setYear((y) => y + 1); }
+    else setMonth((m) => m + 1);
+  }
+
+  if (!bateRep) {
+    return <AccessDenied description="O ponto fica disponivel apenas para colaboradores com permissao de apontamento." />;
+  }
+
+  if (isError) {
+    return (
+      <div className="p-4">
+        <ErrorSection message="Não foi possível carregar os dados de ponto." onRetry={() => window.location.reload()} />
+      </div>
+    );
+  }
+
+  // Resumo
+  const diasUteis = dias.filter((d) => !d.fimDeSemana && toMin(d.horasPrevistas) > 0);
+  const carga     = sumHoras(diasUteis.map((d) => d.horasPrevistas));
+  const realizado = sumHoras(diasUteis.map((d) => d.horasRealizadas));
+  const saldo     = meses[0]?.saldo ?? null;
+  const saldoNeg  = saldo ? saldo.startsWith('-') : false;
+
+  const drawerDataIso = drawerDia
+    ? (() => { const [d, m, y] = drawerDia.data.split('/'); return `${y}-${m}-${d}`; })()
+    : '';
+
+  const drawerTitle = (() => {
+    if (!drawerDia) return '';
+    if (drawerMode === 'registrar' || drawerMode === 'apontar') return `Apontamento — ${drawerDia.data}`;
+    if (drawerMode === 'solicitar') return `Solicitar liberação — ${drawerDia.data}`;
+    return `Status — ${drawerDia.data}`;
+  })();
+
+  return (
+    <div className="flex flex-col gap-4 p-4 max-w-2xl mx-auto pb-24">
+
+      {/* Banner ver outro usuário */}
+      {outraNome && (
+        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-card px-3 py-2 text-sm text-blue-700 dark:text-blue-300">
+          Visualizando ponto de <strong>{outraNome}</strong>
+        </div>
+      )}
+
+      {/* Navegação de mês */}
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="icon" onClick={prevMonth} aria-label="Mês anterior">
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        <h1 className="text-lg font-semibold">{MESES[month - 1]} {year}</h1>
+        <Button variant="ghost" size="icon" onClick={nextMonth} aria-label="Próximo mês">
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+
+      {/* Resumo — 4 cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {[
+          { label: 'Carga',     value: isLoading ? '—' : carga,     red: false },
+          { label: 'Realizado', value: isLoading ? '—' : realizado, red: false },
+          { label: 'Saldo',     value: isLoading ? '—' : (saldo ?? '—'), red: saldoNeg },
+          { label: 'Pendentes', value: isLoading ? '—' : String(pendentes.length),
+            red: pendentes.length > 0 },
+        ].map(({ label, value, red }) => (
+          <div key={label} className="bg-card border border-border rounded-card p-3 flex flex-col gap-0.5">
+            <span className="text-xs text-muted-foreground">{label}</span>
+            <span className={`text-base font-semibold tabular-nums ${red ? label === 'Pendentes' ? 'text-yellow-600' : 'text-red-500' : ''}`}>
+              {value}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Botão realizar apontamento — oculto ao ver ponto de outro */}
+      {!outraSqhorasId && (
+        <Button
+          variant="outline"
+          className="w-full flex gap-2"
+          onClick={openNovoApontamento}
+          disabled={isLoading}
+        >
+          <Plus className="w-4 h-4" />
+          Realizar apontamento
+        </Button>
+      )}
+
+      {/* Dias pendentes */}
+      {!isLoading && (
+        <PontosPendentes pendentes={pendentes} onItemClick={openFromPendente} />
+      )}
+
+      {/* Dias sem apontamento — apenas para o próprio usuário */}
+      {!outraSqhorasId && diasSemApontamento.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+            Dias sem apontamento
+          </h2>
+          {diasSemApontamento.map((item) => {
+            const clicavel = !item.possuiFalta || item.liberacaoGestor;
+            const { bg, text, label } = item.possuiFalta
+              ? item.liberacaoGestor
+                ? { bg: 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800',
+                    text: 'text-green-700 dark:text-green-300', label: 'Liberado' }
+                : { bg: 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800',
+                    text: 'text-red-700 dark:text-red-300', label: 'Falta aplicada' }
+              : { bg: 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800',
+                  text: 'text-yellow-700 dark:text-yellow-300', label: 'Sem apontamento' };
+
+            return (
+              <button
+                key={item.data}
+                type="button"
+                disabled={!clicavel}
+                onClick={() => clicavel && openDiaSemApontamento(item.data)}
+                className={[
+                  `flex items-center justify-between border rounded-card px-3 py-2 text-sm ${bg}`,
+                  clicavel ? 'hover:opacity-80 transition-opacity' : 'cursor-default opacity-70',
+                ].join(' ')}
+              >
+                <span className={`font-medium ${text}`}>{item.data}</span>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${bg} ${text} border`}>
+                  {label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Calendário */}
+      <PontoCalendar
+        dias={dias}
+        loading={isLoading}
+        onDiaClick={openFromCalendar}
+        onSolicitar={!outraSqhorasId ? liberacao : undefined}
+      />
+
+      {/* Drawer */}
+      <DrawerForm
+        open={!!drawerDia && drawerMode !== null}
+        onClose={closeDrawer}
+        title={drawerTitle}
+        side="right"
+      >
+        {drawerMode === 'registrar' || drawerMode === 'apontar' ? (
+          <ApontamentoForm
+            data={drawerDataIso}
+            projetos={projetos}
+            isSubmitting={isRegistrando}
+            onSubmit={async (input) => {
+              await registrar(input);
+              closeDrawer();
+            }}
+          />
+        ) : drawerMode === 'solicitar' && drawerDia ? (
+          <div className="flex flex-col gap-4 pt-2">
+            <p className="text-sm text-muted-foreground">
+              Solicitação de liberação de falta para <strong>{drawerDia.data}</strong>.
+              O gestor receberá a notificação e poderá aprovar ou recusar.
+            </p>
+            {liberacaoError && <FormFeedback type="error" message={liberacaoError} />}
+            <Button
+              onClick={async () => {
+                if (!drawerDia.faltaId) return;
+                await liberacao(drawerDia.faltaId);
+                closeDrawer();
+              }}
+              disabled={isLiberando || !drawerDia.faltaId}
+              className="w-full"
+            >
+              {isLiberando ? 'Solicitando…' : 'Solicitar liberação ao gestor'}
+            </Button>
+          </div>
+        ) : drawerMode === 'aguardar' && drawerDia ? (
+          <div className="flex flex-col gap-2 pt-2">
+            <p className="text-sm">
+              A solicitação de liberação para <strong>{drawerDia.data}</strong> está
+              aguardando aprovação do gestor.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Nenhuma ação necessária por enquanto.
+            </p>
+          </div>
+        ) : null}
+      </DrawerForm>
+    </div>
+  );
+}
+
+export default function PontoPage() {
+  return (
+    <Suspense>
+      <PontoPageContent />
+    </Suspense>
+  );
+}
