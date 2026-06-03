@@ -9,7 +9,7 @@ import {
   ClockIcon,
   PercentIcon,
   BriefcaseIcon,
-  FileTextIcon,
+  WalletIcon,
   UmbrellaIcon,
   SearchIcon,
   ClipboardListIcon,
@@ -32,8 +32,8 @@ const ALWAYS: NavItem[] = [
   { href: '/home',         label: 'Home',        icon: <HomeIcon          className="h-5 w-5 text-blue-500" /> },
   { href: '/pessoas',      label: 'Pessoas',      icon: <SearchIcon        className="h-5 w-5 text-green-500" /> },
   { href: '/ferias',       label: 'Férias',       icon: <UmbrellaIcon      className="h-5 w-5 text-emerald-500" /> },
-  { href: '/holerite',     label: 'Holerite',     icon: <FileTextIcon      className="h-5 w-5 text-amber-500" /> },
-  { href: '/solicitacoes', label: 'Solicitações', icon: <ClipboardListIcon className="h-5 w-5 text-orange-500" /> },
+  { href: '/holerite',     label: 'Holerite',     icon: <WalletIcon        className="h-5 w-5 text-amber-500" /> },
+  { href: '/solicitacoes', label: 'Solicitar',    icon: <ClipboardListIcon className="h-5 w-5 text-orange-500" /> },
 ];
 
 export function Sidebar() {

@@ -9,7 +9,7 @@ import {
   ClockIcon,
   PercentIcon,
   BriefcaseIcon,
-  FileTextIcon,
+  WalletIcon,
   UmbrellaIcon,
   SearchIcon,
   ClipboardListIcon,
@@ -56,8 +56,8 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
     { href: '/home',         label: 'Home',        icon: <HomeIcon          className="h-5 w-5" /> },
     { href: '/pessoas',      label: 'Pessoas',      icon: <SearchIcon        className="h-5 w-5" /> },
     { href: '/ferias',       label: 'Férias',       icon: <UmbrellaIcon      className="h-5 w-5" /> },
-    { href: '/holerite',     label: 'Holerite',     icon: <FileTextIcon      className="h-5 w-5" /> },
-    { href: '/solicitacoes', label: 'Solicitações', icon: <ClipboardListIcon className="h-5 w-5" /> },
+    { href: '/holerite',     label: 'Holerite',     icon: <WalletIcon        className="h-5 w-5" /> },
+    { href: '/solicitacoes', label: 'Solicitar',    icon: <ClipboardListIcon className="h-5 w-5" /> },
   ];
 
   const conditionalItems = [];

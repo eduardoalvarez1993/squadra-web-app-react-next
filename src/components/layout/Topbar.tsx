@@ -18,7 +18,7 @@ const ROUTE_LABELS: [string, string][] = [
   ['/holerite',     'Holerite'],
   ['/ferias',       'Férias'],
   ['/pessoas',      'Pessoas'],
-  ['/solicitacoes', 'Solicitações'],
+  ['/solicitacoes', 'Solicitar'],
   ['/perfil',       'Perfil'],
   ['/home',         'Home'],
 ];
