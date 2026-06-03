@@ -201,6 +201,32 @@ interface ChangelogEntry {
 
 const CHANGELOG: ChangelogEntry[] = [
   {
+    title: 'Seção Extras — Links, Vídeos e Ajuda',
+    date: '03 Jun 2026',
+    tag: 'novo',
+    tagColor: 'bg-violet-100 text-violet-700',
+    items: [
+      'Novo item "Extras" no menu (desktop e mobile)',
+      'Links Importantes por grupos, com busca e copiar URL',
+      'Galeria de Vídeos institucionais com busca e filtro por categoria',
+      'Central de Ajuda: 62 dúvidas em 12 categorias, com busca e navegação em árvore',
+    ],
+  },
+  {
+    title: 'Ponto, RH e Gestão — melhorias',
+    date: '03 Jun 2026',
+    tag: 'release',
+    tagColor: 'bg-green-100 text-green-700',
+    items: [
+      'Ponto: calendário do mês redesenhado, resumo Saldo/Carga/Realizado e ações por dia',
+      'Apontamento exibindo o nome do projeto e data travada para visualização',
+      'RH: menu disponível para o Departamento Pessoal; abonos em abas (Pendentes/Aprovados/Reprovados) e anexo corrigido',
+      'Gestão: Aprovar/Reprovar direto no cartão; hora extra como Banco de Horas ou Folha; fotos nos cartões',
+      'Solicitações: hora extra com justificativa e período noturno',
+      'Tela "Verificando credenciais", cursor de clique nos botões e avatares neutros',
+    ],
+  },
+  {
     title: 'Página Stack & Arquitetura',
     date: '02 Jun 2026',
     tag: 'novo',
