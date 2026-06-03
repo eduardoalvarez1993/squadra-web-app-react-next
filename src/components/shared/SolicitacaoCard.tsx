@@ -16,9 +16,13 @@ interface SolicitacaoCardProps {
   nome: string;
   foto?: string | null;
   status: StatusSolicitacao;
+  subtitle?: React.ReactNode;
+  headerRight?: React.ReactNode;
   detalhes?: React.ReactNode;
   actions?: React.ReactNode;
   done?: boolean;
+  hideTipoLabel?: boolean;
+  hideStatus?: boolean;
 }
 
 export function SolicitacaoCard({
@@ -26,28 +30,36 @@ export function SolicitacaoCard({
   nome,
   foto = null,
   status,
+  subtitle,
+  headerRight,
   detalhes,
   actions,
   done = false,
+  hideTipoLabel = false,
+  hideStatus = false,
 }: SolicitacaoCardProps) {
   const cfg = TIPO_CONFIG[tipo];
 
   return (
     <div
       className={[
-        'flex flex-col gap-3 rounded-lg border bg-card p-4 transition-opacity',
+        'flex flex-col gap-2 rounded-lg border bg-card px-4 py-3 transition-opacity',
         done ? 'opacity-50' : '',
       ].join(' ')}
     >
       <div className="flex items-center gap-3">
-        <AvatarGradient nome={nome} foto={foto} size={40} />
+        <AvatarGradient nome={nome} foto={foto} size={38} />
         <div className="flex-1 min-w-0">
-          <p className="font-medium truncate">{nome}</p>
-          <p className="text-xs text-muted-foreground">
-            {cfg.icon} {cfg.label}
-          </p>
+          <p className="font-medium text-sm truncate">{nome}</p>
+          {subtitle
+            ? <div className="text-xs text-muted-foreground mt-0.5">{subtitle}</div>
+            : !hideTipoLabel && (
+                <p className="text-xs text-muted-foreground">{cfg.icon} {cfg.label}</p>
+              )
+          }
         </div>
-        <StatusChip status={status} />
+        {!hideStatus && <StatusChip status={status} />}
+        {headerRight}
       </div>
       {detalhes && (
         <div className="text-sm text-muted-foreground">{detalhes}</div>

@@ -12,10 +12,16 @@ export async function GET() {
 
   // foto não fica no cookie (excede 4 KB) — busca do upstream a cada boot do app
   // staleTime: Infinity no TanStack Query = só 1 chamada por sessão de browser
+  // Durante simulação usa getById(pessoaId) para buscar a foto do simulado, não do gestor
   let foto: string | null = null;
   try {
-    const pessoa = await squadra.auth.pessoa(session.token);
-    foto = pessoa.foto;
+    if (session.simulando && session.pessoaId) {
+      const pessoaData = await squadra.perfil.getById(session.pessoaId, session.token);
+      foto = (pessoaData as Record<string, unknown>)['foto'] as string | null ?? null;
+    } else {
+      const pessoa = await squadra.auth.pessoa(session.token);
+      foto = pessoa.foto;
+    }
   } catch { /* foto fica null — AvatarGradient usa iniciais */ }
 
   // temEquipe: cached in session — populated lazily on first call when gerenteFuncional

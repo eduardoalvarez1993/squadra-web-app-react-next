@@ -26,47 +26,103 @@ function toMin(t: string): number {
   return h * 60 + m;
 }
 
-function normalizeStr(s: string): string {
-  return s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toUpperCase();
+const SEM_ABREV: Record<string, string> = {
+  'Segunda-Feira': 'Seg', 'Terça-Feira': 'Ter', 'Quarta-Feira': 'Qua',
+  'Quinta-Feira': 'Qui', 'Sexta-Feira': 'Sex', 'Sabado': 'Sáb', 'Domingo': 'Dom',
+};
+
+// Cores das barras horizontais (espelham .pdr-bar--* do vanilla)
+const BAR = {
+  ok:     'bg-green-300',
+  pend:   'bg-amber-300',
+  err:    'bg-red-300',
+  info:   'bg-blue-200',
+  future: 'bg-gray-200',
+} as const;
+
+// Cores dos badges de status (espelham .pdr-status--* do vanilla)
+const STATUS = {
+  ok:   'bg-green-100 text-green-600',
+  pend: 'bg-amber-100 text-amber-700',
+  err:  'bg-red-100 text-red-600',
+  info: 'bg-blue-100 text-blue-700',
+} as const;
+
+type BarKey    = keyof typeof BAR;
+type StatusKey = keyof typeof STATUS;
+type CtaTipo   = 'registrar' | 'solicitar' | 'apontar';
+
+interface DiaComputed {
+  barKey:      BarKey;
+  statusKey:   StatusKey | null;
+  statusText:  string;
+  showBadge:   boolean;
+  cta:         { tipo: CtaTipo; label: string } | null;
+  liberadoBtn: boolean;          // botão verde "Liberado" (falta aprovada com horas)
+  aguardarBtn: boolean;          // botão cinza "Aguardar" (disabled)
+  horasDisplay: string;
+  horaExtra:   string;
 }
 
-function getAbonoBadge(dia: PontoDia): string {
-  const tipo = normalizeStr(dia.descricaoTipoAbono || '');
-  if (tipo.includes('FERIA')) return 'Férias';
-  if (tipo.includes('DAY'))   return 'Day-off';
-  return dia.descricaoTipoAbono || 'Feriado / Abono';
-}
+// Replica fielmente a árvore de decisão de renderDias() do web-app vanilla.
+function computeDia(dia: PontoDia, hoje: Date): DiaComputed {
+  const diaDate  = parseDMY(dia.data);
+  const prevMin  = toMin(dia.horasPrevistas);
+  const realMin  = toMin(dia.horasRealizadas);
+  const st       = dia.statusLiberacaoFalta || '';
+  const isFeriado = dia.fimDeSemana;
+  const isAbono   = dia.isFalta && !!dia.horasAbono && dia.horasAbono !== '00:00' && !!dia.descricaoTipoAbono;
+  const isToday   = diaDate.getTime() === hoje.getTime();
 
-type DayVariant = 'apontado' | 'pendente' | 'falta' | 'feriado' | 'futuro';
+  const base: DiaComputed = {
+    barKey: 'pend', statusKey: null, statusText: '', showBadge: false,
+    cta: null, liberadoBtn: false, aguardarBtn: false,
+    horasDisplay: '', horaExtra: '',
+  };
 
-function getDayVariant(dia: PontoDia, hoje: Date): DayVariant {
-  const dataDate = parseDMY(dia.data);
-  if (dataDate > hoje) return 'futuro';
+  const horaExtra = dia.horaExtra && dia.horaExtra !== '00:00' ? dia.horaExtra : '';
+  const horasDisplay = isAbono
+    ? dia.horasAbono
+    : (dia.horasRealizadas !== '00:00' ? dia.horasRealizadas : '');
 
-  const prevMin = toMin(dia.horasPrevistas);
-  const realMin = toMin(dia.horasRealizadas);
+  let r: DiaComputed = { ...base, horaExtra, horasDisplay };
 
-  if (dia.isAbono || (prevMin === 0 && dataDate.getTime() !== hoje.getTime())) return 'feriado';
-
-  if (dia.isFalta) {
-    const st = computeFaltaStatus(dia);
-    if (st === 'aprovado') return 'apontado';
-    if (st === 'recusado') return 'falta';
-    return 'pendente';
+  if (isFeriado) {
+    r = { ...r, barKey: 'info', statusKey: 'info', statusText: 'Feriado' };
+  } else if (isAbono) {
+    r = { ...r, barKey: 'info', statusKey: 'info', statusText: dia.descricaoTipoAbono };
+  } else if (prevMin === 0 && !isToday) {
+    r = { ...r, barKey: 'info', statusKey: 'info', statusText: 'Feriado' };
+  } else if (dia.isFalta && st === 'A') {
+    r = { ...r, barKey: 'ok', statusKey: 'ok' };
+    if (realMin === 0) {
+      r = { ...r, statusText: 'Liberado', cta: { tipo: 'apontar', label: 'Apontar' } };
+    } else {
+      r = { ...r, liberadoBtn: true };
+    }
+  } else if (dia.isFalta && st === 'R') {
+    r = { ...r, barKey: 'err', statusKey: 'err', statusText: 'Recusado' };
+  } else if (dia.isFalta || (dia.falta && Number(dia.faltaId) > 0)) {
+    const fSt = computeFaltaStatus(dia);
+    if (fSt === 'nao_solicitado') {
+      r = { ...r, barKey: 'err', cta: { tipo: 'solicitar', label: 'Solicitar' } };
+    } else if (fSt === 'pendente' && realMin > 0) {
+      r = { ...r, barKey: 'ok' };
+    } else {
+      r = { ...r, barKey: 'pend', aguardarBtn: true };
+    }
+  } else if (realMin === 0 && prevMin > 0) {
+    r = { ...r, barKey: 'pend', statusKey: 'pend', statusText: 'Sem apontamento', cta: { tipo: 'registrar', label: 'Registrar' } };
+  } else if (realMin >= prevMin) {
+    r = { ...r, barKey: 'ok' };
+  } else {
+    r = { ...r, barKey: 'pend', statusKey: 'pend', statusText: dia.horasRealizadas || '—' };
   }
 
-  if (realMin === 0 && prevMin > 0) return 'pendente';
-  if (realMin >= prevMin) return 'apontado';
-  return 'pendente';
+  // showBadge: oculta badge quando barra ok e não é falta (vanilla)
+  r.showBadge = !!r.statusText && !(r.barKey === 'ok' && !dia.isFalta);
+  return r;
 }
-
-const barColor: Record<DayVariant, string> = {
-  apontado: 'bg-green-500',
-  pendente: 'bg-yellow-400',
-  falta:    'bg-red-500',
-  feriado:  'bg-blue-400',
-  futuro:   'bg-muted-foreground/20',
-};
 
 interface PontoCalendarProps {
   dias:         PontoDia[];
@@ -76,7 +132,6 @@ interface PontoCalendarProps {
 }
 
 export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar }: PontoCalendarProps) {
-  // Dias que tiveram "Solicitar" clicado inline — evita abrir drawer
   const [solicitados, setSolicitados] = useState<Set<string>>(new Set());
   const [solicitando, setSolicitando] = useState<string | null>(null);
 
@@ -85,190 +140,187 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar }: PontoC
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
-  const diasUteis = dias
-    .filter((d) => !d.fimDeSemana)
+  // Ordena por data; remove apenas sábados/domingos reais (feriado no meio da semana fica)
+  const sorted = [...dias]
+    .filter((d) => !(d.fimDeSemana && (d.diaSemana === 'Sabado' || d.diaSemana === 'Domingo')))
     .sort((a, b) => parseDMY(a.data).getTime() - parseDMY(b.data).getTime());
 
   let hojeInserido   = false;
   let futuroInserido = false;
   const rows: React.ReactNode[] = [];
 
-  for (const dia of diasUteis) {
-    const dataDate = parseDMY(dia.data);
-    const isFuture = dataDate > hoje;
-    const isToday  = dataDate.getTime() === hoje.getTime();
+  for (const dia of sorted) {
+    const diaDate  = parseDMY(dia.data);
+    const isFuture = diaDate > hoje;
+    const isToday  = diaDate.getTime() === hoje.getTime();
+    const abrev    = SEM_ABREV[dia.diaSemana] ?? dia.diaSemana.slice(0, 3);
 
     if (isToday && !hojeInserido) {
       hojeInserido = true;
-      rows.push(
-        <div key="divider-hoje" className="flex items-center gap-2 py-1">
-          <div className="flex-1 h-px bg-border" />
-          <span className="text-xs text-muted-foreground font-medium">hoje</span>
-          <div className="flex-1 h-px bg-border" />
-        </div>,
-      );
+      rows.push(<Divider key="divider-hoje" label="hoje" tone="hoje" />);
     }
     if (isFuture && !futuroInserido) {
       futuroInserido = true;
-      rows.push(
-        <div key="divider-futuro" className="flex items-center gap-2 py-1">
-          <div className="flex-1 h-px bg-border" />
-          <span className="text-xs text-muted-foreground font-medium">futuro</span>
-          <div className="flex-1 h-px bg-border" />
-        </div>,
-      );
+      rows.push(<Divider key="divider-futuro" label="futuro" tone="futuro" />);
     }
 
-    const variant  = getDayVariant(dia, hoje);
-    const clicavel = variant !== 'feriado' && variant !== 'futuro';
-    const prevMin  = toMin(dia.horasPrevistas);
-    const realMin  = toMin(dia.horasRealizadas);
+    // Linha futura: barra cinza, sem horários nem status
+    if (isFuture) {
+      rows.push(
+        <div
+          key={dia.data}
+          className="grid grid-cols-[46px_28px_1fr_42px_auto] items-center gap-x-1.5 px-3.5 py-2.5 border-b border-gray-100 last:border-0 text-[0.82rem] opacity-35 pointer-events-none"
+        >
+          <span className="font-semibold text-gray-700">{dia.data.slice(0, 5)}</span>
+          <span className="text-[0.72rem] text-gray-400">{abrev}</span>
+          <span />
+          <span />
+          <div className="flex items-center gap-1.5 min-w-[140px]">
+            <div className={`flex-1 min-w-[40px] h-1.5 rounded-full ${BAR.future}`} />
+          </div>
+        </div>,
+      );
+      continue;
+    }
 
-    // Badge de status
-    const badge = (() => {
-      if (variant === 'futuro' || variant === 'apontado') return null;
-      if (variant === 'feriado') return getAbonoBadge(dia);
-      if (dia.isFalta) {
-        const st = computeFaltaStatus(dia);
-        if (st === 'recusado') return 'Recusado';
-        if (st === 'aprovado' && realMin === 0) return 'Liberado';
-        return null;
-      }
-      if (realMin === 0 && prevMin > 0) return 'Sem apontamento';
-      return null;
-    })();
+    const c = computeDia(dia, hoje);
 
-    // Hora extra
-    const horaExtra = dia.horaExtra && dia.horaExtra !== '00:00' ? dia.horaExtra : null;
-
-    // Horários dos projetos: "09:00–18:00 · 14:00–16:00"
     const projetoTimes = Array.isArray(dia.projeto) && dia.projeto.length > 0
-      ? dia.projeto.map((p) => `${p.horaInicio}–${p.horaTermino}`).join(' · ')
-      : null;
+      ? dia.projeto.map((p) => `${p.horaInicio}–${p.horaTermino}`).join(' — ')
+      : '';
 
-    // Botão inline solicitar (apenas se nao_solicitado e não já solicitado)
-    const faltaStatus = dia.isFalta ? computeFaltaStatus(dia) : null;
-    const podeSolicitarInline =
-      onSolicitar &&
-      faltaStatus === 'nao_solicitado' &&
-      dia.faltaId > 0 &&
-      !solicitados.has(dia.data);
-    const jaSolicitadoInline = solicitados.has(dia.data);
-
-    const [diaNum, mes] = dia.data.split('/');
-    const diaSemanaAbrev = dia.diaSemana.slice(0, 3);
+    // Botão "Solicitar" inline já clicado nesta sessão
+    const jaSolicitado = solicitados.has(dia.data);
+    const podeSolicitarInline = !!onSolicitar && c.cta?.tipo === 'solicitar' && dia.faltaId > 0;
 
     rows.push(
-      <button
+      <div
         key={dia.data}
-        type="button"
-        onClick={() => clicavel && !podeSolicitarInline && onDiaClick(dia)}
-        disabled={!clicavel}
-        className={[
-          'w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors',
-          clicavel && !podeSolicitarInline
-            ? 'hover:bg-accent active:bg-accent/80'
-            : 'cursor-default',
-          isFuture ? 'opacity-35' : '',
-        ].join(' ')}
+        className="grid grid-cols-[46px_28px_1fr_42px_auto] items-center gap-x-1.5 px-3.5 py-2.5 border-b border-gray-100 last:border-0 text-[0.82rem] hover:bg-gray-50"
       >
-        {/* Data */}
-        <div className="w-10 flex-shrink-0 text-center">
-          <div className="text-sm font-semibold leading-tight">{diaNum}/{mes}</div>
-          <div className="text-xs text-muted-foreground leading-tight">{diaSemanaAbrev}</div>
-        </div>
+        <span className="font-semibold text-gray-700">{dia.data.slice(0, 5)}</span>
+        <span className="text-[0.72rem] text-gray-400">{abrev}</span>
+        <span className="text-[0.72rem] text-gray-500 leading-snug break-words">{projetoTimes}</span>
+        <span className="text-[0.82rem] font-bold text-gray-700 text-right leading-tight">
+          {c.horasDisplay}
+          {c.horaExtra && <span className="block text-[0.66rem] font-bold text-red-600 leading-tight">+{c.horaExtra}</span>}
+        </span>
 
-        {/* Barra de cor */}
-        <div className={`w-1 self-stretch rounded-full flex-shrink-0 ${barColor[variant]}`} />
+        <div className="flex items-center gap-1.5 min-w-[140px]">
+          {/* Barra horizontal */}
+          <div className={`flex-1 min-w-[40px] h-1.5 rounded-full ${BAR[c.barKey]}`} />
 
-        {/* Conteúdo central */}
-        <div className="flex-1 flex flex-col gap-0.5 min-w-0">
-          <div className="flex items-center gap-1.5">
-            {!isFuture && realMin > 0 && (
-              <span className="text-sm text-muted-foreground tabular-nums">
-                {dia.horasRealizadas}
-              </span>
-            )}
-            {horaExtra && (
-              <span className="text-xs font-medium text-green-600 dark:text-green-400">
-                +{horaExtra}
-              </span>
-            )}
-            {isFuture && (
-              <span className="text-sm text-muted-foreground">—</span>
-            )}
-          </div>
-          {projetoTimes && !isFuture && (
-            <span className="text-xs text-muted-foreground truncate">{projetoTimes}</span>
+          {/* Botão verde "Liberado" (falta aprovada com horas) */}
+          {c.liberadoBtn && (
+            <span className="text-[0.7rem] font-bold rounded-md px-2 py-1 bg-green-100 text-green-600 border border-green-200 whitespace-nowrap">
+              Liberado
+            </span>
           )}
-        </div>
 
-        {/* Ação / badge direita */}
-        <div className="flex-shrink-0 flex items-center">
-          {jaSolicitadoInline ? (
-            <span className="text-xs font-medium text-green-600 dark:text-green-400">✓ Solicitado</span>
-          ) : podeSolicitarInline ? (
+          {/* Badge de status */}
+          {c.showBadge && c.statusKey && (
+            <span className={`text-[0.68rem] font-bold rounded-full px-2 py-0.5 whitespace-nowrap ${STATUS[c.statusKey]}`}>
+              {c.statusText}
+            </span>
+          )}
+
+          {/* Botão "Aguardar" (disabled) */}
+          {c.aguardarBtn && (
             <button
               type="button"
-              disabled={solicitando === dia.data}
-              onClick={async (e) => {
-                e.stopPropagation();
-                if (!onSolicitar || solicitando) return;
-                setSolicitando(dia.data);
-                try {
-                  await onSolicitar(dia.faltaId);
-                  setSolicitados((prev) => new Set(prev).add(dia.data));
-                } finally {
-                  setSolicitando(null);
-                }
-              }}
-              className="text-xs font-medium px-2 py-0.5 rounded-full border border-yellow-400 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 disabled:opacity-50 transition-colors"
+              disabled
+              className="text-[0.7rem] font-bold rounded-md px-2 py-1 bg-amber-500 text-white opacity-50 cursor-default whitespace-nowrap"
             >
-              {solicitando === dia.data ? '…' : 'Solicitar'}
+              Aguardar
             </button>
-          ) : badge ? (
-            <span
-              className={[
-                'text-xs font-medium px-2 py-0.5 rounded-full',
-                variant === 'feriado'
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                  : variant === 'falta'
-                  ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                  : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
-              ].join(' ')}
+          )}
+
+          {/* CTA: Registrar / Apontar / Solicitar */}
+          {c.cta && c.cta.tipo !== 'solicitar' && (
+            <button
+              type="button"
+              onClick={() => onDiaClick(dia)}
+              className="text-[0.7rem] font-bold rounded-md px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white whitespace-nowrap"
             >
-              {badge}
-            </span>
-          ) : null}
+              {c.cta.label}
+            </button>
+          )}
+
+          {/* CTA Solicitar: inline quando possível, senão abre drawer */}
+          {c.cta?.tipo === 'solicitar' && (
+            jaSolicitado ? (
+              <span className="text-[0.7rem] font-bold rounded-md px-2.5 py-1 bg-green-600 text-white whitespace-nowrap">
+                ✓ Solicitado
+              </span>
+            ) : podeSolicitarInline ? (
+              <button
+                type="button"
+                disabled={solicitando === dia.data}
+                onClick={async () => {
+                  if (!onSolicitar || solicitando) return;
+                  setSolicitando(dia.data);
+                  try {
+                    await onSolicitar(dia.faltaId);
+                    setSolicitados((prev) => new Set(prev).add(dia.data));
+                  } finally {
+                    setSolicitando(null);
+                  }
+                }}
+                className="text-[0.7rem] font-bold rounded-md px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white whitespace-nowrap disabled:opacity-50"
+              >
+                {solicitando === dia.data ? 'Solicitando…' : 'Solicitar'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onDiaClick(dia)}
+                className="text-[0.7rem] font-bold rounded-md px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white whitespace-nowrap"
+              >
+                Solicitar
+              </button>
+            )
+          )}
         </div>
-      </button>,
+      </div>,
     );
   }
 
   return (
-    <div className="flex flex-col gap-0.5">
-      <div className="px-3 pb-1">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="px-3.5 pt-3 pb-1">
+        <h2 className="text-[0.78rem] font-bold text-gray-400 uppercase tracking-wide">
           Registro do mês
         </h2>
       </div>
 
       {rows}
 
-      <div className="flex flex-wrap gap-x-4 gap-y-1 px-3 pt-3">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 px-3.5 py-3 border-t border-gray-100">
         {[
-          { color: 'bg-green-500',           label: 'OK' },
-          { color: 'bg-yellow-400',          label: 'Pendente' },
-          { color: 'bg-red-500',             label: 'Falta / Recusado' },
-          { color: 'bg-blue-400',            label: 'Feriado / Abono' },
-          { color: 'bg-muted-foreground/20', label: 'Futuro' },
+          { color: BAR.ok,     label: 'OK' },
+          { color: BAR.pend,   label: 'Pendente' },
+          { color: BAR.err,    label: 'Falta / Recusado' },
+          { color: BAR.info,   label: 'Feriado / Abono' },
+          { color: BAR.future, label: 'Futuro' },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1.5">
             <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
-            <span className="text-xs text-muted-foreground">{label}</span>
+            <span className="text-xs text-gray-500">{label}</span>
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function Divider({ label, tone }: { label: string; tone: 'hoje' | 'futuro' }) {
+  const line = tone === 'hoje' ? 'bg-blue-200' : 'bg-gray-200';
+  const text = tone === 'hoje' ? 'text-blue-300' : 'text-gray-300';
+  return (
+    <div className="flex items-center gap-2 px-3.5 pt-2.5 pb-1.5">
+      <div className={`flex-1 h-px ${line}`} />
+      <span className={`text-[0.7rem] font-semibold uppercase tracking-wider ${text}`}>{label}</span>
+      <div className={`flex-1 h-px ${line}`} />
     </div>
   );
 }

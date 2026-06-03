@@ -8,6 +8,7 @@ import { DrawerForm } from '@/components/shared/DrawerForm';
 import { ErrorSection } from '@/components/shared/ErrorSection';
 import { FormFeedback } from '@/components/shared/FormFeedback';
 import { AccessDenied } from '@/components/shared/AccessDenied';
+import { VerificandoCredenciais } from '@/components/shared/VerificandoCredenciais';
 import { useUserStore } from '@/store/user';
 import { usePonto, type PontoDiaPendente } from '@/features/ponto/hooks/usePonto';
 import { PontoCalendar } from '@/features/ponto/components/PontoCalendar';
@@ -34,6 +35,8 @@ type DrawerMode = 'registrar' | 'solicitar' | 'aguardar' | 'apontar' | null;
 
 function PontoPageContent() {
   const bateRep      = useUserStore((s) => s.permissoes.bateRep);
+  const gestorId     = useUserStore((s) => s.gestorId);
+  const hydrated     = gestorId !== 0;
   const searchParams = useSearchParams();
 
   // Ver ponto de outro usuário via search params ?sqhorasId=X&nome=Y
@@ -56,6 +59,7 @@ function PontoPageContent() {
     diasSemApontamento,
     isLoading,
     isError,
+    errorCode,
     registrar,
     isRegistrando,
     liberacao,
@@ -168,11 +172,21 @@ function PontoPageContent() {
     else setMonth((m) => m + 1);
   }
 
-  if (!bateRep) {
-    return <AccessDenied description="O ponto fica disponivel apenas para colaboradores com permissao de apontamento." />;
-  }
+  if (!hydrated) return <VerificandoCredenciais />;
+  if (!bateRep)  return <AccessDenied description="O ponto fica disponivel apenas para colaboradores com permissao de apontamento." />;
 
   if (isError) {
+    if (errorCode === 'sqhoras_not_found') {
+      return (
+        <div className="flex flex-col items-center justify-center gap-3 py-20 px-4 text-center">
+          <span className="text-3xl">⏱</span>
+          <p className="font-semibold text-foreground">Sem conta no SQHoras</p>
+          <p className="text-sm text-muted-foreground max-w-xs">
+            Este colaborador não possui uma conta ativa no SQHoras e não registra ponto por este sistema.
+          </p>
+        </div>
+      );
+    }
     return (
       <div className="p-4">
         <ErrorSection message="Não foi possível carregar os dados de ponto." onRetry={() => window.location.reload()} />
@@ -219,18 +233,16 @@ function PontoPageContent() {
         </Button>
       </div>
 
-      {/* Resumo — 4 cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {/* Resumo — Saldo | Carga | Realizado (espelha .ponto-resumo do vanilla) */}
+      <div className="flex gap-3 bg-white rounded-xl shadow-sm px-4 py-3.5">
         {[
+          { label: 'Saldo',     value: isLoading ? '—' : (saldo ?? '—'), red: saldoNeg },
           { label: 'Carga',     value: isLoading ? '—' : carga,     red: false },
           { label: 'Realizado', value: isLoading ? '—' : realizado, red: false },
-          { label: 'Saldo',     value: isLoading ? '—' : (saldo ?? '—'), red: saldoNeg },
-          { label: 'Pendentes', value: isLoading ? '—' : String(pendentes.length),
-            red: pendentes.length > 0 },
         ].map(({ label, value, red }) => (
-          <div key={label} className="bg-card border border-border rounded-card p-3 flex flex-col gap-0.5">
-            <span className="text-xs text-muted-foreground">{label}</span>
-            <span className={`text-base font-semibold tabular-nums ${red ? label === 'Pendentes' ? 'text-yellow-600' : 'text-red-500' : ''}`}>
+          <div key={label} className="flex-1 flex flex-col items-center gap-1">
+            <span className="text-[0.72rem] text-gray-400 uppercase font-semibold tracking-wide">{label}</span>
+            <span className={`text-[0.95rem] font-bold tabular-nums ${red ? 'text-red-500' : 'text-gray-900'}`}>
               {value}
             </span>
           </div>
@@ -239,15 +251,15 @@ function PontoPageContent() {
 
       {/* Botão realizar apontamento — oculto ao ver ponto de outro */}
       {!outraSqhorasId && (
-        <Button
-          variant="outline"
-          className="w-full flex gap-2"
+        <button
+          type="button"
           onClick={openNovoApontamento}
           disabled={isLoading}
+          className="w-full flex items-center justify-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-bold text-[0.95rem] rounded-2xl py-3.5 shadow-[0_4px_20px_rgba(29,78,216,0.3)] hover:shadow-[0_6px_24px_rgba(29,78,216,0.45)] transition-all disabled:opacity-50"
         >
           <Plus className="w-4 h-4" />
           Realizar apontamento
-        </Button>
+        </button>
       )}
 
       {/* Dias pendentes */}

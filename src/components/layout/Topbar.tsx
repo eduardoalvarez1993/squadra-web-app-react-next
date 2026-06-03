@@ -77,7 +77,7 @@ export function Topbar() {
           className="rounded-full ring-2 ring-transparent hover:ring-primary/30 focus-visible:ring-ring transition-all focus:outline-none"
           aria-label="Ir para perfil"
         >
-          <AvatarGradient nome={nome || '?'} foto={foto} size={32} />
+          <AvatarGradient nome={nome || ''} foto={foto} size={32} />
         </button>
       </header>
 

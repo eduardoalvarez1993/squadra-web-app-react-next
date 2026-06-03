@@ -1,0 +1,560 @@
+[
+  {
+    "problema": "Como proceder para solicitar equipamentos e acessórios?",
+    "categoria": "Hardware & Software",
+    "subcategoria": "Equipamentos",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Para solicitar equipamentos e acessórios, gentileza acessar o Help Desk em [https://helpdesk.squadra.com.br](https://helpdesk.squadra.com.br) e abrir um novo chamado, escolhendo a categoria Estação de Trabalho ou Periféricos, dependendo da sua necessidade.\n\nEm caso de dúvidas, procure o seu gestor para suporte.",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Infra"
+  },
+  {
+    "problema": "Como faço para substituir meu computador por outro melhor?",
+    "categoria": "Hardware & Software",
+    "subcategoria": "Equipamentos",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Envie um e-mail para o seu gestor imediato, solicitando a mudança do equipamento com as devidas considerações. Sendo aprovada a solicitação, faremos a cotação da locação e respectiva substituição.",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Infra"
+  },
+  {
+    "problema": "Quero colocar mais memória, armazenamento ou fazer um upgrade na minha máquina",
+    "categoria": "Hardware & Software",
+    "subcategoria": "Equipamentos",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Para solicitar upgrades, gentileza acessar o Help Desk em [https://helpdesk.squadra.com.br](https://helpdesk.squadra.com.br) e abrir um novo chamado, escolhendo a categoria Estação de Trabalho ou Periféricos, dependendo da sua necessidade.\n\nEm caso de dúvidas, procure o seu gestor para suporte.",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Infra"
+  },
+  {
+    "problema": "Qual o procedimento para aquisição de novas licenças de software?",
+    "categoria": "Hardware & Software",
+    "subcategoria": "Licenças",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Entre em contato com seu gestor e explique a sua necessidade. O gestor deve entrar então em contato com o time de Infra [Infra](mailto:itoc@squadra.com.br) ou o time do [Administrativo](mailto:administrativo@squadra.com.br) para solicitar a aquisição ou assinatura do software, indicando em qual projeto/cliente o custo deve incidir.",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Infra"
+  },
+  {
+    "problema": "Quais são os endereços de email dos departamentos da empresa?",
+    "categoria": "Comunicação",
+    "subcategoria": "Email",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Departamento Pessoal: [dp@squadra.com.br](mailto:dp@squadra.com.br)\nInfra: [itoc@squadra.com.br](mailto:itoc@squadra.com.br)\nSistemas: [sistemas@squadra.com.br](mailto:sistemas@squadra.com.br)\nPMO: [pmo@squadra.com.br](mailto:pmo@squadra.com.br)\nAdministrativo: [administrativo@squadra.com.br](mailto:administrativo@squadra.com.br)\nMarketing: [comunica.mkt@squadra.com.br](mailto:comunica.mkt@squadra.com.br)\nAtração e Seleção: [atracaoeselecao@squadra.com.br](mailto:atracaoeselecao@squadra.com.br)\nD&G: [desenvolvimentoegente@squadra.com.br](mailto:desenvolvimentoegente@squadra.com.br)",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Geral"
+  },
+  {
+    "problema": "Como sugerir uma pauta de conteúdo a equipe de comunicação?",
+    "categoria": "Comunicação",
+    "subcategoria": "Comunicação",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Envie um email para o [comunica.mkt@squadra.com.br](mailto:comunica.mkt@squadra.com.br)",
+    "email": "comunica.mkt@squadra.com.br",
+    "departamento": "Marketing"
+  },
+  {
+    "problema": "Qual a senha padrão de um novo colaborador?",
+    "categoria": "Acessos e Rede",
+    "subcategoria": "Acessos e Senha",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "A senha padrão de novos colaboradores é squadra@2020 (substitua 2020 pelo ano atual)",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Sistemas"
+  },
+  {
+    "problema": "Como posso trocar a minha senha?",
+    "categoria": "Acessos e Rede",
+    "subcategoria": "Acessos e Senha",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Para trocar a sua senha, faça logout no aplicativo. Na tela de login, existe uma opção Trocar Senha, onde é possível definir uma nova senha.",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Sistemas"
+  },
+  {
+    "problema": "Como acessar o SQHoras na Web?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "SQHoras",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "O SQHoras pode ser acessado na Web pelo link [https://sqhoras.squadra.com.br/](https://sqhoras.squadra.com.br/)",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Geral"
+  },
+  {
+    "problema": "Como apropriar horas no aplicativo?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "Aplicativo",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Para apropriar horas no aplicativo é muito fácil.\n\n### APROPRIAÇÃO NO DIA ATUAL\n1 - Acesse a funcionalidade Horas\n2 - Clique em Escolher Projeto\n3 - Procure o projeto pelo nome, ou escolha um projeto da lista\n4 - Clique em INICIAR\n5 - Quando pausar as atividades, clique em PAUSAR no projeto em execução\n\n### APROPRIAÇÃO RETROATIVA\n1 - Acesse a funcionalidade Horas\n2 - Escolha o dia que desejar\n3 - Clique em Adicionar Período\n4 - Escolha horário de início, fim, projeto e subserviço, e clique em SALVAR",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Geral"
+  },
+  {
+    "problema": "Como proceder quando está faltando uma das marcações?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "SQHoras",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Encaminhe um email para [itoc@squadra.com.br](mailto:itoc@squadra.com.br), informando o dia ou os dias em que estão aparecendo essa mensagem.",
+    "email": "itoc@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Como proceder quando as marcações retornam mensagem de marcação ímpar?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "SQHoras",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Encaminhe um email para [itoc@squadra.com.br](mailto:itoc@squadra.com.br) e informe o dia ou os dias em que está recebendo a mensagem de marcação ímpar.",
+    "email": "itoc@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Como procedo para solicitar marcação manual?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "SQHoras",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "itoc@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Como fazer a solicitação de alteração de horas?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "SQHoras",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Para fazer a solicitação de alteração de horas entre na opção presente na sua régua e preencha com os dados cuja apropriação esteja faltando, não é necessário repetir um período já apropriado.",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Sistemas"
+  },
+  {
+    "problema": "Como um gestor aprova ou reprova uma solicitação de horas?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "SQHoras",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "O gestor deve acessar [https://sqhoras.squadra.com.br](https://sqhoras.squadra.com.br) para aprovar/reprovar solicitações de horas",
+    "email": "dp@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Como realizar marcação de ponto no portal Corpore RM (Totvs)?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "Portal Corpore RM",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Acesse [https://corpore.squadra.com.br/](https://corpore.squadra.com.br/) e logue com seu número da chapa como usuário. Para obter o seu número de chapa, solicite ao Departamento Pessoal (DP).\n\nVerifique se seus registros no Portal RM estão atualizados e em dia.\n\nLembre-se que registros de jornada no Portal RM não dependem de liberação de projetos no Sqhoras.\n\nA ausência dos registros podem acarretar:\n- Desconto de faltas/atrasos;\n- Erro na contabilização do Banco de Horas;\n- Suspensão de pagamento;\n- Advertência escrita/Justa causa.",
+    "email": "dp@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Esqueci minha senha do portal RM, o que fazer?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "Portal Corpore RM",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "1 - Clique no link 'Esqueceu sua senha?' no Portal RM\n2 - Digite seus dados de acesso (Chapa e e-mail corporativo) e clique em 'Concluir'\n3 - Você receberá um e-mail com um link para a troca da senha\n4 - Digite os dados da nova senha e clique em 'Concluir'\n\nCaso não tenha recebido o e-mail, verifique sua Lixeira e Caixa de Spam. Se o problema persistir, entre em contato: [itoc@squadra.com.br](mailto:itoc@squadra.com.br)",
+    "email": "dp@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Não consigo acessar o SQHoras, o que faço?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "SQHoras",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Envie um email para o [Service Desk](mailto:itoc@squadra.com.br)",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Infra"
+  },
+  {
+    "problema": "Estou sem projeto no SQHoras, o que devo fazer?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "SQHoras",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Entre em contato com o seu gestor e solicite a sua alocação.",
+    "email": "dp@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Estou sem projeto no SQHoras, posso registrar no portal RM?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "Portal Corpore RM",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Sim! O registro das marcações de jornada no portal RM não dependem de projetos e devem ser feitas diariamente.",
+    "email": "dp@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Como solicitar atuação extra (Horas além do previsto)?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "SQHoras",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Para solicitar HS além do previsto, primeiramente alinhe com seu gestor e abra uma solicitação de *Hs além do previsto* em [https://sqhoras.squadra.com.br/](https://sqhoras.squadra.com.br/)",
+    "email": "dp@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Como acessar o JIRA?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "JIRA",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Acesse o JIRA pela URL [https://jira.squadra.com.br/secure/Dashboard.jspa](https://jira.squadra.com.br/secure/Dashboard.jspa)",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Sistemas"
+  },
+  {
+    "problema": "Como acessar o GitLab?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "GITLAB",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Acesse [https://gitlab.squadra.com.br/](https://gitlab.squadra.com.br/)",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Sistemas"
+  },
+  {
+    "problema": "Gostaria de sugerir melhorias no JIRA ou em processos?",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "JIRA",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "pmo@squadra.com.br",
+    "departamento": "PMO"
+  },
+  {
+    "problema": "Gostaria de apoio na gestão de usuários (permissões JIRA/SQHoras)",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "JIRA",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "pmo@squadra.com.br",
+    "departamento": "PMO"
+  },
+  {
+    "problema": "Gostaria de apoio na gestão de apontamento de horas",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "JIRA",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "pmo@squadra.com.br",
+    "departamento": "PMO"
+  },
+  {
+    "problema": "Gostaria de apoio para construir quadros Kanban/Scrum",
+    "categoria": "Sistemas Squadra",
+    "subcategoria": "JIRA",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "pmo@squadra.com.br",
+    "departamento": "PMO"
+  },
+  {
+    "problema": "Quero reportar um assédio que sofri na Squadra. Onde posso fazer isso?",
+    "categoria": "Pessoas",
+    "subcategoria": "Problemas pessoais",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Por favor entre em contato com [desenvolvimentoegente@squadra.com.br](mailto:desenvolvimentoegente@squadra.com.br) e informe o ocorrido.",
+    "email": "desenvolvimentoegente@squadra.com.br",
+    "departamento": "D&G"
+  },
+  {
+    "problema": "Acesso a plataforma Alura",
+    "categoria": "Capacitação & Cursos",
+    "subcategoria": "Alura",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Acesse o formulário abaixo e cadastre a solicitação:\n[https://forms.gle/e4crXwepz9wGjiGq5](https://forms.gle/e4crXwepz9wGjiGq5)\n\nAdicionalmente, você pode enviar um email para o D&G para tirar dúvidas sobre o acesso: [desenvolvimentoegente@squadra.com.br](mailto:desenvolvimentoegente@squadra.com.br)",
+    "email": "desenvolvimentoegente@squadra.com.br",
+    "departamento": "D&G"
+  },
+  {
+    "problema": "Acesso a plataforma Udemy",
+    "categoria": "Capacitação & Cursos",
+    "subcategoria": "Udemy",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Acesse o formulário abaixo e cadastre a solicitação:\n[https://forms.gle/e4crXwepz9wGjiGq5](https://forms.gle/e4crXwepz9wGjiGq5)\n\nAdicionalmente, você pode enviar um email para o D&G para tirar dúvidas sobre o acesso: [desenvolvimentoegente@squadra.com.br](mailto:desenvolvimentoegente@squadra.com.br)",
+    "email": "desenvolvimentoegente@squadra.com.br",
+    "departamento": "D&G"
+  },
+  {
+    "problema": "É possível extender o prazo de utilização da plataforma Alura?",
+    "categoria": "Capacitação & Cursos",
+    "subcategoria": "Alura",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Sim, basta solicitar para seu gestor, que deve entrar em contato com o D&G e solicitar a extensão do prazo.",
+    "email": "desenvolvimentoegente@squadra.com.br",
+    "departamento": "D&G"
+  },
+  {
+    "problema": "A empresa ajuda com custos a certificações? Como funciona?",
+    "categoria": "Capacitação & Cursos",
+    "subcategoria": "Certificações",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Dependendo do curso e da necessidade da empresa, é possível que a Squadra forneça ajuda com custos de certificações. Procure seu gestor e/ou D&G e explique a necessidade, e como a certificação poderá te ajudar nas atividades realizadas da Squadra.",
+    "email": "desenvolvimentoegente@squadra.com.br",
+    "departamento": "D&G"
+  },
+  {
+    "problema": "Gostaria de realizar um treinamento em alguma ferramenta ou processo",
+    "categoria": "Capacitação & Cursos",
+    "subcategoria": "Treinamentos",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "pmo@squadra.com.br",
+    "departamento": "PMO"
+  },
+  {
+    "problema": "Solicitar reembolso de compra",
+    "categoria": "Escritório & Ambiente",
+    "subcategoria": "Reembolsos",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "administrativo@squadra.com.br",
+    "departamento": "Administrativo"
+  },
+  {
+    "problema": "Como ter acesso às unidades da empresa (sede e filiais)?",
+    "categoria": "Escritório & Ambiente",
+    "subcategoria": "Escritório",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Entrar em contato pelo email [administrativo@squadra.com.br](mailto:administrativo@squadra.com.br) ou (31) 99587-0279 informando a data, horário e motivo de acesso.",
+    "email": "administrativo@squadra.com.br",
+    "departamento": "Administrativo"
+  },
+  {
+    "problema": "Como abrir uma solicitação de viagem?",
+    "categoria": "Escritório & Ambiente",
+    "subcategoria": "Viagens",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Entrar em contato pelo email [viagens.squadra@squadra.com.br](mailto:viagens.squadra@squadra.com.br) ou (31) 98240-3543",
+    "email": "administrativo@squadra.com.br",
+    "departamento": "Administrativo"
+  },
+  {
+    "problema": "Como abrir uma solicitação de compra?",
+    "categoria": "Escritório & Ambiente",
+    "subcategoria": "Compras",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Entrar em contato pelo email [compras@squadra.com.br](mailto:compras@squadra.com.br)",
+    "email": "administrativo@squadra.com.br",
+    "departamento": "Administrativo"
+  },
+  {
+    "problema": "O que é o PDI?",
+    "categoria": "Carreira",
+    "subcategoria": "PDI",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Plano de Desenvolvimento Individual (PDI) é um planejamento que propõe a projeção da carreira por meio do aperfeiçoamento de habilidades que possibilitam a ascensão profissional em uma organização.\n\n- Etapa 1 – Análise Situacional\n- Etapa 2 – Análise das informações\n- Etapa 3 – Elaboração do PDI\n- Etapa 4 – Feedback\n- Etapa 5 - Avaliação\n\nEm caso de dúvidas, procure o [D&G](mailto:desenvolvimentoegente@squadra.com.br) para se informar melhor.",
+    "email": "desenvolvimentoegente@squadra.com.br",
+    "departamento": "D&G"
+  },
+  {
+    "problema": "Indicação de profissional",
+    "categoria": "Contratação & Realocação",
+    "subcategoria": "Contratação",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Para realizar uma indicação de profissional para trabalhar na Squadra, envie um email para [recrutamento@squadra.com.br](mailto:recrutamento@squadra.com.br) com o CV do profissional em anexo",
+    "email": "recrutamento@squadra.com.br",
+    "departamento": "D&G"
+  },
+  {
+    "problema": "Qual o procedimento para um gestor abrir uma vaga?",
+    "categoria": "Contratação & Realocação",
+    "subcategoria": "Contratação",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Acesse o JIRA, clique no botão *Criar*, selecione o projeto *[SQUADRA OVERHEAD] D&G / GESTÃO DE PESSOAS* e selecione o tipo de item *Vaga* e preencha as informações necessárias.\n\n*Observação*: esse procedimento só pode ser realizado por gestores e diretores.",
+    "email": "recrutamento@squadra.com.br",
+    "departamento": "D&G"
+  },
+  {
+    "problema": "Gostaria de atuar em outra função/cargo/tecnologia na empresa, como proceder?",
+    "categoria": "Contratação & Realocação",
+    "subcategoria": "Realocação",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Recomendamos que primeiramente entre em contato com seu gestor, exponha a situação e a nova função que gostaria de atuar. Adicionalmente, você pode procurar o [D&G](mailto:desenvolvimentoegente@squadra.com.br) diretamente e explicar a alteração de função desejada, para que a empresa avalie.",
+    "email": "desenvolvimentoegente@squadra.com.br",
+    "departamento": "D&G"
+  },
+  {
+    "problema": "Como visualizar meu contracheque (holerite)?",
+    "categoria": "Salários & Benefícios",
+    "subcategoria": "Contracheque",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Acesse o menu lateral do aplicativo e clique em *Holerite*.",
+    "email": "dp@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Quais são os benefícios do Squadra Benefits?",
+    "categoria": "Salários & Benefícios",
+    "subcategoria": "Clube de Vantagens",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Os benefícios do Squadra Benefits você encontra nesse link: [https://sites.google.com/squadra.com.br/peopleevolution/](https://sites.google.com/squadra.com.br/peopleevolution/)",
+    "email": "dp@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Tenho dúvidas sobre VR, Vale Transporte, Plano de saúde, PLR ou outros benefícios",
+    "categoria": "Salários & Benefícios",
+    "subcategoria": "Benefícios",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Gentileza procurar o [DP](mailto:dp@squadra.com.br) para esclarecer suas dúvidas.",
+    "email": "dp@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Enviar um atestado médico",
+    "categoria": "Férias & Licenças",
+    "subcategoria": "Atestado",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "dp@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Enviar comprovante férias assinado",
+    "categoria": "Férias & Licenças",
+    "subcategoria": "Férias",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "dp@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Como solicitar férias?",
+    "categoria": "Férias & Licenças",
+    "subcategoria": "Férias",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Acesse [https://sqhoras.squadra.com.br](https://sqhoras.squadra.com.br), clique no menu *Colaborador → Solicitações → Solicitar Férias*. Nesta tela será possível visualizar seu saldo de férias e realizar uma solicitação.",
+    "email": "dp@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Como acessar a VPN da Squadra em um Mac?",
+    "categoria": "Acessos e Rede",
+    "subcategoria": "VPN",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "1 - Instale o software SonicWall Mobile Connect da AppStore\n2 - Configure o Server vpn-sonicwall.squadra.com.br, e use seu usuário e senha\n3 - Antes de acessar, certifique-se com a Infra se o seu usuário tem acesso a VPN. Caso não possua, abra um chamado no HelpDesk.",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Infra"
+  },
+  {
+    "problema": "Como acessar a VPN da Squadra em Windows?",
+    "categoria": "Acessos e Rede",
+    "subcategoria": "VPN",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "1 - Instale o software SonicWall Net Extender SSL VPN\n2 - Configure o Server vpn-sonicwall.squadra.com.br, e use seu usuário e senha\n3 - Antes de acessar, certifique-se com a Infra se o seu usuário tem acesso a VPN. Caso não possua, abra um chamado no HelpDesk.",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Infra"
+  },
+  {
+    "problema": "Solicitar acesso a VPN para meu usuário",
+    "categoria": "Acessos e Rede",
+    "subcategoria": "VPN",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Infra"
+  },
+  {
+    "problema": "Enviar dúvida p/ DP",
+    "categoria": "Dúvidas & Outros",
+    "subcategoria": "Dúvidas Gerais",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "dp@squadra.com.br",
+    "departamento": "DP"
+  },
+  {
+    "problema": "Enviar dúvida p/ Infra",
+    "categoria": "Dúvidas & Outros",
+    "subcategoria": "Dúvidas Gerais",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "itoc@squadra.com.br",
+    "departamento": "Infra"
+  },
+  {
+    "problema": "Enviar dúvida p/ Administrativo",
+    "categoria": "Dúvidas & Outros",
+    "subcategoria": "Dúvidas Gerais",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "administrativo@squadra.com.br",
+    "departamento": "Administrativo"
+  },
+  {
+    "problema": "Enviar dúvida p/ PMO",
+    "categoria": "Dúvidas & Outros",
+    "subcategoria": "Dúvidas Gerais",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "pmo@squadra.com.br",
+    "departamento": "PMO"
+  },
+  {
+    "problema": "Enviar dúvida p/ D&G",
+    "categoria": "Dúvidas & Outros",
+    "subcategoria": "Dúvidas Gerais",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "desenvolvimentoegente@squadra.com.br",
+    "departamento": "D&G"
+  },
+  {
+    "problema": "Enviar dúvida p/ Marketing",
+    "categoria": "Dúvidas & Outros",
+    "subcategoria": "Dúvidas Gerais",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "comunica.mkt@squadra.com.br",
+    "departamento": "Marketing"
+  },
+  {
+    "problema": "Enviar dúvida p/ Financeiro",
+    "categoria": "Dúvidas & Outros",
+    "subcategoria": "Dúvidas Gerais",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "lfinanceiro@squadra.com.br",
+    "departamento": "Financeiro"
+  },
+  {
+    "problema": "Enviar dúvida p/ Contratos",
+    "categoria": "Dúvidas & Outros",
+    "subcategoria": "Contratos",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "contratos@squadra.com.br",
+    "departamento": "Contratos"
+  },
+  {
+    "problema": "Como assinar um documento no grupo Squadra?",
+    "categoria": "Dúvidas & Outros",
+    "subcategoria": "Contratos",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Ao receber um documento que precisa de assinatura encaminhe para [assina@squadra.com.br](mailto:assina@squadra.com.br).",
+    "email": "contratos@squadra.com.br",
+    "departamento": "Contratos"
+  },
+  {
+    "problema": "Como solicitar a análise de um contrato no grupo Squadra?",
+    "categoria": "Dúvidas & Outros",
+    "subcategoria": "Contratos",
+    "tipo": "Pergunta e Resposta",
+    "resposta": "Ao receber um contrato ou minuta de cliente que precisa de análise jurídica encaminhe para [contratos@squadra.com.br](mailto:contratos@squadra.com.br).",
+    "email": "contratos@squadra.com.br",
+    "departamento": "Contratos"
+  },
+  {
+    "problema": "Gostaria de ajuda para fazer o planejamento e acompanhamento de projetos através de indicadores",
+    "categoria": "Dúvidas & Outros",
+    "subcategoria": "Projetos",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "pmo@squadra.com.br",
+    "departamento": "PMO"
+  },
+  {
+    "problema": "Gostaria de ajuda para fazer análise de replanejamento",
+    "categoria": "Dúvidas & Outros",
+    "subcategoria": "Projetos",
+    "tipo": "Solicitação via Formulário",
+    "resposta": "",
+    "email": "pmo@squadra.com.br",
+    "departamento": "PMO"
+  }
+]

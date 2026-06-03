@@ -10,8 +10,12 @@ export async function getRHAbonos(status: 'P' | 'A' | 'R', token: string): Promi
   return squadra.rh.getAbonos(status, token);
 }
 
-export async function downloadAbonoAnexo(id: string | number, token: string): Promise<{ arquivo: string }> {
-  return squadra.rh.downloadAnexo(id, token) as Promise<{ arquivo: string }>;
+export async function downloadAbonoAnexo(
+  id: string | number,
+  status: 'P' | 'A' | 'R',
+  token: string,
+): Promise<{ arquivo: string }> {
+  return squadra.rh.getAbonoAnexo(id, status, token);
 }
 
 export async function getRHFerias(gestorId: number, token: string): Promise<FeriasRHItem[]> {

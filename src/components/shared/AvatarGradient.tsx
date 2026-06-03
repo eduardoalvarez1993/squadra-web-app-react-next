@@ -14,13 +14,13 @@ const GRADIENTS = [
 ];
 
 function avatarGradient(nome: string): string {
-  const code = nome.charCodeAt(0) || 0;
+  const code = nome.trim().charCodeAt(0) || 0;
   return GRADIENTS[code % GRADIENTS.length];
 }
 
 function initials(nome: string): string {
   const trimmed = nome.trim();
-  if (!trimmed) return '?';
+  if (!trimmed) return '';
   const parts = trimmed.split(/\s+/);
   if (parts.length === 1) return parts[0][0].toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();

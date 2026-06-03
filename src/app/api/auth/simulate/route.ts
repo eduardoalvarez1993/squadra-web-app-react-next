@@ -38,11 +38,6 @@ export async function POST(req: NextRequest) {
   if (id === session.gestorId) return NextResponse.json({ error: 'Não é possível simular a si mesmo' }, { status: 400 });
 
   try {
-    // Buscar permissões do alvo
-    const [permissoesResult] = await Promise.allSettled([
-      squadra.auth.permissoes(id, session.token),
-    ]);
-
     // Salvar sessão original (sem _sim_orig) para rollback
     const orig: OrigSession = {
       token:      session.token,
@@ -56,34 +51,43 @@ export async function POST(req: NextRequest) {
       permissoes: { ...session.permissoes },
     };
 
-    const permissoes = permissoesResult.status === 'fulfilled'
-      ? permissoesResult.value
-      : { gerenteFuncional: false, perfilDP: false, bateRep: false, perfilCoordenador: false, perfilTI: false, perfilMarketing: false };
+    // sqhorasId = pessoaId do alvo — o endpoint /v1/retornaDadosColab/{id}/... aceita o
+    // pessoaId diretamente (igual ao ?id= do dados_colab de equipe no vanilla).
+    const sqhorasId = id;
+    let nome     = String(id);
+    let cargo    = '';
+    let login    = session.login;
 
-    // Buscar sqhorasId do alvo via /v1/usuarios/{login}
-    let sqhorasId = id;
-    let nome      = String(id);
-    let cargo     = '';
-
-    // Tentar buscar pelo login do alvo
+    let pessoaBateRep: boolean | undefined;
     try {
       const pessoaAlvo = await squadra.pessoas.getById(id, session.token);
       nome  = pessoaAlvo.nome  || nome;
       cargo = pessoaAlvo.cargo || cargo;
-      if (pessoaAlvo.login) {
-        const usuarios = await squadra.auth.usuarios(pessoaAlvo.login, session.token);
-        sqhorasId = usuarios.sqhorasId || id;
-      }
+      if (pessoaAlvo.login) login = pessoaAlvo.login as string;
+      const bateRepAlvo = (pessoaAlvo as Record<string, unknown>)['bateRep'];
+      if (bateRepAlvo !== undefined) pessoaBateRep = Boolean(bateRepAlvo);
     } catch { /* prossegue com dados parciais */ }
+
+    // Permissões do alvo — pessoaId == usuarioId (confirmado na API), mesmo ID do login real
+    let permissoes;
+    try {
+      permissoes = await squadra.auth.permissoes(id, session.token);
+    } catch {
+      permissoes = { gerenteFuncional: false, perfilDP: false, bateRep: false, perfilCoordenador: false, perfilTI: false, perfilMarketing: false };
+    }
+
+    // bateRep: perfil da pessoa é a fonte primária (igual ao login), permissões é fallback
+    const bateRep = pessoaBateRep ?? permissoes.bateRep;
 
     // Sobrescrever sessão com dados do alvo (foto omitida — não armazenada no cookie)
     session.gestorId   = id;
     session.pessoaId   = id;
     session.sqhorasId  = sqhorasId;
+    session.login      = login;
     session.nome       = nome;
     session.cargo      = cargo;
-    session.bateRep    = permissoes.bateRep;
-    session.permissoes = permissoes;
+    session.bateRep    = bateRep;
+    session.permissoes = { ...permissoes, bateRep }; // garante consistência
     session.simulando   = true;
     session.podeSimular = false;
     session.temEquipe   = undefined; // força recálculo no próximo /api/auth/me

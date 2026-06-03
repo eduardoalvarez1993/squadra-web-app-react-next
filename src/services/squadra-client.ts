@@ -397,7 +397,7 @@ const PessoaItemSchema = z.unknown().transform((raw): PessoaData => {
     cargo:      String(d['cargo'] ?? ''),
     email:      String(d['email'] ?? ''),
     celular:    String(d['celular'] ?? ''),
-    login:      String(d['login'] ?? ''),
+    login:      String(d['login'] ?? d['loginUsuario'] ?? d['usuario'] ?? ''),
   };
 });
 
@@ -427,23 +427,32 @@ export type AbonoRH = {
   motivo:          string;
   tipo:            string;
   data:            string;
-  horas:           number;
-  status:          string;
+  horas:           string;   // "HH:MM" (a API retorna string, ex.: "00:50")
+  status:          string;   // normalizado para 'P' | 'A' | 'R' | 'C'
   temAnexo:        boolean;
 };
 
 const AbonoRHItemSchema = z.unknown().transform((raw): AbonoRH => {
   const d = raw as Record<string, unknown>;
+  // status vem como "PENDENTE"/"APROVADO"/"RECUSADO" — normaliza para P/A/R/C
+  const s = String(d['status'] ?? '').toUpperCase();
+  const status = (s === 'A' || s.includes('APROV'))                     ? 'A'
+               : (s === 'R' || s.includes('RECUS') || s.includes('REPROV')) ? 'R'
+               : (s === 'C' || s.includes('CANCEL'))                    ? 'C'
+               : 'P';
+  // anexo é o caminho do arquivo no servidor (vazio = sem anexo); o conteúdo
+  // base64 vem de /v1/abono/downloadAnexo/{id}
+  const anexo = String(d['anexo'] ?? '').trim();
   return {
-    idUnico:         (d['idUnico'] as string | number) ?? 0,
-    nomeColaborador: String(d['nomeColaborador'] ?? d['colaborador'] ?? ''),
+    idUnico:         (d['id'] ?? d['idUnico'] ?? 0) as string | number,
+    nomeColaborador: String(d['nome'] ?? d['nomeColaborador'] ?? d['colaborador'] ?? ''),
     foto:            normalizeFoto(d['foto'] ?? d['fotoColaborador'] ?? null),
-    motivo:          String(d['motivo'] ?? d['descricao'] ?? ''),
-    tipo:            String(d['tipo'] ?? ''),
-    data:            String(d['data'] ?? d['periodo'] ?? ''),
-    horas:           Number(d['horas'] ?? d['quantidadeHoras'] ?? 0),
-    status:          String(d['status'] ?? 'P'),
-    temAnexo:        !!(d['arquivo'] || d['anexo']),
+    motivo:          String(d['motivo'] ?? d['justificativa'] ?? ''),
+    tipo:            String(d['descricao'] ?? d['tipo'] ?? ''),
+    data:            String(d['dataInicio'] ?? d['data'] ?? d['periodo'] ?? ''),
+    horas:           String(d['horas'] ?? ''),
+    status,
+    temAnexo:        anexo.length > 0 || !!d['arquivo'],
   };
 });
 
@@ -463,11 +472,11 @@ export type FeriasRHItem = {
 const FeriasRHItemSchema = z.unknown().transform((raw): FeriasRHItem => {
   const d = raw as Record<string, unknown>;
   return {
-    idFerias:        Number(d['idFerias'] ?? d['id'] ?? 0),
-    nomeColaborador: String(d['nomeColaborador'] ?? d['colaborador'] ?? ''),
+    idFerias:        Number(d['solicitacaoID'] ?? d['idSolicitacao'] ?? d['idFerias'] ?? d['id'] ?? 0),
+    nomeColaborador: String(d['nomeColaborador'] ?? d['colaborador'] ?? d['nome'] ?? ''),
     foto:            normalizeFoto(d['foto'] ?? null),
-    dataInicio:      String(d['dataInicio'] ?? d['dataFeriasInicio'] ?? ''),
-    dataFim:         String(d['dataFim'] ?? d['dataFeriasFinal'] ?? ''),
+    dataInicio:      String(d['dataInicioSolicitacao'] ?? d['dataInicio'] ?? d['dataFeriasInicio'] ?? ''),
+    dataFim:         String(d['dataFimSolicitacao'] ?? d['dataFim'] ?? d['dataFeriasFinal'] ?? ''),
     status:          String(d['status'] ?? 'P'),
   };
 });
@@ -812,7 +821,7 @@ const ApropriacaoItemSchema = z.unknown().transform((raw): ApropriacaoItem => {
     id:              Number(d['idSolicitacaoLiberacaoFalta'] ?? d['id'] ?? 0),
     idFalta:         Number(d['idFalta'] ?? 0),
     nomeColaborador: String(d['nomeColaborador'] ?? d['colaborador'] ?? ''),
-    foto:            normalizeFoto(d['foto'] ?? null),
+    foto:            normalizeFoto(d['foto'] ?? d['fotoColaborador'] ?? null),
     data:            String(d['data'] ?? d['dataFalta'] ?? ''),
     status:          String(d['status'] ?? ''),
   };
@@ -960,14 +969,18 @@ export type ProjetoAlocado = {
 };
 
 export type NovoApontamentoPayload = {
-  usuarioId:       number;
-  data:            string;   // DD/MM/YYYY (já convertido para upstream)
-  horaInicio:      string;
-  horaFinal:       string;
-  projetoId:       number;
-  subprojetoId?:   number;
-  tipoApropriacao: 'JORNADA';
-  justificativa?:  string;
+  dadosGeraisApontamento: { usuarioId: number; login: string };
+  apontamentos: Array<{
+    projetoId:       number;
+    subProjetoId:    number;
+    descricao:       string;
+    data:            string;  // YYYY-MM-DD
+    horaInicio:      string;
+    horaFinal:       string;
+    tipoApropriacao: 'JORNADA';
+  }>;
+  justificativas: Array<{ data: string; textoJustificativa: string }>;
+  aceites:        Array<{ data: string }>;
 };
 
 const ApontamentoDiaItemSchema = z.unknown().transform((raw): ApontamentoDia => {
@@ -1185,12 +1198,16 @@ export const squadra = {
     async avaliarAbono(body: AvaliarAbonoBody, token: string) {
       return sq('POST', '/v1/avaliaSolicitacaoAbonoColab', body, token, OkSchema);
     },
-    async downloadAnexo(id: string | number, token: string) {
-      return sq('GET', `/v1/abono/downloadAnexo/${id}`, null, token, z.unknown().transform((raw) => {
-        const d = raw as Record<string, unknown>;
-        const b64 = String(d['arquivo'] ?? d['anexo'] ?? '');
-        return { arquivo: b64 };
-      }));
+    // /v1/abono/downloadAnexo/{id} retorna 404 — o base64 do anexo (campo `arquivo`)
+    // já vem na própria listagem. Extraímos dela, igual ao vanilla.
+    async getAbonoAnexo(id: string | number, status: 'P' | 'A' | 'R', token: string) {
+      const raw = await sq('GET', `/v1/listaAbonosDP/0/0/${status}`, null, token, z.unknown());
+      const item = extractRetornoList(raw).find((x) => {
+        const r = x as Record<string, unknown>;
+        return Number(r['id'] ?? r['idUnico'] ?? 0) === Number(id);
+      });
+      const r = (item ?? {}) as Record<string, unknown>;
+      return { arquivo: String(r['arquivo'] ?? '') };
     },
     async avaliarFerias(body: AvaliarFeriasBody, token: string) {
       return sq('POST', '/v1/avaliaSolicitacaoFeriasColab', body, token, OkSchema);

@@ -4,6 +4,48 @@ Changelog cronológico de todos os componentes e módulos. Do mais recente para 
 
 ---
 
+## 2026-06-03
+
+### Recursos / Extras (novo)
+- Nova seção **Extras** no menu (desktop e mobile), reunindo três áreas de apoio ao colaborador
+- **Links Importantes**: lista por grupos (Sistemas Internos, Materiais de Apoio, Internet & Redes Sociais, Políticas da Empresa) com busca, copiar URL e abertura em nova aba; itens sem link aparecem desabilitados
+- **Vídeos**: galeria de vídeos institucionais com miniaturas do YouTube, busca por título e filtro por categoria; tela de carregamento animada própria
+- **Ajuda**: central de dúvidas frequentes (62 perguntas em 12 categorias) com busca e destaque do termo, navegação em árvore (categoria → subcategoria → pergunta) e layout de dois painéis no desktop; quando a dúvida exige formulário, mostra o departamento responsável e botão "Entrar em contato" com e-mail pré-preenchido
+
+### Ponto
+- **Calendário do mês redesenhado**: cada dia em linha compacta com data, dia da semana, horários do projeto, horas realizadas (hora extra destacada), barra colorida de status e ação contextual; divisores de "hoje" e "futuro"; dias futuros esmaecidos
+- **Ações por dia** mais claras: Registrar, Apontar, Solicitar (com "✓ Solicitado" inline), Aguardar e selo "Liberado"; tratamento fiel de feriados, abonos e faltas aprovadas/recusadas
+- **Resumo do topo** simplificado para uma faixa única com **Saldo, Carga e Realizado** (saldo negativo em vermelho)
+- **Dias Pendentes** repaginado (visual âmbar com chips por tipo de pendência)
+- **Botão "Realizar apontamento"** com novo destaque visual
+- **Apontamento**: o seletor de projeto/subprojeto passa a exibir o nome do projeto (antes podia mostrar o código); campo de data travado para visualização
+- Mensagem dedicada quando o colaborador não tem conta ativa no sistema de ponto, no lugar de erro genérico
+- Item **Ponto** reposicionado logo abaixo de "Home" no menu
+
+### RH / DP
+- Menu **RH** disponibilizado para o time de Departamento Pessoal (antes ficava indisponível por uma pendência no sistema de origem)
+- **Abonos**: filtros por situação repaginados como abas (**Pendentes / Aprovados / Reprovados**); tela de carregamento animada; detalhes mais tolerantes a campos vazios; situação (pendente/aprovado/recusado) exibida corretamente
+- **Visualizador de anexo** corrigido — passou a abrir a imagem/PDF do anexo de forma confiável
+- **Férias**: tela de carregamento animada própria
+
+### Gestão
+- **Aprovação direta nas solicitações**: cada item (Hora Extra, Apropriação, Férias, Abono/Day-off) ganhou botões **Aprovar** e **Reprovar** no próprio cartão, com indicador de processamento
+- **Hora Extra** com opção de contabilizar como **Banco de Horas** ou **Folha de Pagamento**, com projeto e observação
+- **Fotos dos colaboradores** passam a aparecer nos cartões de pendência e nas solicitações
+- Datas de falta/sem apontamento em destaque (caixinhas de calendário); ordem das abas ajustada (Apropriação primeiro)
+
+### Solicitações
+- **Hora Extra** reformulada: colaborador informa **Justificativa** (obrigatória) e marca **período noturno**, com seletor de projeto simplificado e limite de 2h por solicitação
+
+### Navegação, Perfil e UI
+- Novo item **Extras** e reposicionamento de **Ponto** nos menus (sidebar e mobile)
+- Avatares neutros quando não há nome/foto (sem o "?" anterior) — Perfil, Home, Topbar e formulário de foto
+- **VerificandoCredenciais** (novo): tela "Verificando credenciais…" usada em Ponto, Gestão e Percentual para evitar "acesso negado" indevido enquanto os dados carregam
+- **Cursor de clique** restaurado em todos os botões (padrão alterado pelo Tailwind v4)
+- Selos/cartões de solicitação e modal de aprovação com mais flexibilidade visual (subtítulo, conteúdo à direita, campos somente-leitura)
+
+---
+
 ## 2026-06-02 (sessão 2)
 
 ### EmptyState — mapeamento de assets ilustrados

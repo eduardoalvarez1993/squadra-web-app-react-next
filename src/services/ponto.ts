@@ -6,11 +6,6 @@ import {
   type DiasSemApontamentoItem,
 } from './squadra-client';
 
-function toUpstreamDate(iso: string): string {
-  const [y, m, d] = iso.split('-');
-  return `${d}/${m}/${y}`;
-}
-
 export async function getDadosColab(
   sqhorasId: number,
   inicio: string,
@@ -26,7 +21,7 @@ export async function getProjetosAlocados(gestorId: number, token: string): Prom
 
 export async function novoApontamento(
   input: {
-    data:            string;   // YYYY-MM-DD — convertido para DD/MM/YYYY antes do upstream
+    data:            string;  // YYYY-MM-DD
     horaInicio:      string;
     horaFinal:       string;
     projetoId:       number;
@@ -34,12 +29,23 @@ export async function novoApontamento(
     tipoApropriacao: 'JORNADA';
     justificativa?:  string;
     usuarioId:       number;
+    login:           string;
   },
   token: string,
 ): Promise<{ ok: true }> {
   const payload: NovoApontamentoPayload = {
-    ...input,
-    data: toUpstreamDate(input.data),
+    dadosGeraisApontamento: { usuarioId: input.usuarioId, login: input.login },
+    apontamentos: [{
+      projetoId:       input.projetoId,
+      subProjetoId:    input.subprojetoId ?? 0,
+      descricao:       input.justificativa ?? '',
+      data:            input.data,
+      horaInicio:      input.horaInicio,
+      horaFinal:       input.horaFinal,
+      tipoApropriacao: 'JORNADA',
+    }],
+    justificativas: [{ data: input.data, textoJustificativa: 'Apontamento Realizado Via APP' }],
+    aceites:        [{ data: input.data }],
   };
   return squadra.ponto.novoApontamento(payload, token);
 }

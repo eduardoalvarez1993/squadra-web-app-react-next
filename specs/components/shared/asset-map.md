@@ -23,6 +23,7 @@ Referenciados via `PADRAO_IMAGENS` ou `ASSETS` em `src/lib/assets.ts`.
 | Situação | Asset | Observação |
 |----------|-------|-----------|
 | Loading | — | Sem fetch inicial; spinner inline no botão |
+| Verificando credenciais | `assets/credentials-loading-fingerprint.webp` | Digital em moeda/token redondo + anel luminoso CSS fechando ao redor |
 | Empty | — | Não aplicável |
 
 ---
@@ -51,6 +52,13 @@ Referenciados via `PADRAO_IMAGENS` ou `ASSETS` em `src/lib/assets.ts`.
 | Comunicados — loading hero | `assets/comunicados-loading.webp` | Caixa de correio; bandeirinha CSS subindo/descendo |
 | Comunicados — empty | `<EmptyState title="Nenhum comunicado">` | Sem image |
 | Like — explosão | CSS/JS puro (`burstHearts`) | 8 corações `❤️` irradiando via CSS keyframes — **sem PNG** |
+
+---
+
+### Recursos
+| Situação | Asset | Observação |
+|----------|-------|-----------|
+| Videos — loading hero | `assets/videos-loading-frame.webp` + `assets/videos-loading-reel.webp` | Base 3D flat premium + bobina/rolo de filme separado girando via CSS |
 
 ---
 
@@ -244,6 +252,9 @@ export const PADRAO_IMAGENS = {
   loadingAbonosBase:      '/assets/rh-abonos-stack-base.webp',
   loadingPerfilFront:     '/assets/perfil-card-front.webp',
   loadingPerfilBack:      '/assets/perfil-card-back.webp',
+  loadingVideosFrame:     '/assets/videos-loading-frame.webp',
+  loadingVideosReel:      '/assets/videos-loading-reel.webp',
+  loadingCredentials:     '/assets/credentials-loading-fingerprint.webp',
 
   // FluencIA
   fluenciaIcon:           '/assets/fluencia-icon.webp',

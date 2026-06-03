@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useUserStore } from '@/store/user';
 import type { MesPonto, PontoDia, ProjetoAlocado, DiasSemApontamentoItem } from '@/services/squadra-client';
 
 export type { DiasSemApontamentoItem };
@@ -84,12 +85,16 @@ function computePendentes(dias: PontoDia[]): PontoDiaPendente[] {
 
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`${res.status}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(body?.error ?? String(res.status));
+  }
   return res.json();
 }
 
 export function usePonto(inicio: string, fim: string, sqhorasId?: number) {
-  const qc = useQueryClient();
+  const qc        = useQueryClient();
+  const simulando = useUserStore((s) => s.simulando);
 
   const pontoUrl = sqhorasId
     ? `/api/ponto?inicio=${inicio}&fim=${fim}&sqhorasId=${sqhorasId}`
@@ -112,7 +117,7 @@ export function usePonto(inicio: string, fim: string, sqhorasId?: number) {
     queryKey: ['ponto', 'dias-sem-apontamento'],
     queryFn:  () => fetchJson('/api/ponto/dias-sem-apontamento'),
     staleTime: 10 * 60 * 1000,
-    enabled:  !sqhorasId, // só carrega para o próprio usuário
+    enabled:  !sqhorasId && !simulando, // desabilita ao ver outro usuário ou durante simulação
   });
 
   const meses     = pontoQuery.data ?? [];
@@ -160,6 +165,7 @@ export function usePonto(inicio: string, fim: string, sqhorasId?: number) {
     diasSemApontamento: diasSemQuery.data ?? [],
     isLoading:         pontoQuery.isLoading,
     isError:           pontoQuery.isError,
+    errorCode:         pontoQuery.error instanceof Error ? pontoQuery.error.message : null,
     registrar:         (input: NovoApontamentoClientInput) => registrarMutation.mutateAsync(input),
     isRegistrando:     registrarMutation.isPending,
     registrarError:    registrarMutation.error?.message ?? null,

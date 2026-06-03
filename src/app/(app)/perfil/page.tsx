@@ -52,7 +52,7 @@ export default function PerfilPage() {
 
       {/* ── Header do perfil ─────────────────────────────────────────── */}
       <div className="bg-white border border-border rounded-xl px-5 py-4 flex items-center gap-4">
-        <AvatarGradient nome={nome || '?'} foto={perfil.foto} size={64} />
+        <AvatarGradient nome={nome || ''} foto={perfil.foto} size={64} />
         <div className="flex-1 min-w-0">
           <h1 className="text-lg font-bold text-foreground leading-tight truncate">{nome}</h1>
           {cargo && (

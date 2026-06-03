@@ -1,0 +1,42 @@
+[
+  {
+    "grupo": "Sistemas Internos",
+    "icone": "Monitor",
+    "items": [
+      { "texto": "JIRA",        "link": "https://jira.squadra.com.br",      "icone": "Layers" },
+      { "texto": "SQHoras",     "link": "https://sqhoras.squadra.com.br",   "icone": "Clock" },
+      { "texto": "Portal RM",   "link": "https://corpore.squadra.com.br/",  "icone": "Building2" },
+      { "texto": "GitLab",      "link": "https://gitlab.squadra.com.br",    "icone": "GitBranch" },
+      { "texto": "ITOC Help Desk", "link": "https://itoc.squadra.com.br",   "icone": "Headphones" }
+    ]
+  },
+  {
+    "grupo": "Materiais de Apoio",
+    "icone": "FolderOpen",
+    "items": [
+      { "texto": "Materiais",           "link": "https://drive.google.com/drive/folders/1b_yleUQm_2oG1jH3qtJ_AFiJQkzyIhFk?usp=sharing", "icone": "FileText" },
+      { "texto": "Logos, Artes e Materiais", "link": "https://drive.google.com/drive/folders/1oFWdWs6p8WmpOLbUegg2iAsehMoJcTR-?usp=sharing", "icone": "Image" },
+      { "texto": "Cartilhas e Manuais", "link": "https://drive.google.com/drive/folders/1nyczF0js35n0v-h15SRzCsBuTDQ75W8z?usp=sharing", "icone": "BookOpen" }
+    ]
+  },
+  {
+    "grupo": "Internet & Redes Sociais",
+    "icone": "Globe",
+    "items": [
+      { "texto": "Website",   "link": "https://squadra.com.br",                                          "icone": "Globe" },
+      { "texto": "Blog",      "link": "https://www.squadra.com.br/blog/",                                "icone": "Rss" },
+      { "texto": "LinkedIn",  "link": "https://www.linkedin.com/company/squadradigital",                 "icone": "Linkedin" },
+      { "texto": "YouTube",   "link": "https://www.youtube.com/channel/UCx92tsnfOwN_GrMBs_rEWeQ",       "icone": "Youtube" },
+      { "texto": "Instagram", "link": "https://www.instagram.com/squadradigital/",                       "icone": "Instagram" }
+    ]
+  },
+  {
+    "grupo": "Políticas da Empresa",
+    "icone": "Shield",
+    "items": [
+      { "texto": "Política de Segurança da Informação", "link": "https://drive.google.com/file/d/1Q053R6wq8uj0SFp-gXJ1bLBMsoHTNHaX/view", "icone": "ShieldCheck" },
+      { "texto": "Política Administrativa (Em Breve)",  "link": null, "icone": "FileText" },
+      { "texto": "Política de Contratos (Em Breve)",    "link": null, "icone": "FileText" }
+    ]
+  }
+]

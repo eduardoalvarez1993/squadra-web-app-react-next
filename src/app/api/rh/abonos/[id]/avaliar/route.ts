@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/session';
 import { checkOrigin } from '@/lib/check-origin';
 import { avaliarAbono } from '@/services/rh';
+import { temAcessoDP } from '@/lib/dp-access';
 import { SquadraAuthError } from '@/services/squadra-client';
 
 const InputSchema = z.object({
@@ -19,7 +20,7 @@ export async function POST(
 
   const session = await getSession();
   if (!session.token) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-  if (!session.permissoes?.perfilDP) return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
+  if (!temAcessoDP(session.permissoes?.perfilDP, session.cargo)) return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
 
   const { id: idParam } = await params;
 

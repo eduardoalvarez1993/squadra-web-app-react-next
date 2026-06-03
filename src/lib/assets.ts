@@ -36,6 +36,9 @@ export const PADRAO_IMAGENS = {
   loadingAbonosBase:      '/assets/rh-abonos-stack-base.webp',
   loadingPerfilFront:     '/assets/perfil-card-front.webp',
   loadingPerfilBack:      '/assets/perfil-card-back.webp',
+  loadingVideosFrame:     '/assets/videos-loading-frame.webp',
+  loadingVideosReel:      '/assets/videos-loading-reel.webp',
+  loadingCredentials:     '/assets/credentials-loading-fingerprint.webp',
 
   // FluencIA
   fluenciaIcon:           '/assets/fluencia-icon.webp',

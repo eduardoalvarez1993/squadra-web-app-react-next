@@ -231,7 +231,8 @@ function TabHoraExtra() {
   const [data,      setData]      = useState('');
   const [inicio,    setInicio]    = useState('');
   const [fim,       setFim]       = useState('');
-  const [tipo,      setTipo]      = useState('C');
+  const [motivo,    setMotivo]    = useState('');
+  const [noturno,   setNoturno]   = useState(false);
   const [ok,        setOk]        = useState(false);
 
   const { projetos, solicitarHoraExtra, isEnviandoHE, heError } = useSolicitacoes();
@@ -253,31 +254,24 @@ function TabHoraExtra() {
           onSubmit={async (e) => {
             e.preventDefault();
             if (!projetoId || !data || !inicio || !fim) return;
-            await solicitarHoraExtra({ projetoId: Number(projetoId), data, horaInicio: inicio, horaFim: fim, tipo });
+            await solicitarHoraExtra({ projetoId: Number(projetoId), data, horaInicio: inicio, horaFim: fim, motivo, isNoturno: noturno ? 'S' : 'N' });
             setOk(true);
-            setProjetoId(''); setData(''); setInicio(''); setFim('');
+            setProjetoId(''); setData(''); setInicio(''); setFim(''); setMotivo(''); setNoturno(false);
           }}
         >
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Projeto</label>
-            {projetos.length > 0 ? (
-              <Select value={projetoId} onValueChange={(v) => setProjetoId(v ?? '')}>
-                <SelectTrigger><SelectValue placeholder="Selecione o projeto…" /></SelectTrigger>
-                <SelectContent>
-                  {projetos.map((p) => (
-                    <SelectItem key={p.id} value={String(p.id)}>{p.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <Input
-                type="number"
-                value={projetoId}
-                onChange={(e) => setProjetoId(e.target.value)}
-                placeholder="ID do projeto"
-                required
-              />
-            )}
+            <select
+              value={projetoId}
+              onChange={(e) => setProjetoId(e.target.value)}
+              required
+              className="w-full h-9 rounded-lg border border-input bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50"
+            >
+              <option value="">Selecione o projeto…</option>
+              {projetos.map((p) => (
+                <option key={p.id} value={String(p.id)}>{p.nome}</option>
+              ))}
+            </select>
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Data</label>
@@ -294,15 +288,13 @@ function TabHoraExtra() {
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Contabilizar como</label>
-            <Select value={tipo} onValueChange={(v) => setTipo(v ?? 'C')}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="C">Compensação (banco de horas)</SelectItem>
-                <SelectItem value="E">Execução / Pagamento</SelectItem>
-              </SelectContent>
-            </Select>
+            <label className="text-sm font-medium">Justificativa</label>
+            <Input value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Descreva a necessidade" required />
           </div>
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input type="checkbox" checked={noturno} onChange={(e) => setNoturno(e.target.checked)} className="rounded" />
+            Período noturno
+          </label>
           {ok      && <FormFeedback type="ok"    message="Hora extra solicitada com sucesso!" />}
           {heError && <FormFeedback type="error" message={heError} />}
           <Button type="submit" disabled={isEnviandoHE} className="w-full">

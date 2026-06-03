@@ -14,6 +14,7 @@ import {
   SearchIcon,
   ClipboardListIcon,
   LogOutIcon,
+  LayoutGridIcon,
 } from 'lucide-react';
 import {
   Sheet,
@@ -22,6 +23,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { useUserStore } from '@/store/user';
+import { temAcessoDP } from '@/lib/dp-access';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { ASSETS } from '@/lib/assets';
 
@@ -31,7 +33,7 @@ interface MobileNavProps {
 }
 
 export function MobileNav({ open, onClose }: MobileNavProps) {
-  const { permissoes, temEquipe, gestorId, setFluencia, clearUser } = useUserStore();
+  const { permissoes, cargo, temEquipe, gestorId, setFluencia, clearUser } = useUserStore();
   const pathname = usePathname();
   const router   = useRouter();
   const hydrated = gestorId !== 0;
@@ -52,12 +54,15 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
   }
 
   // Menus iguais ao vanilla (sem Feed/Rede e sem Perfil)
-  const alwaysItems = [
-    { href: '/home',         label: 'Home',        icon: <HomeIcon          className="h-5 w-5" /> },
+  const showPonto = hydrated && permissoes.bateRep;
+
+  // Home separado para inserir Ponto logo após
+  const afterHome = [
     { href: '/pessoas',      label: 'Pessoas',      icon: <SearchIcon        className="h-5 w-5" /> },
     { href: '/ferias',       label: 'Férias',       icon: <UmbrellaIcon      className="h-5 w-5" /> },
     { href: '/holerite',     label: 'Holerite',     icon: <WalletIcon        className="h-5 w-5" /> },
     { href: '/solicitacoes', label: 'Solicitar',    icon: <ClipboardListIcon className="h-5 w-5" /> },
+    { href: '/recursos',     label: 'Extras',       icon: <LayoutGridIcon    className="h-5 w-5" /> },
   ];
 
   const conditionalItems = [];
@@ -65,13 +70,10 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
     if (permissoes.gerenteFuncional && temEquipe) {
       conditionalItems.push({ href: '/gestao',     label: 'Gestão',     icon: <UsersIcon     className="h-5 w-5" /> });
     }
-    if (permissoes.bateRep) {
-      conditionalItems.push({ href: '/ponto',      label: 'Ponto',      icon: <ClockIcon     className="h-5 w-5" /> });
-    }
     if (permissoes.gerenteFuncional && !permissoes.bateRep && temEquipe) {
       conditionalItems.push({ href: '/percentual', label: 'Percentual', icon: <PercentIcon   className="h-5 w-5" /> });
     }
-    if (permissoes.perfilDP) {
+    if (temAcessoDP(permissoes.perfilDP, cargo)) {
       conditionalItems.push({ href: '/rh',         label: 'RH',         icon: <BriefcaseIcon className="h-5 w-5" /> });
     }
   }
@@ -85,8 +87,22 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
         </SheetHeader>
 
         <nav className="flex flex-col gap-1 px-3 py-3 h-full">
-          {/* Itens fixos */}
-          {alwaysItems.map((item) => (
+          {/* Home */}
+          <Link href="/home" className={itemCls('/home')} onClick={onClose}>
+            <HomeIcon className="h-5 w-5" />
+            Home
+          </Link>
+
+          {/* Ponto — logo após Home */}
+          {showPonto && (
+            <Link href="/ponto" className={itemCls('/ponto')} onClick={onClose}>
+              <ClockIcon className="h-5 w-5" />
+              Ponto
+            </Link>
+          )}
+
+          {/* Restante dos itens fixos */}
+          {afterHome.map((item) => (
             <Link key={item.href} href={item.href} className={itemCls(item.href)} onClick={onClose}>
               {item.icon}
               {item.label}

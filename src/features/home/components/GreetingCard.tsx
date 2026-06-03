@@ -37,7 +37,7 @@ export function GreetingCard() {
 
   return (
     <div className="bg-white border border-border rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm">
-      <AvatarGradient nome={nome || '?'} foto={foto} size={52} />
+      <AvatarGradient nome={nome || ''} foto={foto} size={52} />
 
       <div className="flex-1 min-w-0">
         <p className="font-bold text-base text-foreground leading-tight">

@@ -1,17 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useUserStore } from '@/store/user';
+import { temAcessoDP } from '@/lib/dp-access';
 import { TabNav }        from '@/components/shared/TabNav';
 import { SolicitacaoCard } from '@/components/shared/SolicitacaoCard';
 import { EmptyState }    from '@/components/shared/EmptyState';
 import { ErrorSection }  from '@/components/shared/ErrorSection';
-import { Skeleton }      from '@/components/shared/Skeleton';
 import { Button }        from '@/components/ui/button';
-import { StatusChips }   from '@/features/rh/components/StatusChips';
 import { useRH }         from '@/features/rh/hooks/useRH';
 import type { AbonoRH, FeriasRHItem } from '@/services/squadra-client';
-import { AbonoLoader }   from '@/features/gestao/components/GestaoLoaders';
+import { FeriasLoader }  from '@/features/gestao/components/GestaoLoaders';
 import { ASSETS }        from '@/lib/assets';
 
 const TABS = [
@@ -38,16 +38,19 @@ function detectMime(b64: string): string {
 
 // ── Viewer de anexo ───────────────────────────────────────────────────────────
 
-function AnexoViewer({ id, onClose }: { id: string | number; onClose: () => void }) {
+function AnexoViewer({ id, status, onClose }: { id: string | number; status: 'P' | 'A' | 'R'; onClose: () => void }) {
   const [arquivo, setArquivo] = useState<string | null>(null);
   const [erro,    setErro]    = useState(false);
 
   useEffect(() => {
-    fetch(`/api/rh/abonos/${id}/anexo`)
+    fetch(`/api/rh/abonos/${id}/anexo?status=${status}`)
       .then((r) => r.json())
-      .then((d) => setArquivo((d as { arquivo?: string }).arquivo ?? null))
+      .then((d) => {
+        const a = (d as { arquivo?: string }).arquivo;
+        if (a) setArquivo(a); else setErro(true);
+      })
       .catch(() => setErro(true));
-  }, [id]);
+  }, [id, status]);
 
   const handleKey = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') onClose();
@@ -110,6 +113,27 @@ function AnexoViewer({ id, onClose }: { id: string | number; onClose: () => void
   );
 }
 
+function RHAbonosLoader() {
+  return (
+    <div className="gestao-loader-wrap">
+      <div className="rh-abonos-stack-stage" aria-hidden="true">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Image
+            key={i}
+            src={ASSETS.loadingAbonos}
+            alt=""
+            width={230}
+            height={230}
+            className={`rh-abonos-stack-card rh-abonos-stack-card-${i + 1}`}
+            priority
+          />
+        ))}
+      </div>
+      <strong>Buscando abonos…</strong>
+    </div>
+  );
+}
+
 // ── AbonoList ─────────────────────────────────────────────────────────────────
 
 function AbonoList({
@@ -125,10 +149,18 @@ function AbonoList({
 
   return (
     <>
-      <StatusChips status={statusAbono} active={statusAbono} onFilter={onSetStatus} />
+      <TabNav
+        tabs={[
+          { id: 'P', label: 'Pendentes' },
+          { id: 'A', label: 'Aprovados' },
+          { id: 'R', label: 'Reprovados' },
+        ]}
+        active={statusAbono}
+        onChange={(id) => onSetStatus(id as 'P' | 'A' | 'R')}
+      />
 
       {isLoading ? (
-        <AbonoLoader />
+        <RHAbonosLoader />
       ) : abonos.length === 0 ? (
         <EmptyState title="Nenhum abono encontrado." />
       ) : (
@@ -140,7 +172,7 @@ function AbonoList({
               foto={a.foto}
               tipo="abono"
               status={statusMap(a.status)}
-              detalhes={<span>{a.tipo} — {a.data}{a.horas ? ` (${a.horas}h)` : ''} — {a.motivo}</span>}
+              detalhes={<span>{a.tipo}{a.data ? ` — ${a.data}` : ''}{a.horas ? ` (${a.horas})` : ''}{a.motivo ? ` — ${a.motivo}` : ''}</span>}
               actions={
                 <div className="flex items-center gap-2 flex-wrap">
                   {a.temAnexo && (
@@ -166,7 +198,7 @@ function AbonoList({
       )}
 
       {verAnexoId !== null && (
-        <AnexoViewer id={verAnexoId} onClose={() => setVerAnexoId(null)} />
+        <AnexoViewer id={verAnexoId} status={statusAbono} onClose={() => setVerAnexoId(null)} />
       )}
     </>
   );
@@ -181,7 +213,7 @@ function FeriasList({
   isLoading: boolean;
   onAvaliar: (id: number, acao: 'A' | 'R') => void;
 }) {
-  if (isLoading) return <Skeleton height="80px" />;
+  if (isLoading) return <FeriasLoader />;
   if (!ferias.length) return <EmptyState image={ASSETS.emptyFerias} title="Sem férias pendentes" />;
 
   return (
@@ -214,6 +246,8 @@ function FeriasList({
 
 export default function RHPage() {
   const perfilDP = useUserStore((s) => s.permissoes.perfilDP);
+  const cargo    = useUserStore((s) => s.cargo);
+  const acessoDP = temAcessoDP(perfilDP, cargo);
   const [tab, setTab] = useState('abonos');
 
   const {
@@ -224,7 +258,7 @@ export default function RHPage() {
     avaliarAbono, avaliarFerias,
   } = useRH();
 
-  if (!perfilDP) {
+  if (!acessoDP) {
     return (
       <div className="p-4">
         <ErrorSection message="Acesso restrito ao Departamento Pessoal." />

@@ -146,7 +146,7 @@ function FotoUpload({
             aria-label="Alterar foto de perfil"
             disabled={disabled}
           >
-            <AvatarGradient nome={nome || '?'} foto={foto || null} size={72} />
+            <AvatarGradient nome={nome || ''} foto={foto || null} size={72} />
             <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity pointer-events-none">
               <Camera className="w-5 h-5 text-white" />
             </div>

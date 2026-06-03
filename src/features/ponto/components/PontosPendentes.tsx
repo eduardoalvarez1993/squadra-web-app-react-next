@@ -5,56 +5,52 @@ interface PontosPendentesProps {
   onItemClick: (item: PontoDiaPendente) => void;
 }
 
-function formatDataLabel(dmy: string): string {
-  const [d, m, y] = dmy.split('/');
-  return `${d}/${m}/${y}`;
-}
+const SEM_ABREV: Record<string, string> = {
+  'Segunda-Feira': 'Seg', 'Terça-Feira': 'Ter', 'Quarta-Feira': 'Qua',
+  'Quinta-Feira': 'Qui', 'Sexta-Feira': 'Sex', 'Sabado': 'Sáb', 'Domingo': 'Dom',
+};
+
+// Cores dos chips por tipo (espelham .ponto-pendente-chip-* do vanilla)
+const CHIP: Record<PontoDiaPendente['tipo'], string> = {
+  registrar: 'bg-amber-100 text-amber-700',
+  apontar:   'bg-green-100 text-green-600',
+  solicitar: 'bg-red-100 text-red-600',
+  aguardar:  'bg-amber-100 text-amber-700',
+};
 
 export function PontosPendentes({ pendentes, onItemClick }: PontosPendentesProps) {
   if (pendentes.length === 0) return null;
 
   return (
-    <div className="rounded-card border border-yellow-300 bg-yellow-50 dark:bg-yellow-950/20 dark:border-yellow-800 overflow-hidden">
-      <div className="px-4 py-2.5 border-b border-yellow-200 dark:border-yellow-800 flex items-center gap-2">
-        <span className="text-sm font-semibold text-yellow-800 dark:text-yellow-300">
+    <div className="bg-amber-50 border-[1.5px] border-amber-300 rounded-xl px-4 py-3.5">
+      <div className="flex items-center gap-1.5 mb-2.5">
+        <span className="text-[0.75rem] font-bold text-amber-800 uppercase tracking-wider">
           Dias pendentes
         </span>
-        <span className="ml-auto text-xs font-medium bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-200 rounded-full px-2 py-0.5">
+        <span className="inline-flex items-center justify-center bg-amber-800 text-white rounded-full text-[0.65rem] w-4 h-4">
           {pendentes.length}
         </span>
       </div>
 
-      <ul className="divide-y divide-yellow-200 dark:divide-yellow-800/50">
+      <ul>
         {pendentes.map((item) => {
-          const isDisabled = item.tipo === 'aguardar';
+          const abrev = SEM_ABREV[item.dia.diaSemana] ?? item.dia.diaSemana.slice(0, 3);
           return (
-            <li key={`${item.dia.data}-${item.tipo}`}>
+            <li
+              key={`${item.dia.data}-${item.tipo}`}
+              className="border-b border-amber-100 last:border-0"
+            >
               <button
                 type="button"
                 onClick={() => onItemClick(item)}
-                disabled={false}
-                className={[
-                  'w-full flex items-center justify-between px-4 py-3 text-left transition-colors',
-                  isDisabled
-                    ? 'cursor-default text-muted-foreground'
-                    : 'hover:bg-yellow-100 dark:hover:bg-yellow-900/30 active:bg-yellow-200',
-                ].join(' ')}
+                className="w-full flex items-center gap-2.5 py-2 text-left hover:opacity-75 transition-opacity"
               >
-                <span className="text-sm">
-                  <span className="font-medium">{formatDataLabel(item.dia.data)}</span>
-                  <span className="ml-1 text-muted-foreground">{item.dia.diaSemana}</span>
+                <span className="text-[0.85rem] text-gray-700 min-w-[52px] flex-shrink-0">
+                  <strong>{item.dia.data.slice(0, 5)}</strong>{' '}
+                  <span className="text-[0.72rem] text-gray-400">{abrev}</span>
                 </span>
                 <span
-                  className={[
-                    'text-xs font-medium px-2 py-0.5 rounded-full',
-                    item.tipo === 'registrar'
-                      ? 'bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-200'
-                      : item.tipo === 'solicitar'
-                      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                      : item.tipo === 'apontar'
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                      : 'bg-muted text-muted-foreground',
-                  ].join(' ')}
+                  className={`ml-auto text-[0.7rem] font-bold rounded-full px-2.5 py-0.5 whitespace-nowrap ${CHIP[item.tipo]}`}
                 >
                   {item.label}
                 </span>

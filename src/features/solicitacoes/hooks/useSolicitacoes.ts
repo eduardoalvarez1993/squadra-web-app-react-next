@@ -39,7 +39,8 @@ export type SolicitarHoraExtraInput = {
   data:       string;
   horaInicio: string;
   horaFim:    string;
-  tipo:       string;
+  motivo:     string;
+  isNoturno?: 'S' | 'N';
 };
 
 export function useSolicitacoes() {

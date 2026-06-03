@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { TabNav } from '@/components/shared/TabNav';
 import { ErrorSection } from '@/components/shared/ErrorSection';
 import { AccessDenied } from '@/components/shared/AccessDenied';
+import { VerificandoCredenciais } from '@/components/shared/VerificandoCredenciais';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { SolicitacaoCard } from '@/components/shared/SolicitacaoCard';
 import { ApprovalModal } from '@/components/shared/ApprovalModal';
@@ -13,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { useUserStore } from '@/store/user';
 import {
   useGestao,
-  type AprovarInput,
   type HoraExtraItem,
   type ApropriacaoItem,
   type AbonoEquipeItem,
@@ -24,6 +24,7 @@ import {
 import { AlocarForm } from '@/features/gestao/components/AlocarForm';
 import { MembroDrawer } from '@/features/gestao/components/MembroDrawer';
 import { ASSETS } from '@/lib/assets';
+import { AvatarGradient } from '@/components/shared/AvatarGradient';
 import {
   PendenciasLoader,
   AlocarLoader,
@@ -35,13 +36,11 @@ import {
 } from '@/features/gestao/components/GestaoLoaders';
 
 const SOL_TABS = [
-  { id: 'hora_extra',  label: 'Hora Extra' },
   { id: 'apropriacao', label: 'Apropriação' },
+  { id: 'hora_extra',  label: 'Hora Extra' },
   { id: 'ferias',      label: 'Férias' },
   { id: 'abono',       label: 'Abono/Dayoff' },
 ];
-
-type ModalState = { open: boolean; input: Partial<AprovarInput> | null; titulo: string };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -77,6 +76,39 @@ function statusLabel(s: string | number): 'pendente' | 'aprovado' | 'reprovado' 
 
 // ── PendenciaCard ─────────────────────────────────────────────────────────────
 
+function parseDate(raw: unknown): Date | null {
+  const s = String(raw ?? '').trim();
+  // ISO: yyyy-MM-dd
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const d = new Date(`${s.split('T')[0]}T12:00:00`);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  // pt-BR: dd/MM/yyyy
+  if (/^\d{2}\/\d{2}\/\d{4}/.test(s)) {
+    const [day, month, year] = s.split('/');
+    const d = new Date(`${year}-${month}-${day}T12:00:00`);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  return null;
+}
+
+function DateBox({ iso }: { iso: unknown }) {
+  const d = parseDate(iso);
+  if (!d) return null;
+  const mes = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
+  const dia = String(d.getDate()).padStart(2, '0');
+  return (
+    <div className="flex flex-col rounded overflow-hidden border border-border flex-shrink-0 w-9 text-center leading-none">
+      <span className="bg-primary text-primary-foreground text-[9px] font-bold py-0.5">
+        {mes}
+      </span>
+      <span className="bg-muted text-foreground text-xs font-bold py-1">
+        {dia}
+      </span>
+    </div>
+  );
+}
+
 function PendRow({ type, text }: { type: 'ok' | 'warn' | 'err'; text: string }) {
   const icon = type === 'ok' ? '✅' : type === 'warn' ? '⚠️' : '❌';
   return (
@@ -103,11 +135,9 @@ function PendenciaCard({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-3 w-full px-3 py-3 text-left hover:bg-accent/40 transition-colors"
+        className="flex items-center gap-3 w-full px-3 py-3 text-left hover:bg-accent/40 transition-colors cursor-pointer"
       >
-        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs font-bold flex-shrink-0">
-          {nomeExib.slice(0, 2).toUpperCase()}
-        </div>
+        <AvatarGradient nome={c.nome} foto={c.foto} size={36} />
         <div className="flex-1 min-w-0">
           <p className="font-medium text-sm truncate">{nomeExib}</p>
           <p className="text-xs text-muted-foreground truncate">
@@ -117,6 +147,9 @@ function PendenciaCard({
             }
           </p>
         </div>
+        {c.datasSemApontamento.length > 0 && (
+          <DateBox iso={c.datasSemApontamento[0]} />
+        )}
         {alerta && <span className="text-amber-500 text-base flex-shrink-0">⚠</span>}
         <span className={`text-muted-foreground transition-transform text-xs ${open ? 'rotate-180' : ''}`}>▼</span>
       </button>
@@ -143,7 +176,17 @@ function PendenciaCard({
           )}
 
           {c.datasSemApontamento.length > 0 && (
-            <PendRow type="err" text={`Apontamentos pendentes: ${c.datasSemApontamento.length} dia${c.datasSemApontamento.length > 1 ? 's' : ''}`} />
+            <div className="flex flex-col gap-1.5 py-0.5">
+              <div className="flex items-center gap-1.5 text-sm">
+                <span>❌</span>
+                <span className="text-amber-700 dark:text-amber-400">Data da Falta</span>
+              </div>
+              <div className="flex flex-wrap gap-2 pl-6">
+                {c.datasSemApontamento.map((dt, i) => (
+                  <DateBox key={i} iso={dt} />
+                ))}
+              </div>
+            </div>
           )}
 
           {c.preFechamentoPendente && (
@@ -204,13 +247,17 @@ function PendenciasTab({
 
 export default function GestaoPage() {
   const gerenteFuncional = useUserStore((s) => s.permissoes.gerenteFuncional);
+  const gestorId         = useUserStore((s) => s.gestorId);
+  const hydrated         = gestorId !== 0;
 
   const [tab,        setTab]        = useState('pendencias');
-  const [solTab,     setSolTab]     = useState('hora_extra');
-  const [modal,      setModal]      = useState<ModalState>({ open: false, input: null, titulo: '' });
+  const [solTab,     setSolTab]     = useState('apropriacao');
+
   const [alocarOpen,   setAlocarOpen]   = useState(false);
   const [alocarPresel, setAlocarPresel] = useState<{ id: number; nome: string; nomeSocial?: string | null; foto: string | null } | null>(null);
   const [busca,      setBusca]      = useState('');
+  const [aprovandoId, setAprovandoId] = useState<number | null>(null);
+  const [heModal, setHeModal] = useState<{ open: boolean; item: HoraExtraItem | null }>({ open: false, item: null });
 
   // Drawer de membro
   const [drawerMembro,    setDrawerMembro]    = useState<MembroEquipe | null>(null);
@@ -220,9 +267,16 @@ export default function GestaoPage() {
     equipe, pendencias, isPendenciasLoading,
     solicitacoes, servicos, papeis,
     isLoading, isError, refetchEquipe,
-    aprovar, isAprovando,
+    aprovar,
     alocar, isAlocando,
   } = useGestao();
+
+  // Mapa nome → foto da equipe para enriquecer solicitações que não retornam foto
+  const fotoByNome = useMemo(() => {
+    const m = new Map<string, string | null>();
+    for (const mb of equipe) m.set(mb.nome.trim(), mb.foto);
+    return m;
+  }, [equipe]);
 
   // Cross-referência por nome
   function findPendencia(nome: string): ColaboradorPendencia | null {
@@ -272,9 +326,8 @@ export default function GestaoPage() {
     { id: 'alocar',       label: 'Alocar' },
   ];
 
-  if (!gerenteFuncional) {
-    return <AccessDenied description="A gestao fica disponivel apenas para gestores com equipe ativa." />;
-  }
+  if (!hydrated)         return <VerificandoCredenciais />;
+  if (!gerenteFuncional) return <AccessDenied description="A gestao fica disponivel apenas para gestores com equipe ativa." />;
 
   if (isError) {
     return (
@@ -282,32 +335,6 @@ export default function GestaoPage() {
         <ErrorSection message="Não foi possível carregar a equipe." onRetry={() => refetchEquipe()} />
       </div>
     );
-  }
-
-  function openModal(input: Partial<AprovarInput>, titulo: string) {
-    setModal({ open: true, input, titulo });
-  }
-  function closeModal() {
-    setModal({ open: false, input: null, titulo: '' });
-  }
-
-  function getModalFields(tipo: string) {
-    if (tipo === 'hora_extra') {
-      return [
-        { type: 'select' as const, name: 'acao', label: 'Decisão', options: [
-          { value: 'A', label: 'Aprovar' },
-          { value: 'R', label: 'Reprovar' },
-        ]},
-        { type: 'input' as const, name: 'observacaoGestor', label: 'Observação (opcional)' },
-      ];
-    }
-    return [
-      { type: 'select' as const, name: 'acao', label: 'Decisão', options: [
-        { value: 'A', label: 'Aprovar' },
-        { value: 'R', label: 'Reprovar' },
-      ]},
-      { type: 'input' as const, name: 'justificativa', label: 'Observação (opcional)' },
-    ];
   }
 
   return (
@@ -390,12 +417,26 @@ export default function GestaoPage() {
                       status={statusLabel(item.statusSolicitacao)}
                       detalhes={`${item.qtdadeHoras}h — ${item.projetoDescricao} — ${item.dataSolicitacao}`}
                       actions={
-                        <Button size="sm" onClick={() => openModal(
-                          { id: item.solicitacaoID, tipo: 'hora_extra' },
-                          `Hora Extra — ${item.nomeColaborador}`,
-                        )}>
-                          Avaliar
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => setHeModal({ open: true, item })}
+                          >
+                            Aprovar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={aprovandoId === item.solicitacaoID}
+                            onClick={async () => {
+                              setAprovandoId(item.solicitacaoID);
+                              try { await aprovar({ id: item.solicitacaoID, tipo: 'hora_extra', acao: 'R' }); }
+                              finally { setAprovandoId(null); }
+                            }}
+                          >
+                            {aprovandoId === item.solicitacaoID ? '…' : 'Reprovar'}
+                          </Button>
+                        </div>
                       }
                     />
                   ))
@@ -414,16 +455,38 @@ export default function GestaoPage() {
                       key={item.id}
                       tipo="abono"
                       nome={item.nomeColaborador}
-                      foto={item.foto}
+                      foto={item.foto ?? fotoByNome.get(item.nomeColaborador.trim()) ?? null}
                       status={statusLabel(item.status)}
-                      detalhes={`Falta — ${item.data}`}
+                      hideTipoLabel
+                      hideStatus
+                      subtitle={`Data da Falta: ${item.data}`}
+                      headerRight={<DateBox iso={item.data} />}
                       actions={
-                        <Button size="sm" onClick={() => openModal(
-                          { id: item.id, idFalta: item.idFalta, tipo: 'apropriacao' },
-                          `Liberação de falta — ${item.nomeColaborador}`,
-                        )}>
-                          Avaliar
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            disabled={aprovandoId === item.id}
+                            onClick={async () => {
+                              setAprovandoId(item.id);
+                              try { await aprovar({ id: item.id, idFalta: item.idFalta, tipo: 'apropriacao', acao: 'A' }); }
+                              finally { setAprovandoId(null); }
+                            }}
+                          >
+                            {aprovandoId === item.id ? '…' : 'Aprovar'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={aprovandoId === item.id}
+                            onClick={async () => {
+                              setAprovandoId(item.id);
+                              try { await aprovar({ id: item.id, idFalta: item.idFalta, tipo: 'apropriacao', acao: 'R' }); }
+                              finally { setAprovandoId(null); }
+                            }}
+                          >
+                            Reprovar
+                          </Button>
+                        </div>
                       }
                     />
                   ))
@@ -442,16 +505,37 @@ export default function GestaoPage() {
                       key={item.idFerias}
                       tipo="ferias"
                       nome={item.nomeColaborador}
-                      foto={item.foto}
+                      foto={item.foto ?? fotoByNome.get(item.nomeColaborador.trim()) ?? null}
                       status={statusLabel(item.status)}
-                      detalhes={`${item.dataInicio} → ${item.dataFim}`}
-                      actions={
-                        <Button size="sm" onClick={() => openModal(
-                          { id: item.idFerias, tipo: 'ferias' },
-                          `Férias — ${item.nomeColaborador}`,
-                        )}>
-                          Avaliar
-                        </Button>
+                      detalhes={
+                        <div className="flex items-center justify-between gap-2">
+                          <span>{item.dataInicio} → {item.dataFim}</span>
+                          <div className="flex gap-2 flex-shrink-0">
+                            <Button
+                              size="sm"
+                              disabled={aprovandoId === item.idFerias}
+                              onClick={async () => {
+                                setAprovandoId(item.idFerias);
+                                try { await aprovar({ id: item.idFerias, tipo: 'ferias', acao: 'A' }); }
+                                finally { setAprovandoId(null); }
+                              }}
+                            >
+                              {aprovandoId === item.idFerias ? '…' : 'Aprovar'}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={aprovandoId === item.idFerias}
+                              onClick={async () => {
+                                setAprovandoId(item.idFerias);
+                                try { await aprovar({ id: item.idFerias, tipo: 'ferias', acao: 'R' }); }
+                                finally { setAprovandoId(null); }
+                              }}
+                            >
+                              Reprovar
+                            </Button>
+                          </div>
+                        </div>
                       }
                     />
                   ))
@@ -470,16 +554,35 @@ export default function GestaoPage() {
                       key={`${item.idUnico}-${i}`}
                       tipo="dayoff"
                       nome={item.nomeColaborador}
-                      foto={item.foto}
+                      foto={item.foto ?? fotoByNome.get(item.nomeColaborador.trim()) ?? null}
                       status={statusLabel(item.status)}
                       detalhes={`${item.tipo} — ${item.data}${item.horas ? ` (${item.horas}h)` : ''}`}
                       actions={
-                        <Button size="sm" onClick={() => openModal(
-                          { id: Number(item.idUnico), tipo: 'abono' },
-                          `Abono/Day-off — ${item.nomeColaborador}`,
-                        )}>
-                          Avaliar
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            disabled={aprovandoId === Number(item.idUnico)}
+                            onClick={async () => {
+                              setAprovandoId(Number(item.idUnico));
+                              try { await aprovar({ id: Number(item.idUnico), tipo: 'abono', acao: 'A' }); }
+                              finally { setAprovandoId(null); }
+                            }}
+                          >
+                            {aprovandoId === Number(item.idUnico) ? '…' : 'Aprovar'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={aprovandoId === Number(item.idUnico)}
+                            onClick={async () => {
+                              setAprovandoId(Number(item.idUnico));
+                              try { await aprovar({ id: Number(item.idUnico), tipo: 'abono', acao: 'R' }); }
+                              finally { setAprovandoId(null); }
+                            }}
+                          >
+                            Reprovar
+                          </Button>
+                        </div>
                       }
                     />
                   ))
@@ -509,21 +612,31 @@ export default function GestaoPage() {
         </div>
       </div>
 
-      {/* Modal de aprovação */}
-      {modal.open && modal.input && (
+      {/* Modal aprovar hora extra */}
+      {heModal.item && (
         <ApprovalModal
-          open={modal.open}
-          onClose={closeModal}
-          titulo={modal.titulo}
-          fields={getModalFields(modal.input.tipo ?? '')}
-          confirmLabel={isAprovando ? 'Processando…' : 'Confirmar'}
+          open={heModal.open}
+          onClose={() => setHeModal({ open: false, item: null })}
+          titulo={`Aprovar Hora Extra — ${heModal.item.nomeColaborador}`}
+          fields={[
+            { type: 'select', name: 'tipoAprovacao', label: 'Contabilizar como', options: [
+              { value: 'B', label: 'Banco de Horas' },
+              { value: 'P', label: 'Folha de Pagamento' },
+            ]},
+            { type: 'static',   name: 'projeto',          label: 'Projeto',               value: heModal.item.projetoDescricao },
+            { type: 'textarea', name: 'observacaoGestor',  label: 'Observação (opcional)' },
+          ]}
+          confirmLabel="Confirmar"
           onConfirm={async (values) => {
             await aprovar({
-              ...modal.input!,
-              acao:             (values['acao'] as 'A' | 'R') ?? 'A',
-              observacaoGestor: values['observacaoGestor'] ?? values['justificativa'],
-              justificativa:    values['justificativa'],
-            } as AprovarInput);
+              id:               heModal.item!.solicitacaoID,
+              tipo:             'hora_extra',
+              acao:             'A',
+              tipoAprovacao:    values['tipoAprovacao'] || 'B',
+              projeto:          heModal.item!.projetoId,
+              observacaoGestor: values['observacaoGestor'] ?? '',
+            });
+            setHeModal({ open: false, item: null });
           }}
         />
       )}

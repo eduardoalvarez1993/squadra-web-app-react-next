@@ -16,8 +16,10 @@ import {
   LogOutIcon,
   ChevronRightIcon,
   LayersIcon,
+  LayoutGridIcon,
 } from 'lucide-react';
 import { useUserStore } from '@/store/user';
+import { temAcessoDP } from '@/lib/dp-access';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { ASSETS } from '@/lib/assets';
 
@@ -34,11 +36,12 @@ const ALWAYS: NavItem[] = [
   { href: '/ferias',       label: 'Férias',       icon: <UmbrellaIcon      className="h-5 w-5 text-emerald-500" /> },
   { href: '/holerite',     label: 'Holerite',     icon: <WalletIcon        className="h-5 w-5 text-amber-500" /> },
   { href: '/solicitacoes', label: 'Solicitar',    icon: <ClipboardListIcon className="h-5 w-5 text-orange-500" /> },
+  { href: '/recursos',     label: 'Extras',       icon: <LayoutGridIcon    className="h-5 w-5 text-violet-500" /> },
 ];
 
 export function Sidebar() {
   const {
-    permissoes, temEquipe, gestorId,
+    permissoes, cargo, temEquipe, gestorId,
     setFluencia, clearUser,
     sidebarCollapsed, toggleSidebar,
   } = useUserStore();
@@ -52,18 +55,18 @@ export function Sidebar() {
     router.push('/login');
   }
 
+  // Ponto fica logo após Home — separado dos demais condicionais
+  const showPonto = hydrated && permissoes.bateRep;
+
   const conditional: NavItem[] = [];
   if (hydrated) {
     if (permissoes.gerenteFuncional && temEquipe) {
       conditional.push({ href: '/gestao',     label: 'Gestão',     icon: <UsersIcon     className="h-5 w-5 text-purple-500" /> });
     }
-    if (permissoes.bateRep) {
-      conditional.push({ href: '/ponto',      label: 'Ponto',      icon: <ClockIcon     className="h-5 w-5 text-sky-500" /> });
-    }
     if (permissoes.gerenteFuncional && !permissoes.bateRep && temEquipe) {
       conditional.push({ href: '/percentual', label: 'Percentual', icon: <PercentIcon   className="h-5 w-5 text-indigo-500" /> });
     }
-    if (permissoes.perfilDP) {
+    if (temAcessoDP(permissoes.perfilDP, cargo)) {
       conditional.push({ href: '/rh',         label: 'RH',         icon: <BriefcaseIcon className="h-5 w-5 text-teal-500" /> });
     }
   }
@@ -109,15 +112,29 @@ export function Sidebar() {
         )}
       </Link>
 
-      {/* Itens sempre visíveis */}
-      {ALWAYS.map((item) => (
+      {/* Home */}
+      <Link href="/home" className={itemCls('/home')}>
+        {ALWAYS[0].icon}
+        <span className={labelCls}>{ALWAYS[0].label}</span>
+      </Link>
+
+      {/* Ponto — logo após Home */}
+      {showPonto && (
+        <Link href="/ponto" className={itemCls('/ponto')}>
+          <ClockIcon className="h-5 w-5 text-sky-500" />
+          <span className={labelCls}>Ponto</span>
+        </Link>
+      )}
+
+      {/* Restante dos itens fixos */}
+      {ALWAYS.slice(1).map((item) => (
         <Link key={item.href} href={item.href} className={itemCls(item.href)}>
           {item.icon}
           <span className={labelCls}>{item.label}</span>
         </Link>
       ))}
 
-      {/* Itens condicionais */}
+      {/* Gestão, Percentual, RH */}
       {!hydrated ? (
         <div className="flex flex-col gap-1 mt-1 w-full" aria-hidden>
           <Skeleton height="40px" width="100%" borderRadius="8px" />

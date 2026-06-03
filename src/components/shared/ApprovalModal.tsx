@@ -22,7 +22,8 @@ import { Textarea } from '@/components/ui/textarea';
 type Field =
   | { type: 'select'; name: string; label: string; options: { value: string; label: string }[] }
   | { type: 'input';  name: string; label: string; inputType?: string }
-  | { type: 'textarea'; name: string; label: string };
+  | { type: 'textarea'; name: string; label: string }
+  | { type: 'static';  name: string; label: string; value: string };
 
 interface ApprovalModalProps {
   open: boolean;
@@ -113,6 +114,11 @@ export function ApprovalModal({
                   onChange={(e) => setValue(field.name, e.target.value)}
                   disabled={loading}
                 />
+              )}
+              {field.type === 'static' && (
+                <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+                  {field.value || '—'}
+                </p>
               )}
             </div>
           ))}

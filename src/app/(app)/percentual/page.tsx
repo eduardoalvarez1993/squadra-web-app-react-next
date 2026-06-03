@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorSection } from '@/components/shared/ErrorSection';
 import { AccessDenied } from '@/components/shared/AccessDenied';
+import { VerificandoCredenciais } from '@/components/shared/VerificandoCredenciais';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { FormFeedback } from '@/components/shared/FormFeedback';
 import { DrawerForm } from '@/components/shared/DrawerForm';
@@ -18,6 +19,8 @@ const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Ag
 export default function PercentualPage() {
   const permissoes = useUserStore((s) => s.permissoes);
   const bateRep    = useUserStore((s) => s.permissoes.bateRep);
+  const gestorId   = useUserStore((s) => s.gestorId);
+  const hydrated   = gestorId !== 0;
 
   const hoje = new Date();
   const [year,  setYear]  = useState(hoje.getFullYear());
@@ -47,6 +50,7 @@ export default function PercentualPage() {
   const horasRegistradas = dados?.horasRegistradas ?? 0;
   const restante         = horasPrevistas - horasRegistradas;
 
+  if (!hydrated) return <VerificandoCredenciais />;
   if (!permissoes.gerenteFuncional || bateRep) {
     return <AccessDenied description="O percentual fica disponivel para gestores que nao registram ponto pelo app." />;
   }

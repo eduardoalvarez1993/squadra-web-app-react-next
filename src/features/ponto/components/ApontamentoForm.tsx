@@ -27,6 +27,11 @@ export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting }: Apon
   const projeto    = projetos.find((p) => String(p.id) === projetoId);
   const temSubProj = (projeto?.subProjetos.length ?? 0) > 0;
 
+  // Base UI: SelectValue renderiza o `value` cru por padrão. Passando `items`
+  // (mapa value→label) ao Root, ele exibe o NOME do projeto, não o ID.
+  const projetoItems = projetos.map((p) => ({ value: String(p.id), label: p.nome }));
+  const subprojetoItems = (projeto?.subProjetos ?? []).map((s) => ({ value: String(s.id), label: s.nome }));
+
   function validate(): string | null {
     if (!projetoId) return 'Selecione um projeto';
     if (temSubProj && !subprojetoId) return 'Selecione um subprojeto';
@@ -61,16 +66,24 @@ export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting }: Apon
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 pt-2">
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium">Data</label>
-        <Input value={data} readOnly className="bg-muted" />
+        <Input
+          type="date"
+          value={data}
+          readOnly
+          // travado no dia clicado / dia atual — picker apenas para visualização
+          onKeyDown={(e) => e.preventDefault()}
+          className="bg-muted cursor-default"
+        />
       </div>
 
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium">Projeto</label>
         <Select
+          items={projetoItems}
           value={projetoId}
           onValueChange={(v) => { setProjetoId(v ?? ''); setSubprojetoId(''); setOk(false); }}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Selecione…" />
           </SelectTrigger>
           <SelectContent>
@@ -86,8 +99,8 @@ export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting }: Apon
       {temSubProj && (
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Subprojeto</label>
-          <Select value={subprojetoId} onValueChange={(v) => { setSubprojetoId(v ?? ''); setOk(false); }}>
-            <SelectTrigger>
+          <Select items={subprojetoItems} value={subprojetoId} onValueChange={(v) => { setSubprojetoId(v ?? ''); setOk(false); }}>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecione…" />
             </SelectTrigger>
             <SelectContent>

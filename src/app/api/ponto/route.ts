@@ -47,7 +47,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(data);
   } catch (err) {
     if (err instanceof SquadraAuthError) return NextResponse.json({ error: 'Sessão expirada' }, { status: 401 });
-    console.error('[GET /api/ponto]', err);
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error('[GET /api/ponto]', detail);
+
+    // Código 8 = Usuário não encontrado no SQHoras (conta inativa ou inexistente)
+    try {
+      const parsed = JSON.parse(detail);
+      const codigo = parsed?.erros?.[0]?.codigo;
+      if (codigo === 8) {
+        return NextResponse.json({ error: 'sqhoras_not_found' }, { status: 404 });
+      }
+    } catch { /* não é JSON, segue para erro genérico */ }
+
     return NextResponse.json({ error: 'Erro ao buscar dados de ponto' }, { status: 500 });
   }
 }
@@ -67,7 +78,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
 
   try {
-    await novoApontamento({ ...parsed.data, usuarioId: session.pessoaId }, session.token);
+    await novoApontamento({ ...parsed.data, usuarioId: session.pessoaId, login: session.login }, session.token);
     return NextResponse.json({ ok: true });
   } catch (err) {
     if (err instanceof SquadraAuthError) return NextResponse.json({ error: 'Sessão expirada' }, { status: 401 });

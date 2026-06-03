@@ -29,15 +29,24 @@ export async function solicitarAbono(
 }
 
 export async function solicitarHoraExtra(
-  input: { projetoId: number; data: string; horaInicio: string; horaFim: string; tipo: string; pessoaId: number },
+  input: {
+    gestorId:   number;
+    projetoId:  number;
+    data:       string;   // ISO yyyy-MM-dd
+    qtdadeHoras: number;
+    motivo:     string;
+    tipo:       string;
+    isNoturno?: 'S' | 'N';
+  },
   token: string,
 ): Promise<{ ok: true }> {
   return squadra.solicitacoes.solicitarHoraExtra({
-    usuarioId:  input.pessoaId,
-    projetoId:  input.projetoId,
-    data:       toUpstreamDate(input.data),
-    horaInicio: input.horaInicio,
-    horaFim:    input.horaFim,
-    tipo:       input.tipo,
+    id:                input.gestorId,
+    dataSolicitacao:   toUpstreamDate(input.data),
+    qtdadeHoras:       input.qtdadeHoras,
+    motivoSolicitacao: input.motivo,
+    tipo:              input.tipo,
+    projeto:           input.projetoId,
+    isNoturno:         input.isNoturno ?? 'N',
   }, token);
 }
