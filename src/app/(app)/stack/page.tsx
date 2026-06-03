@@ -229,8 +229,8 @@ const CHANGELOG: ChangelogEntry[] = [
   {
     title: 'Página Stack & Arquitetura',
     date: '02 Jun 2026',
-    tag: 'novo',
-    tagColor: 'bg-violet-100 text-violet-700',
+    tag: 'release',
+    tagColor: 'bg-green-100 text-green-700',
     items: [
       'Adicionado item "Stack" no menu lateral acima do botão Sair',
       'Página com tecnologias, logos, fluxo de dados e changelog',
