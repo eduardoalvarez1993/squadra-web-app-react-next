@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 const GRADIENTS = [
   'from-pink-400 to-blue-400',
   'from-purple-400 to-pink-400',
@@ -37,6 +39,8 @@ function toSrc(foto: string): string {
 }
 
 export function AvatarGradient({ nome, foto = null, size = 40, className }: AvatarGradientProps) {
+  const [imgFailed, setImgFailed] = useState(false);
+
   const outerStyle = {
     width:    size,
     height:   size,
@@ -50,7 +54,7 @@ export function AvatarGradient({ nome, foto = null, size = 40, className }: Avat
     flexShrink: 0,
   };
 
-  if (foto) {
+  if (foto && !imgFailed) {
     return (
       <div style={outerStyle} className={className}>
         {/* img nativo — suporta base64 e URLs externas sem config de domínio */}
@@ -60,7 +64,7 @@ export function AvatarGradient({ nome, foto = null, size = 40, className }: Avat
           width={size}
           height={size}
           style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+          onError={() => setImgFailed(true)}
         />
       </div>
     );

@@ -96,7 +96,7 @@ async function sq<T>(
 const OkSchema = z.unknown().transform(() => ({ ok: true as const }));
 
 function normalizeFoto(raw: unknown): string | null {
-  if (!raw || typeof raw !== 'string') return null;
+  if (!raw || typeof raw !== 'string' || !raw.trim()) return null;
   if (raw.startsWith('data:') || raw.startsWith('http')) return raw;
   return `data:image/jpeg;base64,${raw}`;
 }
