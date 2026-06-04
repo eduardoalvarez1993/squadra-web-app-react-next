@@ -4,6 +4,35 @@ Changelog cronológico de todos os componentes e módulos. Do mais recente para 
 
 ---
 
+## 2026-06-04 — Hardening pós-review (QA + review amplo da plataforma)
+
+### Correções de bugs (QA funcional)
+- **hora-extra/route.ts**: hora extra noturna que cruza a meia-noite agora soma 24h (antes calculava 0h e era rejeitada); mensagem distinta para "fim ≤ início" vs "máx 2h"; log do fallback de tipo
+- **ponto/page.tsx**: visualização de ponto de outro colaborador é somente-leitura (não abre registrar/apontar; oculta Dias Pendentes) — evita gravar no usuário logado
+- **ApontamentoForm + api/ponto**: bloqueio de data futura (form + schema, fuso America/Sao_Paulo)
+- **rh/page.tsx (AnexoViewer)**: anexo buscado pelo status do próprio abono (não da aba); migrado para `Dialog` (foco/aria/Esc) e Blob URL (evita data: URI gigante)
+- **gestao/page.tsx**: chave de processamento composta `${tipo}-${id}` evita colisão entre abono/apropriação/férias
+
+### Segurança (review amplo — P0/P1)
+- **api/videos**: passa a exigir sessão (anônimo não aciona mais o Airtable)
+- **api/feed/posts (DELETE)**: valida o dono real do post via posts recentes (não confia no `remetenteID` do cliente)
+- **api/perfil/competencias**: adicionado `checkOrigin` (CSRF); erro genérico
+- **api/perfil (PUT)**: schema Zod (valida tipos, rejeita chaves desconhecidas); erro genérico
+- **middleware**: `/feed`, `/recursos`, `/stack` adicionados aos prefixos protegidos
+- **squadra-client**: `semSensiveis()` omite CPF/senha/token do spread de pessoa/perfil
+- **dp-access**: fallback por cargo restrito a "começa com Personnel"
+- **rotas RH [id]**: validação de id (rejeita NaN/inválido com 400)
+- **gestao/membro/[id]/ponto**: não vaza mais a mensagem de erro do upstream
+
+### Acessibilidade e limpeza
+- `<h1 className="sr-only">` em holerite, ferias, solicitacoes, feed e rh (WCAG 1.3.1/2.4.6)
+- Foco visível (`focus-visible:ring`) nos inputs, toggle de senha e botão do login
+- `toMin`/`SEM_ABREV` centralizados em `usePonto` (remove duplicação; `toMin` null-safe)
+- Removido componente órfão `src/components/shared/PostCard.tsx`
+- `role="status"`/`aria-live` nos loaders de Ponto e RH
+
+---
+
 ## 2026-06-03
 
 ### Recursos / Extras (novo)

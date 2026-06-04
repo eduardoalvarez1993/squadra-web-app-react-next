@@ -5,6 +5,38 @@ Ordenadas do mais recente para o mais antigo.
 
 ---
 
+## RH / DP e Ponto (2026-06-03/04)
+
+### Decisão: acesso ao RH/DP por cargo, com `perfilDP` como fonte oficial
+- **Data:** 2026-06-03
+- **Contexto:** O endpoint `/v1/pessoa/permissoes/{id}` retorna `perfilDP: false` para TODOS — inclusive a gerente do DP. Validado por curl em 180+ pessoas (ver `known-issues.md` TI-DP-001). Os 3 apps (vanilla, next, react) dependem dessa flag, então ninguém do DP veria o menu.
+- **Decisão tomada:** `temAcessoDP(perfilDP, cargo)` em `src/lib/dp-access.ts` — usa `perfilDP` quando `true`; senão, fallback para cargo que **começa com** "Personnel" (cobre "PERSONNEL ANALYST" e "PERSONNEL ADMINISTRATION MANAGER", reais do DP).
+- **Alternativa considerada:** Esperar a TI popular `perfilDP`; ou match por projeto ("DEPTO DE PESSOAL").
+- **Por que descartada:** Bloquearia o DP indefinidamente; cargo é mais barato que projeto. Fallback é **provisório** — remover quando a flag for corrigida no backend.
+
+### Decisão: anexo de abono via base64 da listagem (não endpoint dedicado)
+- **Data:** 2026-06-03
+- **Contexto:** `/v1/abono/downloadAnexo/{id}` retorna **404** (não existe). O base64 do anexo já vem no campo `arquivo` de `/v1/listaAbonosDP/0/0/{status}` — é assim que o vanilla exibe.
+- **Decisão tomada:** `getAbonoAnexo(id, status)` rebusca a listagem do status e extrai o `arquivo` do item. O `AnexoViewer` recebe o status do próprio abono e renderiza via Blob URL.
+- **Trade-off aceito:** N+1 (rebusca a lista por anexo) — registrado em `platform-review.md` P2-10.
+
+### Decisão: `AbonoRH` mapeia campos reais da API (não os do spec)
+- **Data:** 2026-06-03
+- **Contexto:** A API real usa `id`/`nome`/`descricao`/`dataInicio`/`horas:"HH:MM"`/`status:"PENDENTE"`, divergente do schema inicial (`idUnico`/`nomeColaborador`/`horas:number`). Causava key duplicada e status errado.
+- **Decisão tomada:** `AbonoRHItemSchema` lê os campos reais, normaliza status para `P/A/R/C` e mantém `horas` como string.
+
+### Decisão: visualização de ponto de outro colaborador é somente-leitura
+- **Data:** 2026-06-04
+- **Contexto:** Ao ver o ponto de outro (`?sqhorasId=`), abrir o drawer de apontamento usaria os projetos e a identidade do **usuário logado**, gravando no lugar errado.
+- **Decisão tomada:** Com `outraSqhorasId` presente, bloquear registrar/apontar e ocultar Dias Pendentes (guards em `openFromCalendar`/`openFromPendente`).
+
+### Decisão: omitir campos sensíveis do spread em vez de remover o spread
+- **Data:** 2026-06-04
+- **Contexto:** Schemas de pessoa/perfil fazem `...d` para preservar campos ricos (kudos, interesses, skills) que a UI usa. Mas isso vazava CPF para qualquer colaborador.
+- **Decisão tomada:** `semSensiveis()` remove apenas `cpf/senha/token/...` do spread, mantendo o resto. Menos frágil que um whitelist completo (que quebraria a UI a cada campo novo).
+
+---
+
 ## Infraestrutura / Foundation
 
 ### Decisão: middleware em `proxy.ts` separado de `middleware.ts`

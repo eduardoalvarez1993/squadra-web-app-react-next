@@ -23,7 +23,7 @@ para Next.js App Router + TypeScript. O SDD (Spec Driven Development) completo v
 | Rate limiting | Upstash Redis (só `/api/auth`) |
 | Testes unit | Vitest + MSW |
 | Testes e2e | Playwright |
-| Deploy | Vercel |
+| Deploy | Auto-hospedado (Node) — coexistência com o vanilla via DNS |
 
 ---
 
@@ -56,38 +56,41 @@ Também consultar:
 
 ---
 
-## Status de implementação (atualizado 2026-06-02)
+## Status de implementação (atualizado 2026-06-04)
 
 | Fase | Conteúdo | Estado |
 |------|----------|--------|
 | 1 | Foundation: config, session, check-origin, squadra-client, middleware, query-client, store | ✅ Completo |
 | 2 | Auth: POST/DELETE /api/auth, GET /api/auth/me, LoginForm, login/page, (app)/layout | ✅ Completo |
-| 3 | Shared: Skeleton, AvatarGradient, StatusChip, FormFeedback, EmptyState, ErrorSection, AlertCard, TabNav, HistoricoTable, DrawerForm, ApprovalModal, SolicitacaoCard, PessoaCard, PostCard, PerfilLoader, FluenciaModal, SimulandoBanner | ✅ Completo |
+| 3 | Shared: Skeleton, AvatarGradient, StatusChip, FormFeedback, EmptyState, ErrorSection, AlertCard, TabNav, HistoricoTable, DrawerForm, ApprovalModal, SolicitacaoCard, PessoaCard, PerfilLoader, FluenciaModal, SimulandoBanner, VerificandoCredenciais | ✅ Completo |
 | 4 | Shell: Sidebar, Topbar, MobileNav, BottomNav, Shell + SimulandoBanner wired | ✅ Completo |
 | 5 | Features baixa/média: home, holerite, ferias, perfil, pessoas (incl. [id] page), rh | ✅ Completo |
 | 6 | Features alta: ponto, gestao, solicitacoes, feed, percentual | ✅ Completo |
 | 7 | Simulate: /api/auth/simulate, SimularBtn, SimulandoBanner | ✅ Completo |
 | 8 | Paridade visual + funcional com web-app vanilla | ✅ Completo (2026-06-02) |
-| 9 | QA + Acessibilidade WCAG 2.1 AA | ✅ Aprovado (2026-06-02) — 2 FAILs de infra/segurança + 9 issues WCAG corrigidos |
+| 9 | QA + Acessibilidade WCAG 2.1 AA | ✅ Aprovado (2026-06-02) |
+| 10 | **Recursos/Extras** (Links, Vídeos, Ajuda) + redesign do Ponto + RH/DP funcional (abonos/anexos/férias) | ✅ Completo (2026-06-03) |
+| 11 | **Hardening pós-review** (QA funcional + review amplo da plataforma): correções de bugs, P0/P1 de segurança, a11y | ✅ Completo (2026-06-04) — ver `docs/platform-review.md` |
 
 ---
 
-## Status das páginas (QA v2 — 2026-06-02)
+## Status das páginas (atualizado 2026-06-04)
 
 | Página / Módulo | QA | Acessibilidade | Issues abertos |
 |---|---|---|---|
-| Login | ✅ Aprovado | ✅ | — |
-| Home | ✅ Aprovado | ✅ | SUG: sem `<h1>` visível |
-| Feed (Squadra em Rede) | ✅ Aprovado | ✅ | INCONC: autoria no delete (ver known-issues) |
-| Férias | ✅ Aprovado | ✅ | — |
-| Holerite | ✅ Aprovado | ✅ | — |
-| Ponto | ✅ Aprovado | ✅ | INCONC: sqhorasId livre (ver known-issues) |
-| Gestão | ✅ Aprovado | ✅ | — |
-| RH | ✅ Aprovado | ✅ | — |
-| Solicitações | ✅ Aprovado | ✅ | — |
-| Perfil | ✅ Aprovado | ✅ | — |
+| Login | ✅ Aprovado | ✅ foco visível | — |
+| Home | ✅ Aprovado | ✅ | — |
+| Feed (Squadra em Rede) | ✅ Aprovado | ✅ `<h1>` | delete valida dono real do post |
+| Férias | ✅ Aprovado | ✅ `<h1>` | — |
+| Holerite | ✅ Aprovado | ✅ `<h1>` | — |
+| Ponto | ✅ Aprovado | ✅ | TI-AUTHZ-001 (sqhorasId/escopo equipe) |
+| Gestão | ✅ Aprovado | ✅ | TI-AUTHZ-001 (escopo equipe) |
+| RH / DP | ✅ Aprovado | ✅ `<h1>` | acesso por cargo (fallback) — TI-DP-001 |
+| Solicitações | ✅ Aprovado | ✅ `<h1>` | — |
+| Perfil | ✅ Aprovado | ✅ | CropModal sem focus-trap (A11Y-PEND) |
 | Pessoas | ✅ Aprovado | ✅ | — |
 | Percentual | ✅ Aprovado | ✅ | INCONC: schema sem dados reais (jun/2026) |
+| **Recursos/Extras** (Links, Vídeos, Ajuda) | ✅ | ✅ | — |
 | 404 / Acesso negado | ✅ Aprovado | ✅ | — |
 
 ---
@@ -105,14 +108,14 @@ Fase 7 → Simulate                                                             
 Fase 8 → Paridade visual + funcional                                              ✅
 ```
 
-**Pendente para deploy:**
-- Testes Playwright (8 fluxos críticos) — ver `docs/known-issues.md` INCONC-001
-- `PercentualItemRawSchema` — itens não verificáveis (sem dados em jun/2026) — ver `docs/known-issues.md` INCONC-002
-
-**Sugestões de acessibilidade pendentes (não bloqueantes):**
-- `home/page.tsx` sem `<h1>` — adicionar `<h1 className="sr-only">Home</h1>`
-- Skip link "Pular para o conteúdo" ausente no Shell
-- Auditar `<h1>` em demais páginas de feature
+**Pendente para deploy / validação com TI (ver `docs/known-issues.md` e `docs/platform-review.md`):**
+- **TI-AUTHZ-001** (Alta) — IDOR de escopo de equipe (ponto/gestão agem por flag global sem checar a equipe); confirmar se a API valida cross-equipe
+- **TI-DP-001** — `perfilDP` nunca vem `true` na API; acesso ao RH usa fallback por cargo
+- Testes unitários — cobertura baixa (~26%); meta a definir (ver seção Testes)
+- Testes Playwright (8 fluxos críticos) — INCONC-001
+- `PercentualItemRawSchema` — itens não verificáveis sem dados reais — INCONC-002
+- **DEBT-002** — refactors planejados (fetchJson único, withSession, z.object)
+- **A11Y-PEND** — CropModal focus-trap, selects `htmlFor`, skip link
 
 Dentro de cada feature, sempre nesta ordem:
 ```
@@ -135,10 +138,12 @@ services/[feature].ts  →  app/api/[feature]/route.ts  →  hooks/  →  compon
 | `HistoricoTable` | Tabela genérica de histórico |
 | `PerfilLoader` | Loading card flip 3D (frente + verso) — reutilizado em perfil/page e DrawerColaborador |
 | `PessoaCard` | Card de resultado de busca de pessoa |
-| `PostCard` | Card de post do feed com like/comentário/drawer — **componente compartilhado entre feed, home e KudosTab** |
 | `Skeleton` | Placeholder de carregamento |
 | `StatusChip` | Badge de status colorido |
 | `TabNav` | Navegação por abas |
+| `VerificandoCredenciais` | Tela "Verificando credenciais…" enquanto as permissões carregam (Ponto, Gestão, Percentual) |
+
+> O `PostCard` vive em `src/features/feed/components/PostCard.tsx` (usado por feed, home e KudosTab). O antigo `src/components/shared/PostCard.tsx` era órfão e foi removido em 2026-06-04.
 
 ---
 
@@ -178,11 +183,13 @@ Criar `.env.local` (nunca commitar):
 
 ```env
 SESSION_SECRET=           # 32+ chars — gerar: openssl rand -base64 32
-SQUADRA_API_BASE=https://api.squadra.com.br/api
-SQUADRA_API_TIMEOUT_MS=15000
+SQUADRA_API_URL=https://api.squadra.com.br/api
 APP_URL=http://localhost:3000
+ALLOWED_ORIGINS=          # origens permitidas para checkOrigin (CSRF)
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
+AIRTABLE_VIDEOS_TOKEN=    # fonte dos vídeos (Recursos/Extras)
+AIRTABLE_VIDEOS_BASE=
 ```
 
 ---
@@ -194,6 +201,8 @@ UPSTASH_REDIS_REST_TOKEN=
 - **CSRF:** `checkOrigin()` na primeira linha de todo Route Handler de mutação
 - **NB-07:** campo `corpo` de comunicados é HTML da API → `DOMPurify + dangerouslySetInnerHTML`
 - **Simulate:** `podeSimular === true` hardcoded para `session.data.id === 995`
+- **Acesso RH/DP:** `temAcessoDP(perfilDP, cargo)` em `src/lib/dp-access.ts` — `perfilDP` é a fonte oficial, mas como a API nunca retorna `true` (ver `docs/known-issues.md` TI-DP-001) há fallback provisório por cargo iniciando com "Personnel". Validar com TI.
+- **Dados sensíveis:** schemas de pessoa/perfil fazem spread do retorno bruto mas omitem campos sensíveis (CPF) via `semSensiveis()` no `squadra-client.ts`.
 
 ---
 
@@ -209,6 +218,22 @@ UPSTASH_REDIS_REST_TOKEN=
 ---
 
 ## Changelog
+
+> Detalhe completo por componente em `docs/component-changelog.md`. Revisões em `docs/{review-report,qa-report,platform-review}.md`.
+
+### 2026-06-04 — Hardening pós-review
+- **QA funcional + review amplo da plataforma** (3 frentes: segurança/backend, frontend/a11y, arquitetura)
+- Bugs corrigidos: hora extra noturna (meia-noite), ponto "ver outro" read-only, bloqueio de data futura, anexo por status do abono (Dialog + Blob), `aprovandoId` composto na Gestão
+- Segurança P0/P1: `/api/videos` exige sessão; feed delete valida dono real; `checkOrigin` em competências; middleware cobre /feed,/recursos,/stack; CPF omitido do spread; `PUT /api/perfil` com Zod; erros genéricos (não vaza upstream); `dp-access` restrito; validação de id nas rotas RH
+- A11y: `<h1>` nas páginas; foco visível no login; código morto removido (PostCard shared)
+- Pendências registradas: TI-AUTHZ-001, DEBT-002, A11Y-PEND
+
+### 2026-06-03 — Recursos/Extras + redesign do Ponto + RH/DP
+- **Recursos/Extras** (novo): Links, Vídeos (Airtable) e Ajuda (FAQ com busca/árvore)
+- **Ponto**: calendário redesenhado, resumo Saldo/Carga/Realizado, ações por dia, apontamento com nome do projeto
+- **RH/DP**: menu liberado para o DP; abonos em abas; anexo corrigido (base64 da listagem); férias
+- **Gestão**: aprovação direta no cartão; hora extra Banco/Folha; fotos
+- UI: `VerificandoCredenciais`, cursor de clique global, avatares neutros
 
 ### 2026-06-02 — Paridade visual + funcional com web-app vanilla
 
