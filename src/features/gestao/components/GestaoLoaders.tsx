@@ -43,6 +43,42 @@ export function AlocarLoader() {
 
 // ── Hora Extra ────────────────────────────────────────────────────────────────
 
+export function GestaoFuncionalLoader() {
+  return (
+    <div className="gestao-loader-wrap">
+      <div className="gestao-funcional-loading-stage">
+        <Image
+          src={ASSETS.loadingGestaoFuncional}
+          alt=""
+          fill
+          className="gestao-loader-img"
+          priority
+        />
+        <div className="gestao-funcional-route-dot" aria-hidden="true" />
+      </div>
+      <strong>Carregando colaboradores…</strong>
+    </div>
+  );
+}
+
+export function GestaoProjetoLoader() {
+  return (
+    <div className="gestao-loader-wrap">
+      <div className="gestao-projeto-loading-stage">
+        <Image
+          src={ASSETS.loadingGestaoProjeto}
+          alt=""
+          fill
+          className="gestao-loader-img"
+          priority
+        />
+        <div className="gestao-projeto-pin-dot" aria-hidden="true" />
+      </div>
+      <strong>Carregando projetos…</strong>
+    </div>
+  );
+}
+
 export function HoraExtraLoader() {
   return (
     <div className="gestao-loader-wrap">

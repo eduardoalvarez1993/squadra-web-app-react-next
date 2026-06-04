@@ -77,7 +77,11 @@ export async function POST(req: NextRequest) {
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Corpo inválido' }, { status: 400 }); }
 
   const parsed = NovoApontamentoClientSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
+  if (!parsed.success) {
+    // Expõe a msg específica de data futura; demais erros ficam genéricos.
+    const dataFutura = parsed.error.issues.some((i) => i.message === 'Data futura não permitida');
+    return NextResponse.json({ error: dataFutura ? 'Data futura não permitida' : 'Dados inválidos' }, { status: 400 });
+  }
 
   try {
     await novoApontamento({ ...parsed.data, usuarioId: session.pessoaId, login: session.login }, session.token);

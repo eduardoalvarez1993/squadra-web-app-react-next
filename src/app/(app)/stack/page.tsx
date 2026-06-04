@@ -188,6 +188,36 @@ const FLOW_STEPS = [
 ];
 
 // ---------------------------------------------------------------------------
+// Qualidade & Testes — visão de negócio
+// ---------------------------------------------------------------------------
+
+const QUALITY_STATS: { value: string; label: string }[] = [
+  { value: '234',     label: 'testes automatizados' },
+  { value: '18',      label: 'suítes de teste' },
+  { value: '0',       label: 'falhas na suíte' },
+  { value: '88–91%',  label: 'cobertura das rotas críticas' },
+];
+
+// Cobertura por área de RISCO (o que dá prejuízo se falhar vem primeiro).
+const COVERAGE_AREAS: { label: string; note: string; pct: number; color: string }[] = [
+  {
+    label: 'Segurança das rotas',
+    note: 'login, CSRF, permissões de RH/gestor',
+    pct: 90, color: 'bg-green-500',
+  },
+  {
+    label: 'Integração com a API Squadra',
+    note: 'contratos de dados (schemas/transforms)',
+    pct: 53, color: 'bg-blue-500',
+  },
+  {
+    label: 'Regras de negócio e cálculos',
+    note: 'horas, status, abonos, validações',
+    pct: 64, color: 'bg-violet-500',
+  },
+];
+
+// ---------------------------------------------------------------------------
 // Changelog
 // ---------------------------------------------------------------------------
 
@@ -200,6 +230,32 @@ interface ChangelogEntry {
 }
 
 const CHANGELOG: ChangelogEntry[] = [
+  {
+    title: 'Gestão Funcional e Gestão de Projeto',
+    date: '04 Jun 2026',
+    tag: 'novo',
+    tagColor: 'bg-violet-100 text-violet-700',
+    items: [
+      'Duas novas abas no menu Gestão: alterar o gestor de um colaborador e de um projeto',
+      'Formulário com busca (autocomplete) do alvo e do novo gestor, já preenchido com o usuário logado',
+      '"Ver todos" com lazy load, busca e filtros — colaboradores e projetos com seus gestores atuais',
+      'Telas 100% em homologação (HML) durante a validação — sinalizadas com chip "HML"',
+      'Busca com debounce e cache das listagens para reduzir requisições',
+    ],
+  },
+  {
+    title: 'Suíte de testes automatizados',
+    date: '04 Jun 2026',
+    tag: 'novo',
+    tagColor: 'bg-violet-100 text-violet-700',
+    items: [
+      '234 testes unitários e de integração (Vitest), 0 falhas',
+      'Cobertura ponderada por risco: rotas de segurança 88–91%, regras de negócio 64–76%, integração Squadra ~53%',
+      'Schemas da API validados contra payloads reais — blinda contra mudanças de contrato',
+      'Mock de API via MSW + sessão; cada bug de homologação vira teste de regressão',
+      '8 fluxos críticos ponta a ponta (Playwright)',
+    ],
+  },
   {
     title: 'Seção Extras — Links, Vídeos e Ajuda',
     date: '03 Jun 2026',
@@ -413,6 +469,56 @@ export default function StackPage() {
           </div>
         </section>
       ))}
+
+      {/* Qualidade & Testes */}
+      <section>
+        <div className="mb-3 flex items-baseline gap-2">
+          <h2 className="text-base font-semibold text-foreground">Qualidade & Testes</h2>
+          <span className="text-xs text-muted-foreground">Confiabilidade medida, não prometida</span>
+        </div>
+        <div className="bg-white border border-border rounded-xl p-5 flex flex-col gap-5">
+
+          {/* Números */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {QUALITY_STATS.map((s) => (
+              <div key={s.label} className="bg-slate-50 border border-border rounded-lg px-3 py-3 text-center">
+                <p className="text-2xl font-bold text-foreground leading-none">{s.value}</p>
+                <p className="text-[11px] text-muted-foreground leading-tight mt-1.5">{s.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Frase de negócio */}
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            A qualidade aqui é <strong className="text-foreground">medida, não prometida</strong>. A suíte cobre
+            primeiro o que causa prejuízo se falhar — <strong className="text-foreground">segurança</strong>,
+            os cálculos que mexem com horas e abonos, e os <strong className="text-foreground">contratos de dados</strong> com
+            a API Squadra. Cada defeito encontrado em homologação é transformado em teste automático, impedindo que volte.
+          </p>
+
+          {/* Cobertura por área de risco */}
+          <div className="flex flex-col gap-3">
+            <p className="text-xs font-semibold text-slate-700">Cobertura por área de risco</p>
+            {COVERAGE_AREAS.map((a) => (
+              <div key={a.label} className="flex flex-col gap-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-sm text-foreground">
+                    {a.label} <span className="text-xs text-muted-foreground">· {a.note}</span>
+                  </span>
+                  <span className="text-sm font-semibold text-foreground font-mono">{a.pct}%</span>
+                </div>
+                <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <div className={`h-full rounded-full ${a.color}`} style={{ width: `${a.pct}%` }} />
+                </div>
+              </div>
+            ))}
+            <p className="text-[11px] text-muted-foreground leading-snug mt-1">
+              Estratégia <strong className="text-slate-700">ponderada por risco</strong>: telas e componentes visuais
+              são validados pelos testes ponta a ponta (Playwright), por isso não inflam a cobertura unitária.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Fluxo de dados */}
       <section>

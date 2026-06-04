@@ -19,21 +19,25 @@ export async function getProjetosAlocados(gestorId: number, token: string): Prom
   return squadra.ponto.getProjetosAlocados(gestorId, token);
 }
 
-export async function novoApontamento(
-  input: {
-    data:            string;  // YYYY-MM-DD
-    horaInicio:      string;
-    horaFinal:       string;
-    projetoId:       number;
-    subprojetoId?:   number;
-    tipoApropriacao: 'JORNADA';
-    justificativa?:  string;
-    usuarioId:       number;
-    login:           string;
-  },
-  token: string,
-): Promise<{ ok: true }> {
-  const payload: NovoApontamentoPayload = {
+export type NovoApontamentoInput = {
+  data:            string;  // YYYY-MM-DD
+  horaInicio:      string;
+  horaFinal:       string;
+  projetoId:       number;
+  subprojetoId?:   number;
+  tipoApropriacao: 'JORNADA';
+  justificativa?:  string;
+  usuarioId:       number;
+  login:           string;
+};
+
+/**
+ * Monta o payload aninhado esperado pelo upstream a partir do input do cliente.
+ * Função pura, exportada para teste de regressão (subprojetoId default 0,
+ * data no formato YYYY-MM-DD propagada nos 3 blocos).
+ */
+export function buildNovoApontamentoPayload(input: NovoApontamentoInput): NovoApontamentoPayload {
+  return {
     dadosGeraisApontamento: { usuarioId: input.usuarioId, login: input.login },
     apontamentos: [{
       projetoId:       input.projetoId,
@@ -47,6 +51,13 @@ export async function novoApontamento(
     justificativas: [{ data: input.data, textoJustificativa: 'Apontamento Realizado Via APP' }],
     aceites:        [{ data: input.data }],
   };
+}
+
+export async function novoApontamento(
+  input: NovoApontamentoInput,
+  token: string,
+): Promise<{ ok: true }> {
+  const payload = buildNovoApontamentoPayload(input);
   return squadra.ponto.novoApontamento(payload, token);
 }
 

@@ -49,7 +49,7 @@ export function parseDMY(dmy: string): Date {
   return new Date(y, m - 1, d);
 }
 
-function computePendentes(dias: PontoDia[]): PontoDiaPendente[] {
+export function computePendentes(dias: PontoDia[]): PontoDiaPendente[] {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 

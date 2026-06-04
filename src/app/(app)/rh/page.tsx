@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useUserStore } from '@/store/user';
 import { temAcessoDP } from '@/lib/dp-access';
+import { statusLabel } from '@/lib/status';
+import { detectMime } from '@/lib/mime';
 import { TabNav }        from '@/components/shared/TabNav';
 import { SolicitacaoCard } from '@/components/shared/SolicitacaoCard';
 import { EmptyState }    from '@/components/shared/EmptyState';
@@ -19,23 +21,6 @@ const TABS = [
   { id: 'abonos', label: 'Abonos' },
   { id: 'ferias', label: 'Férias' },
 ];
-
-function statusMap(s: string): 'pendente' | 'aprovado' | 'reprovado' | 'cancelado' {
-  if (s === 'A') return 'aprovado';
-  if (s === 'R') return 'reprovado';
-  if (s === 'C') return 'cancelado';
-  return 'pendente';
-}
-
-// ── MIME detection por assinatura base64 ──────────────────────────────────────
-
-function detectMime(b64: string): string {
-  if (b64.startsWith('JVBERi')) return 'application/pdf';
-  if (b64.startsWith('/9j/'))   return 'image/jpeg';
-  if (b64.startsWith('iVBOR')) return 'image/png';
-  if (b64.startsWith('R0lGO')) return 'image/gif';
-  return 'application/octet-stream';
-}
 
 // ── Viewer de anexo ───────────────────────────────────────────────────────────
 // Usa o Dialog do projeto (foco, aria-modal, Esc e retorno de foco gerenciados)
@@ -158,7 +143,7 @@ function AbonoList({
               nome={a.nomeColaborador}
               foto={a.foto}
               tipo="abono"
-              status={statusMap(a.status)}
+              status={statusLabel(a.status)}
               detalhes={<span>{a.tipo}{a.data ? ` — ${a.data}` : ''}{a.horas ? ` (${a.horas})` : ''}{a.motivo ? ` — ${a.motivo}` : ''}</span>}
               actions={
                 <div className="flex items-center gap-2 flex-wrap">
@@ -167,7 +152,7 @@ function AbonoList({
                       📎 Ver anexo
                     </Button>
                   )}
-                  {statusMap(a.status) === 'pendente' && (
+                  {statusLabel(a.status) === 'pendente' && (
                     <>
                       <Button size="sm" variant="outline" onClick={() => onAvaliar(a.idUnico, 'R')}>
                         Reprovar
@@ -215,9 +200,9 @@ function FeriasList({
           nome={f.nomeColaborador}
           foto={f.foto}
           tipo="ferias"
-          status={statusMap(f.status)}
+          status={statusLabel(f.status)}
           detalhes={<span>{f.dataInicio} → {f.dataFim}</span>}
-          actions={statusMap(f.status) === 'pendente' ? (
+          actions={statusLabel(f.status) === 'pendente' ? (
             <>
               <Button size="sm" variant="outline" onClick={() => onAvaliar(f.idFerias, 'R')}>
                 Reprovar

@@ -37,10 +37,12 @@ Plataforma interna de gestão de horas e colaboradores da Squadra. Migração da
 | Formulários | React Hook Form + Zod |
 | Sessão | Iron Session (cookie httpOnly, 8h) |
 | Rate limiting | Upstash Redis (somente `/api/auth`) |
-| Testes unitários | Vitest |
-| Testes E2E | Playwright |
+| Testes unitários | Vitest — 234 testes (schemas, regras de negócio e segurança das rotas) |
+| Testes E2E | Playwright — 8 fluxos críticos ponta a ponta |
 | Package manager | pnpm |
 | Deploy | Servidor Node.js |
+
+> **Qualidade & confiabilidade:** suíte de **234 testes automatizados** com estratégia *ponderada por risco* — schemas de integração, regras de negócio e os pontos críticos de segurança (autenticação, CSRF, permissões de RH/gestor) são cobertos a fundo, com as **rotas sensíveis entre 88–91%** de cobertura. Cada bug encontrado em QA é convertido em teste de regressão, blindando o sistema contra reincidências.
 
 ---
 

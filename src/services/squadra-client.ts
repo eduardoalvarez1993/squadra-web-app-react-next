@@ -3,6 +3,10 @@ import { SQUADRA_API_URL } from '@/lib/config';
 
 const TIMEOUT_MS = Number(process.env.SQUADRA_API_TIMEOUT_MS ?? 15_000);
 
+// Homologação. As chamadas alteraGestor* só existem aqui; as abas Gestão Funcional/
+// Gestão de Projeto também LEEM daqui (feature 100% em HML enquanto não vai pra prod).
+export const HML_API_URL = 'https://api-hml.squadra.com.br/api';
+
 // ─── Error types ────────────────────────────────────────────────────────────
 
 export class SquadraAuthError extends Error {
@@ -43,12 +47,14 @@ async function sq<T>(
   schema: z.ZodType<T>,
   retry = true,
   contentType = 'application/json',
+  baseUrl = SQUADRA_API_URL,
+  timeoutMs = TIMEOUT_MS,
 ): Promise<T> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   const execute = async (): Promise<T> => {
-    const res = await fetch(`${SQUADRA_API_URL}${path}`, {
+    const res = await fetch(`${baseUrl}${path}`, {
       method,
       headers: {
         'Content-Type': contentType,
@@ -80,7 +86,7 @@ async function sq<T>(
     return await execute();
   } catch (err) {
     if (err instanceof SquadraServerError && retry) {
-      return sq(method, path, body, token, schema, false, contentType);
+      return sq(method, path, body, token, schema, false, contentType, baseUrl, timeoutMs);
     }
     if (err instanceof Error && err.name === 'AbortError') {
       throw new SquadraTimeoutError();
@@ -362,7 +368,7 @@ export type PerfilData = {
 // Os schemas de pessoa/perfil fazem spread do retorno cru (a UI usa muitos campos
 // não-tipados); este omit evita vazar dados como CPF para qualquer colaborador.
 const CAMPOS_SENSIVEIS = ['cpf', 'cpfColaborador', 'senha', 'password', 'token', 'accessToken'];
-function semSensiveis(obj: Record<string, unknown>): Record<string, unknown> {
+export function semSensiveis(obj: Record<string, unknown>): Record<string, unknown> {
   const r = { ...obj };
   for (const k of CAMPOS_SENSIVEIS) delete r[k];
   return r;
@@ -387,6 +393,7 @@ const PerfilSchema = z.unknown().transform((raw): PerfilData => {
 
 export type PessoaData = {
   id:         number;
+  usuarioId:  number;   // id do USUÁRIO (≠ id de pessoa) — usado como coordId em alteraGestor*
   nome:       string;
   nomeSocial: string;
   foto:       string | null;
@@ -401,6 +408,7 @@ const PessoaItemSchema = z.unknown().transform((raw): PessoaData => {
   return {
     ...semSensiveis(d),
     id:         Number(d['id'] ?? d['idPessoa'] ?? 0),
+    usuarioId:  Number(d['usuarioId'] ?? d['usuarioIdSQHoras'] ?? 0),
     nome:       String(d['nome'] ?? ''),
     nomeSocial: String(d['nomeSocial'] ?? d['nome'] ?? ''),
     foto:       normalizeFoto(d['foto'] ?? d['fotoPerfil'] ?? d['fotoColaborador'] ?? null),
@@ -410,6 +418,58 @@ const PessoaItemSchema = z.unknown().transform((raw): PessoaData => {
     login:      String(d['login'] ?? d['loginUsuario'] ?? d['usuario'] ?? ''),
   };
 });
+
+// ─── Listagens com gestor atual (relatórios) ─────────────────────────────────
+
+export type ColaboradorComGestor = {
+  id:           number;
+  nome:         string;
+  login:        string;
+  cargo:        string;
+  cpf:          string;
+  gerente:      string;
+  emailGerente: string;
+};
+
+const ColaboradorComGestorSchema = z.unknown().transform((raw): ColaboradorComGestor => {
+  const d = raw as Record<string, unknown>;
+  return {
+    id:           Number(d['id'] ?? 0),
+    nome:         String(d['nome'] ?? ''),
+    login:        String(d['login'] ?? ''),
+    cargo:        String(d['cargo'] ?? ''),
+    cpf:          String(d['cpf'] ?? ''),
+    gerente:      String(d['gerente'] ?? ''),
+    emailGerente: String(d['emailGerente'] ?? ''),
+  };
+});
+
+const ColaboradorComGestorListSchema = z.unknown().transform((raw): ColaboradorComGestor[] =>
+  extractRetornoList(raw).map((x) => ColaboradorComGestorSchema.parse(x))
+);
+
+export type ProjetoComGestor = {
+  id:         number;
+  nome:       string;
+  cliente:    string;
+  situacao:   string;
+  cpfGerente: string;
+};
+
+const ProjetoComGestorSchema = z.unknown().transform((raw): ProjetoComGestor => {
+  const d = raw as Record<string, unknown>;
+  return {
+    id:         Number(d['projetoID'] ?? d['projetoId'] ?? d['id'] ?? 0),
+    nome:       String(d['projetoNome'] ?? d['nome'] ?? ''),
+    cliente:    String(d['nomeCliente'] ?? d['cliente'] ?? ''),
+    situacao:   String(d['situacao'] ?? ''),
+    cpfGerente: String(d['cpfGerente'] ?? ''),
+  };
+});
+
+const ProjetoComGestorListSchema = z.unknown().transform((raw): ProjetoComGestor[] =>
+  extractRetornoList(raw).map((x) => ProjetoComGestorSchema.parse(x))
+);
 
 const PessoaSchema = z.unknown().transform((raw): PessoaData => {
   const d = raw as Record<string, unknown>;
@@ -694,10 +754,12 @@ const PercentualDataSchema2 = z.unknown().transform((raw): PercentualData => {
 
 const ProjetoBuscaItemSchema2 = z.unknown().transform((raw): ProjetoBuscaItem => {
   const d = raw as Record<string, unknown>;
+  // /v2/projetos/pornomev2 retorna projetoID (ID maiúsculo) e NomeCliente.
+  const cliente = d['cliente'] ?? d['NomeCliente'] ?? d['nomeCliente'];
   return {
-    id:      (d['id'] ?? d['projetoId'] ?? 0) as string | number,
-    nome:    String(d['nome'] ?? d['nomeProjeto'] ?? ''),
-    cliente: d['cliente'] != null ? String(d['cliente']) : undefined,
+    id:      (d['id'] ?? d['projetoId'] ?? d['projetoID'] ?? 0) as string | number,
+    nome:    String(d['nome'] ?? d['nomeProjeto'] ?? d['projetoNome'] ?? ''),
+    cliente: cliente != null ? String(cliente) : undefined,
   };
 });
 
@@ -1099,6 +1161,17 @@ export {
   ServicosGestorSchema,
   PapeisSchema,
   PercentualDataSchema2 as PercentualDataSchema,
+  // ── Fase 2 (additive exports for unit testing) ──
+  AbonoRHItemSchema,
+  AbonoListSchema,
+  FeriasRHListSchema,
+  LoginUpstreamSchema,
+  UsuariosUpstreamSchema,
+  PermissoesUpstreamSchema,
+  PessoaItemSchema,
+  PerfilSchema,
+  PostItemSchema,
+  DadosColabSchema,
 };
 
 // ─── Squadra namespace map ──────────────────────────────────────────────────
@@ -1174,7 +1247,7 @@ export const squadra = {
     async getById(id: number, token: string) {
       return sq('GET', `/v1/pessoas/${id}`, null, token, PessoaSchema);
     },
-    async buscar(body: BuscarPessoasBody, token: string) {
+    async buscar(body: BuscarPessoasBody, token: string, baseUrl?: string) {
       return sq('POST', '/v1/pessoas/buscarpessoas', {
         nome:                body.nome,
         ativo:               body.ativo ?? true,
@@ -1194,7 +1267,12 @@ export const squadra = {
         pagina:              body.pagina ?? 0,
         tamanhoPagina:       body.tamanhoPagina ?? 0,
         comunidades:         '',
-      }, token, PessoaListSchema);
+      }, token, PessoaListSchema, true, 'application/json', baseUrl);
+    },
+    // Relatório completo de pessoas — inclui o gestor atual (gerente) de cada colaborador.
+    // Resposta pesada (~585KB / ~25s) → timeout estendido.
+    async relatorio(token: string, baseUrl?: string) {
+      return sq('GET', '/v1/pessoasRelatorio', null, token, ColaboradorComGestorListSchema, true, 'application/json', baseUrl, 60_000);
     },
   },
 
@@ -1288,8 +1366,8 @@ export const squadra = {
     async deletar(id: number | string, token: string) {
       return sq('DELETE', `/v1/percentual/deletar/${id}`, null, token, OkSchema);
     },
-    async buscarProjetos(q: string, token: string) {
-      return sq('POST', '/v2/projetos/pornomev2', { nome: q }, token, ProjetosBuscaListSchema);
+    async buscarProjetos(q: string, token: string, baseUrl?: string) {
+      return sq('POST', '/v2/projetos/pornomev2', { nome: q }, token, ProjetosBuscaListSchema, true, 'application/json', baseUrl);
     },
     async getSubprojetos(id: number | string, token: string) {
       return sq('GET', `/v1/projetos/subprojetos/${id}`, null, token, SubprojetosListSchema);
@@ -1346,6 +1424,18 @@ export const squadra = {
       const first = retorno[0] ?? {};
       const id = Number(first['id'] ?? 0);
       return id > 0 ? id : null;
+    },
+    // ── Alterar gestor (HML) — coordId = id do USUÁRIO do novo gestor ────────
+    // recId = id da pessoa do colaborador · prjId = id do projeto. POST sem body.
+    async alteraGestorColaborador(coordId: number, recId: number, token: string) {
+      return sq('POST', `/v1/alteraGestorColaborador/${coordId}/${recId}`, {}, token, OkSchema, true, 'application/json', HML_API_URL);
+    },
+    async alteraGestorProjeto(coordId: number, prjId: number, token: string) {
+      return sq('POST', `/v1/alteraGestorProjeto/${coordId}/${prjId}`, {}, token, OkSchema, true, 'application/json', HML_API_URL);
+    },
+    // Relatório de projetos cadastrados — inclui cpfGerente (gestor atual, por CPF).
+    async relatorioProjetos(token: string, baseUrl?: string) {
+      return sq('GET', '/v1/gestor/relatorioProjetosCadastrados', null, token, ProjetoComGestorListSchema, true, 'application/json', baseUrl);
     },
   },
 

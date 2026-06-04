@@ -9,6 +9,10 @@ import {
   type ServicoGestor,
   type Papel,
   type AlocarPayload,
+  type ColaboradorComGestor,
+  type PessoaData,
+  type ProjetoBuscaItem,
+  HML_API_URL,
 } from './squadra-client';
 
 function toUpstreamDate(iso: string): string {
@@ -167,4 +171,90 @@ export async function getServicos(gestorId: number, token: string): Promise<Serv
 
 export async function getPapeis(token: string): Promise<Papel[]> {
   return squadra.gestao.getPapeis(token);
+}
+
+// ── Cache server-side (in-memory, compartilhado entre usuários do processo) ────
+// As listagens pessoasRelatorio (~25s/585KB) e relatorioProjetos são GLOBAIS e
+// mudam pouco → cacheamos por alguns minutos. Invalidado ao alterar um gestor.
+const CACHE_TTL_MS = 10 * 60 * 1000;
+type CacheEntry<T> = { at: number; data: T };
+const _cache = new Map<string, CacheEntry<unknown>>();
+
+async function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const hit = _cache.get(key) as CacheEntry<T> | undefined;
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.data;
+  const data = await fn();
+  _cache.set(key, { at: Date.now(), data });
+  return data;
+}
+
+export function invalidateGestaoCache(...keys: string[]): void {
+  if (keys.length === 0) { _cache.clear(); return; }
+  for (const k of keys) _cache.delete(k);
+}
+
+const KEY_PESSOAS  = 'pessoas-relatorio';
+const KEY_PROJETOS = 'relatorio-projetos';
+
+// Estas 2 telas leem 100% de HML (a feature ainda não foi pra prod).
+function getPessoasRelatorio(token: string): Promise<ColaboradorComGestor[]> {
+  return cached(KEY_PESSOAS, () => squadra.pessoas.relatorio(token, HML_API_URL));
+}
+
+// Buscas dos formulários (autocomplete) — também em HML, só nestas telas.
+export async function buscarPessoasHml(nome: string, token: string): Promise<PessoaData[]> {
+  return squadra.pessoas.buscar({ nome }, token, HML_API_URL);
+}
+
+export async function buscarProjetosHml(q: string, token: string): Promise<ProjetoBuscaItem[]> {
+  return squadra.percentual.buscarProjetos(q, token, HML_API_URL);
+}
+
+// ── Alterar gestor (HML) ──────────────────────────────────────────────────────
+export async function alteraGestorColaborador(coordId: number, recId: number, token: string): Promise<{ ok: true }> {
+  const res = await squadra.gestao.alteraGestorColaborador(coordId, recId, token);
+  invalidateGestaoCache(KEY_PESSOAS);   // o gestor do colaborador mudou
+  return res;
+}
+
+export async function alteraGestorProjeto(coordId: number, prjId: number, token: string): Promise<{ ok: true }> {
+  const res = await squadra.gestao.alteraGestorProjeto(coordId, prjId, token);
+  invalidateGestaoCache(KEY_PROJETOS);  // o gestor do projeto mudou
+  return res;
+}
+
+// ── Listagens "ver todos" com gestor atual (cacheadas) ────────────────────────
+export async function listarColaboradoresComGestor(token: string): Promise<ColaboradorComGestor[]> {
+  const list = await getPessoasRelatorio(token);
+  return [...list].sort((a, b) => a.nome.localeCompare(b.nome));
+}
+
+export type ProjetoComGestorView = {
+  id:       number;
+  nome:     string;
+  cliente:  string;
+  situacao: string;
+  gestor:   string;   // nome resolvido a partir do cpfGerente
+};
+
+export async function listarProjetosComGestor(token: string): Promise<ProjetoComGestorView[]> {
+  // relatorioProjetos traz o gestor por CPF; resolvemos o nome via relatório de pessoas.
+  const [projetos, pessoas] = await Promise.all([
+    cached(KEY_PROJETOS, () => squadra.gestao.relatorioProjetos(token, HML_API_URL)),
+    getPessoasRelatorio(token).catch((): ColaboradorComGestor[] => []),
+  ]);
+  const cpfToNome = new Map<string, string>();
+  for (const p of pessoas) {
+    const cpf = p.cpf.replace(/\D/g, '');
+    if (cpf) cpfToNome.set(cpf, p.nome);
+  }
+  return projetos
+    .map((pr): ProjetoComGestorView => ({
+      id:       pr.id,
+      nome:     pr.nome,
+      cliente:  pr.cliente,
+      situacao: pr.situacao,
+      gestor:   cpfToNome.get(pr.cpfGerente.replace(/\D/g, '')) ?? '',
+    }))
+    .sort((a, b) => a.nome.localeCompare(b.nome));
 }

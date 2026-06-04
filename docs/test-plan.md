@@ -1,6 +1,11 @@
 # Plano de Testes — web-app-next
 Criado em: 2026-06-04 · Meta: ~70% de cobertura **ponderada por risco** (lógica pura primeiro)
 
+> **Status de execução (2026-06-04):** Fases **0–4 concluídas** — 234 testes, 18 suítes, 0 falhas.
+> Cobertura por área: rotas sensíveis 88–91%, `lib/` 64–76%, `squadra-client` ~53% (global ~12%, resto via e2e).
+> Pendentes: **Fase 5** (componentes — requer jsdom + Testing Library) e **Fase 6** (thresholds por-pasta + CI).
+> Referência técnica da suíte implementada: [testing.md](./testing.md).
+
 ## Estratégia
 Não perseguir 70% global de forma cega (leva a testar JSX trivial). Priorizar a **lógica pura** — schemas, transforms, cálculos e guards de segurança — que é barata de testar e onde os bugs reais apareceram no QA. Componentes/páginas ficam majoritariamente para o Playwright (e2e).
 

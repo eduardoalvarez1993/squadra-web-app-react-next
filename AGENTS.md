@@ -65,6 +65,16 @@ Estrutura crítica:
 - **ponto:** usa `sqhorasId` (não `pessoaId`) + datas como path URL-encoded (`DD%2FMM%2FYYYY`)
 - **projetos_alocados:** usa `gestorId` (não `pessoaId`)
 
+## Testes — Definition of Done (obrigatório)
+
+**Toda alteração de código inclui teste.** Uma tarefa sem o teste correspondente NÃO está pronta.
+
+- **Bug** → teste de regressão que falha sem a correção e passa com ela.
+- **Feature / mudança de comportamento** → cobre lógica pura, schemas e guards de segurança (UI fica no e2e).
+- **Route Handler** → testar guards de borda (401/403/CSRF/validação) via `src/__tests__/route-helpers.ts`.
+- Rodar `npm run test` (verde) antes de fechar — manual até existir CI.
+- Convenções, fixtures, MSW e mock de sessão: **`docs/testing.md`**. Detalhe da regra: `CLAUDE.md` → "Definition of Done — Testes".
+
 ## Shared components disponíveis
 
 ```

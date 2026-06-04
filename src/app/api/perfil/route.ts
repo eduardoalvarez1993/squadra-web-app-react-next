@@ -20,7 +20,7 @@ const PerfilUpdateSchema = z.object({
   listaOutrasCompetencias: z.array(z.string()), listaIdiomas: z.array(z.string()),
   listaInteresses: z.array(z.string()), listaCertificacoes: z.array(z.string()),
   listaComunidades: z.array(z.string()),
-}).partial();
+}).partial().strict();
 
 export async function GET() {
   const session = await getSession();

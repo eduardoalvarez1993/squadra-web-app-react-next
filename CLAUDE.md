@@ -111,7 +111,7 @@ Fase 8 → Paridade visual + funcional                                          
 **Pendente para deploy / validação com TI (ver `docs/known-issues.md` e `docs/platform-review.md`):**
 - **TI-AUTHZ-001** (Alta) — IDOR de escopo de equipe (ponto/gestão agem por flag global sem checar a equipe); confirmar se a API valida cross-equipe
 - **TI-DP-001** — `perfilDP` nunca vem `true` na API; acesso ao RH usa fallback por cargo
-- Testes unitários — cobertura baixa (~26%); meta a definir (ver seção Testes)
+- Testes — Fases 0–4 do plano concluídas (234 testes; ver `docs/testing.md`). Pendente: Fase 5 (componentes) e CI (ligar o gate de cobertura). Regra de regressão obrigatória: ver **Definition of Done — Testes** abaixo
 - Testes Playwright (8 fluxos críticos) — INCONC-001
 - `PercentualItemRawSchema` — itens não verificáveis sem dados reais — INCONC-002
 - **DEBT-002** — refactors planejados (fetchJson único, withSession, z.object)
@@ -203,6 +203,18 @@ AIRTABLE_VIDEOS_BASE=
 - **Simulate:** `podeSimular === true` hardcoded para `session.data.id === 995`
 - **Acesso RH/DP:** `temAcessoDP(perfilDP, cargo)` em `src/lib/dp-access.ts` — `perfilDP` é a fonte oficial, mas como a API nunca retorna `true` (ver `docs/known-issues.md` TI-DP-001) há fallback provisório por cargo iniciando com "Personnel". Validar com TI.
 - **Dados sensíveis:** schemas de pessoa/perfil fazem spread do retorno bruto mas omitem campos sensíveis (CPF) via `semSensiveis()` no `squadra-client.ts`.
+
+---
+
+## Definition of Done — Testes (regra de regressão)
+
+> Esta regra sustenta a promessa da página Stack: *"cada defeito vira teste automático, impedindo que volte"*. **Toda alteração de código a cumpre** — uma tarefa sem o teste correspondente **não está pronta**, mesmo que o código funcione. O "como" (fixtures, MSW, mock de sessão, convenções) está em `docs/testing.md`.
+
+- **Correção de bug** → inclui um teste que **falha sem a correção e passa com ela** (regressão); referencie o bug no nome do teste.
+- **Feature nova ou mudança de comportamento** → cobre a **lógica pura, schemas e guards de segurança** afetados. Telas/visual ficam para o e2e (Playwright).
+- **Mexeu em Route Handler** → testar os guards de borda (401 / 403 / CSRF / validação) no padrão de `src/__tests__/route-helpers.ts`.
+- **Antes de fechar a tarefa:** `npm run test` verde localmente (enquanto não há CI, este passo é manual e obrigatório).
+- **Onde:** `src/__tests__/`, seguindo `docs/testing.md`.
 
 ---
 

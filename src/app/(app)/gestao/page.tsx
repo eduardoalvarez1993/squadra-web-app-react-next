@@ -22,8 +22,11 @@ import {
   type MembroEquipe,
 } from '@/features/gestao/hooks/useGestao';
 import { AlocarForm } from '@/features/gestao/components/AlocarForm';
+import { GestaoFuncionalTab } from '@/features/gestao/components/GestaoFuncionalTab';
+import { GestaoProjetoTab } from '@/features/gestao/components/GestaoProjetoTab';
 import { MembroDrawer } from '@/features/gestao/components/MembroDrawer';
 import { ASSETS } from '@/lib/assets';
+import { statusLabel } from '@/lib/status';
 import { AvatarGradient } from '@/components/shared/AvatarGradient';
 import {
   PendenciasLoader,
@@ -64,14 +67,6 @@ function hasAlerta(c: ColaboradorPendencia): boolean {
     c.datasSemApontamento.length > 0 ||
     c.preFechamentoPendente
   );
-}
-
-function statusLabel(s: string | number): 'pendente' | 'aprovado' | 'reprovado' | 'cancelado' {
-  const v = String(s).toLowerCase();
-  if (v === 'a' || v === 'aprovado' || v === '1') return 'aprovado';
-  if (v === 'r' || v === 'reprovado' || v === '2') return 'reprovado';
-  if (v === 'c' || v === 'cancelado') return 'cancelado';
-  return 'pendente';
 }
 
 // ── PendenciaCard ─────────────────────────────────────────────────────────────
@@ -325,6 +320,8 @@ export default function GestaoPage() {
     { id: 'equipe',       label: 'Equipe' },
     { id: 'solicitacoes', label: 'Solicitações' },
     { id: 'alocar',       label: 'Alocar' },
+    { id: 'gestao-funcional', label: 'Gestão Funcional' },
+    { id: 'gestao-projeto',   label: 'Gestão de Projeto' },
   ];
 
   if (!hydrated)         return <VerificandoCredenciais />;
@@ -609,6 +606,12 @@ export default function GestaoPage() {
             </div>
           )
       )}
+
+      {/* ── Gestão Funcional ─────────────────────────────────────────── */}
+      {tab === 'gestao-funcional' && <GestaoFuncionalTab />}
+
+      {/* ── Gestão de Projeto ────────────────────────────────────────── */}
+      {tab === 'gestao-projeto' && <GestaoProjetoTab />}
 
         </div>
       </div>
