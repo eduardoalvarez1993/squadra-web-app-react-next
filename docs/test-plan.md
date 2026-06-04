@@ -138,6 +138,37 @@ Só os de lógica densa (o resto via e2e):
 
 > Fases 1–3 (≈3,5 dias) já entregam **~58%** cobrindo toda a lógica pura e os bugs do QA — melhor relação valor/esforço. As Fases 4–5 levam aos 70% mas custam mais (mocks/MSW/jsdom).
 
+## Paralelização
+
+```
+Fase 0 (infra)  ──┬──► Fase 1 (lib/ puro)      ┐
+ [SEQUENCIAL,      ├──► Fase 2 (schemas)        │
+  vem primeiro]    ├──► Fase 3 (cálculos)       ├──► Fase 6 (thresholds/CI)
+                   ├──► Fase 4 (API routes/MSW) │   [SEQUENCIAL, fecha]
+                   └──► Fase 5 (componentes)    ┘
+```
+
+- **Fase 0 NÃO paraleliza** (gargalo inicial): mexe em arquivos de produção compartilhados (`vitest.config.ts`, refator de exports `calcHoras`→`lib/horas`, `statusMap`→`lib/status`, exportar `computePendentes`/`semSensiveis`, setup MSW/jsdom). Tem de ser concluída e commitada antes do fan-out.
+- **Fases 1–5 paralelizam bem** após a Fase 0: cada uma só **cria arquivos `.test.ts` novos** testando módulos independentes (lib ≠ schemas ≠ ponto ≠ rotas ≠ componentes) → zero sobreposição. Fatiáveis por agente/pessoa e até *dentro* de cada fase (cada `*.test.ts` é independente).
+- **Fase 6 é o fechamento sequencial** — agrega a cobertura de todas e sobe o threshold no CI.
+
+**Cuidados ao paralelizar:**
+| Risco | Mitigação |
+|-------|-----------|
+| `vitest.config.ts` editado por vários | Fase 0 deixa a config **final e permissiva**; ninguém mais toca |
+| Threshold subindo em paralelo | Manter threshold **baixo** até a Fase 6 |
+| Fases 4/5 sem setup | Dependem do MSW/jsdom da Fase 0 (por isso 0 vem antes) |
+| Aferir 70% | Só faz sentido **agregado** — cada agente roda seu subconjunto; medição final é única |
+
+**Sequência de execução recomendada:**
+1. Fase 0 sozinha (sequencial) → commit.
+2. Fan-out das Fases 1–5 (agentes/worktrees independentes, sem conflito).
+3. Fase 6 ao final (cobertura agregada + threshold no CI).
+
+> Por ser multi-agente após a Fase 0, é um candidato natural a orquestração via workflow (Fase 0 inline → fan-out 1–5 → fechamento).
+
+---
+
 ## Princípios
 - Cada bug encontrado no QA/review vira um **teste de regressão** (hora extra noturna, idUnico, dp-access, data futura, anexo por status).
 - Testar **contrato e comportamento**, não implementação.
