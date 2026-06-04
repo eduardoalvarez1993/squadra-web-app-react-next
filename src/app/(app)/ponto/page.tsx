@@ -66,6 +66,7 @@ function PontoPageContent() {
   const [drawerMode, setDrawerMode] = useState<DrawerMode>(null);
 
   function openFromPendente(item: PontoDiaPendente) {
+    if (outraSqhorasId) return; // somente-leitura ao ver outro colaborador
     setDrawerDia(item.dia);
     setDrawerMode(item.tipo);
   }
@@ -261,8 +262,8 @@ function PontoPageContent() {
         </button>
       )}
 
-      {/* Dias pendentes */}
-      {!isLoading && (
+      {/* Dias pendentes — oculto ao ver outro (ações gravariam no usuário logado) */}
+      {!isLoading && !outraSqhorasId && (
         <PontosPendentes pendentes={pendentes} onItemClick={openFromPendente} />
       )}
 
