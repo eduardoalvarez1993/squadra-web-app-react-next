@@ -17,7 +17,7 @@ function VideosLoader() {
         <Image className="videos-loading-frame" src={ASSETS.loadingVideosFrame} alt="" width={320} height={220} priority unoptimized />
         <Image className="videos-loading-reel" src={ASSETS.loadingVideosReel} alt="" width={180} height={180} priority unoptimized />
       </span>
-      <strong>Carregando videos...</strong>
+      <strong>Carregando vídeos...</strong>
     </div>
   );
 }

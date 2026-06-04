@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import type { PontoDia } from '@/services/squadra-client';
 import { ASSETS } from '@/lib/assets';
-import { computeFaltaStatus, parseDMY } from '../hooks/usePonto';
+import { computeFaltaStatus, parseDMY, toMin, SEM_ABREV } from '../hooks/usePonto';
 
 export function PontoLoading({ label = 'Carregando seu ponto...' }: { label?: string }) {
   return (
-    <div className="ponto-loading-wrap">
+    <div className="ponto-loading-wrap" role="status" aria-live="polite">
       <span className="ponto-loading-stage" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="ponto-loading-panel" src={ASSETS.loadingPonto} alt="" loading="lazy" />
@@ -20,16 +20,6 @@ export function PontoLoading({ label = 'Carregando seu ponto...' }: { label?: st
     </div>
   );
 }
-
-function toMin(t: string): number {
-  const [h = 0, m = 0] = t.split(':').map(Number);
-  return h * 60 + m;
-}
-
-const SEM_ABREV: Record<string, string> = {
-  'Segunda-Feira': 'Seg', 'Terça-Feira': 'Ter', 'Quarta-Feira': 'Qua',
-  'Quinta-Feira': 'Qui', 'Sexta-Feira': 'Sex', 'Sabado': 'Sáb', 'Domingo': 'Dom',
-};
 
 // Cores das barras horizontais (espelham .pdr-bar--* do vanilla)
 const BAR = {

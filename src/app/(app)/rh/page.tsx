@@ -102,7 +102,7 @@ function AnexoViewer({ id, status, onClose }: { id: string | number; status: 'P'
 
 function RHAbonosLoader() {
   return (
-    <div className="gestao-loader-wrap">
+    <div className="gestao-loader-wrap" role="status" aria-live="polite">
       <div className="rh-abonos-stack-stage" aria-hidden="true">
         {Array.from({ length: 3 }).map((_, i) => (
           <Image

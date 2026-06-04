@@ -10,7 +10,7 @@ import { FormFeedback } from '@/components/shared/FormFeedback';
 import { AccessDenied } from '@/components/shared/AccessDenied';
 import { VerificandoCredenciais } from '@/components/shared/VerificandoCredenciais';
 import { useUserStore } from '@/store/user';
-import { usePonto, type PontoDiaPendente } from '@/features/ponto/hooks/usePonto';
+import { usePonto, toMin, type PontoDiaPendente } from '@/features/ponto/hooks/usePonto';
 import { PontoCalendar } from '@/features/ponto/components/PontoCalendar';
 import { PontosPendentes } from '@/features/ponto/components/PontosPendentes';
 import { ApontamentoForm } from '@/features/ponto/components/ApontamentoForm';
@@ -20,11 +20,6 @@ const MESES = [
   'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
   'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro',
 ];
-
-function toMin(t: string): number {
-  const [h = 0, m = 0] = t.split(':').map(Number);
-  return h * 60 + m;
-}
 
 function sumHoras(horas: string[]): string {
   const total = horas.reduce((acc, h) => acc + toMin(h), 0);

@@ -24,10 +24,16 @@ export type NovoApontamentoClientInput = {
   justificativa?:  string;
 };
 
-function toMin(t: string): number {
-  const [h = 0, m = 0] = t.split(':').map(Number);
-  return h * 60 + m;
+export function toMin(t: string): number {
+  const [h = 0, m = 0] = (t ?? '').split(':').map(Number);
+  return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
 }
+
+// Abreviação do dia da semana — compartilhada entre calendário e pendentes
+export const SEM_ABREV: Record<string, string> = {
+  'Segunda-Feira': 'Seg', 'Terça-Feira': 'Ter', 'Quarta-Feira': 'Qua',
+  'Quinta-Feira': 'Qui', 'Sexta-Feira': 'Sex', 'Sabado': 'Sáb', 'Domingo': 'Dom',
+};
 
 export function computeFaltaStatus(dia: PontoDia): FaltaStatus {
   if (dia.statusLiberacaoFalta === 'A') return 'aprovado';

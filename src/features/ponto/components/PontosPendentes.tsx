@@ -1,14 +1,10 @@
 import type { PontoDiaPendente } from '../hooks/usePonto';
+import { SEM_ABREV } from '../hooks/usePonto';
 
 interface PontosPendentesProps {
   pendentes: PontoDiaPendente[];
   onItemClick: (item: PontoDiaPendente) => void;
 }
-
-const SEM_ABREV: Record<string, string> = {
-  'Segunda-Feira': 'Seg', 'Terça-Feira': 'Ter', 'Quarta-Feira': 'Qua',
-  'Quinta-Feira': 'Qui', 'Sexta-Feira': 'Sex', 'Sabado': 'Sáb', 'Domingo': 'Dom',
-};
 
 // Cores dos chips por tipo (espelham .ponto-pendente-chip-* do vanilla)
 const CHIP: Record<PontoDiaPendente['tipo'], string> = {
