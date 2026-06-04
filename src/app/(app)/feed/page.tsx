@@ -90,6 +90,7 @@ export default function FeedPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 max-w-2xl mx-auto pb-24">
+      <h1 className="sr-only">Squadra em Rede</h1>
       <div className="bg-white border border-border rounded-xl overflow-hidden">
         <div className="px-4 pt-3">
           <TabNav tabs={TABS} active={tab} onChange={setTab} />

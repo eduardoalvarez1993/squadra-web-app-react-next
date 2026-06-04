@@ -80,6 +80,7 @@ export function LoginForm() {
           required
           disabled={state.loading}
           placeholder="nome.sobrenome"
+          className="focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1"
           style={inputStyle}
           onFocus={(e) => { e.currentTarget.style.borderColor = '#1d4ed8'; }}
           onBlur={(e)  => { e.currentTarget.style.borderColor = '#d1d5db'; }}
@@ -103,6 +104,7 @@ export function LoginForm() {
             required
             disabled={state.loading}
             placeholder="••••••••"
+            className="focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1"
             style={{ ...inputStyle, paddingRight: '44px' }}
             onFocus={(e) => { e.currentTarget.style.borderColor = '#1d4ed8'; }}
             onBlur={(e)  => { e.currentTarget.style.borderColor = '#d1d5db'; }}
@@ -112,6 +114,7 @@ export function LoginForm() {
             onClick={() => setShowSenha((v) => !v)}
             aria-pressed={showSenha}
             aria-controls="senha"
+            className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
             style={{
               position:   'absolute',
               right:      '10px',
@@ -143,6 +146,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={state.loading}
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2"
         style={{
           background:    state.loading ? '#93c5fd' : '#1d4ed8',
           color:         '#fff',

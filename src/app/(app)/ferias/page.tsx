@@ -36,6 +36,7 @@ export default function FeriasPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 max-w-2xl mx-auto">
+      <h1 className="sr-only">Férias</h1>
       <SaldoCard dados={saldo} isLoading={isLoading} />
 
       <div className="bg-white border border-border rounded-xl overflow-hidden">
