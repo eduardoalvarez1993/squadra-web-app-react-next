@@ -13,6 +13,8 @@ export const PADRAO_IMAGENS = {
   emptyGestaoApropriacao: '/assets/ponto-loading.webp',
   emptyGestaoFerias:      '/assets/rh-ferias-empty.webp',
   emptyGestaoAbonos:      '/assets/rh-abonos-stack-base.webp',
+  loadingGestaoFuncional: '/assets/gestao-funcional-loading.webp',
+  loadingGestaoProjeto:   '/assets/gestao-projeto-loading.webp',
 
   // Initial states / detail panel
   selectColaborador:      '/assets/select-colaborador.webp',
