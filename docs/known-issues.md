@@ -18,6 +18,8 @@ Issues inconclusivos (INCONC) do qa-report e sugestões de acessibilidade que de
 | TI-DP-002 | Segurança / Escopo | `listaAbonosDP` e `getRHFerias(session.gestorId)` — confirmar com TI se o perfil DP deve ver abonos/férias de toda a empresa ou com segregação por unidade/equipe (anexo de abono não é escopado). | 2026-06-03 | Média |
 | DEBT-001 | Arquitetura | Normalização de status duplicada com regras divergentes: `statusMap` (rh/page.tsx, P/A/R/C) vs `statusLabel` (gestao/page.tsx, aceita 1/2). Unificar num util único após alinhar as regras (gestão usa códigos numéricos). Não unificado agora por risco de regressão. | 2026-06-03 | Baixa |
 | QA-INCONC-PONTO | Ponto | Cores/labels por dia, timezone na borda do mês e aceite/rejeição (422) do POST de apontamento dependem de massa real do SQHoras para validação. | 2026-06-03 | Média |
+| TI-AUTHZ-001 | Segurança / Escopo | **IDOR por flag global sem checar equipe.** `GET /api/ponto?sqhorasId=X` (qualquer `gerenteFuncional` lê ponto de qualquer colaborador) e as rotas de Gestão (`aprovar`, `alocar`, `membro/[id]/*`, `percentual/[id]`) agem sobre IDs arbitrários sem confirmar que o alvo pertence à equipe do gestor. **Pendente:** confirmar com TI se a API Squadra rejeita ações/leituras cross-equipe. Se NÃO rejeitar, implementar checagem `alvo ∈ getEquipe(gestorId)` (requer validar a semântica dos IDs de `getEquipe` com massa real antes — risco de bloquear gestores legítimos). Não implementado agora para não quebrar a Gestão sem validação. | 2026-06-04 | Alta |
+| PLAT-REVIEW | Plataforma | Revisão ampla completa em `docs/platform-review.md` — P0 corrigidos; P1 de exposição/CSRF corrigidos; dívida P2 e A11y em andamento. | 2026-06-04 | — |
 
 ---
 

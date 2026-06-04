@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/session';
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_VIDEOS_TOKEN;
 const AIRTABLE_BASE  = process.env.AIRTABLE_VIDEOS_BASE;
@@ -27,6 +28,10 @@ function extractYoutubeId(url: string): string | null {
 }
 
 export async function GET() {
+  // Exige sessão: evita que anônimos acionem o Airtable (token de serviço/quota)
+  const session = await getSession();
+  if (!session.token) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+
   if (!AIRTABLE_TOKEN || !AIRTABLE_BASE) {
     return NextResponse.json({ error: 'Airtable não configurado' }, { status: 500 });
   }

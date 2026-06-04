@@ -57,7 +57,7 @@ export async function GET(
     if (err instanceof SquadraAuthError)
       return NextResponse.json({ error: 'Sessão expirada' }, { status: 401 });
     if (err instanceof SquadraClientError)
-      return NextResponse.json({ error: `Upstream ${err.status}: ${err.message.slice(0, 200)}` }, { status: err.status });
+      return NextResponse.json({ error: 'Não foi possível carregar o ponto do colaborador' }, { status: 422 });
     if (err instanceof SquadraServerError)
       return NextResponse.json({ error: 'Erro no servidor Squadra' }, { status: 502 });
     console.error('[GET /api/gestao/membro/[id]/ponto]', err);

@@ -7,6 +7,7 @@ const COOKIE_NAME = 'squadra-session';
 const PROTECTED_PREFIXES = [
   '/home', '/ponto', '/ferias', '/holerite', '/solicitacoes',
   '/perfil', '/pessoas', '/rh', '/gestao', '/percentual',
+  '/feed', '/recursos', '/stack',
 ];
 
 function getRatelimit() {

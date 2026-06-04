@@ -358,11 +358,21 @@ export type PerfilData = {
   [key: string]: unknown;
 };
 
+// Remove campos sensíveis antes de repassar o objeto bruto ao cliente.
+// Os schemas de pessoa/perfil fazem spread do retorno cru (a UI usa muitos campos
+// não-tipados); este omit evita vazar dados como CPF para qualquer colaborador.
+const CAMPOS_SENSIVEIS = ['cpf', 'cpfColaborador', 'senha', 'password', 'token', 'accessToken'];
+function semSensiveis(obj: Record<string, unknown>): Record<string, unknown> {
+  const r = { ...obj };
+  for (const k of CAMPOS_SENSIVEIS) delete r[k];
+  return r;
+}
+
 const PerfilSchema = z.unknown().transform((raw): PerfilData => {
   const d = raw as Record<string, unknown>;
   const ret = ((d['retorno'] as Record<string, unknown>) ?? d) as Record<string, unknown>;
   return {
-    ...ret,
+    ...semSensiveis(ret),
     id:         Number(ret['id'] ?? 0),
     nome:       String(ret['nome'] ?? ''),
     nomeSocial: String(ret['nomeSocial'] ?? ret['nome'] ?? ''),
@@ -389,7 +399,7 @@ export type PessoaData = {
 const PessoaItemSchema = z.unknown().transform((raw): PessoaData => {
   const d = raw as Record<string, unknown>;
   return {
-    ...d,
+    ...semSensiveis(d),
     id:         Number(d['id'] ?? d['idPessoa'] ?? 0),
     nome:       String(d['nome'] ?? ''),
     nomeSocial: String(d['nomeSocial'] ?? d['nome'] ?? ''),
