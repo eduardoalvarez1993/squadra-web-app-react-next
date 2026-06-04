@@ -256,7 +256,8 @@ export default function GestaoPage() {
   const [alocarOpen,   setAlocarOpen]   = useState(false);
   const [alocarPresel, setAlocarPresel] = useState<{ id: number; nome: string; nomeSocial?: string | null; foto: string | null } | null>(null);
   const [busca,      setBusca]      = useState('');
-  const [aprovandoId, setAprovandoId] = useState<number | null>(null);
+  // chave composta `${tipo}-${id}` — evita colisão entre tipos com mesmo número de id
+  const [aprovandoId, setAprovandoId] = useState<string | null>(null);
   const [heModal, setHeModal] = useState<{ open: boolean; item: HoraExtraItem | null }>({ open: false, item: null });
 
   // Drawer de membro
@@ -427,14 +428,14 @@ export default function GestaoPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            disabled={aprovandoId === item.solicitacaoID}
+                            disabled={aprovandoId === `he-${item.solicitacaoID}`}
                             onClick={async () => {
-                              setAprovandoId(item.solicitacaoID);
+                              setAprovandoId(`he-${item.solicitacaoID}`);
                               try { await aprovar({ id: item.solicitacaoID, tipo: 'hora_extra', acao: 'R' }); }
                               finally { setAprovandoId(null); }
                             }}
                           >
-                            {aprovandoId === item.solicitacaoID ? '…' : 'Reprovar'}
+                            {aprovandoId === `he-${item.solicitacaoID}` ? '…' : 'Reprovar'}
                           </Button>
                         </div>
                       }
@@ -465,21 +466,21 @@ export default function GestaoPage() {
                         <div className="flex gap-2">
                           <Button
                             size="sm"
-                            disabled={aprovandoId === item.id}
+                            disabled={aprovandoId === `apr-${item.id}`}
                             onClick={async () => {
-                              setAprovandoId(item.id);
+                              setAprovandoId(`apr-${item.id}`);
                               try { await aprovar({ id: item.id, idFalta: item.idFalta, tipo: 'apropriacao', acao: 'A' }); }
                               finally { setAprovandoId(null); }
                             }}
                           >
-                            {aprovandoId === item.id ? '…' : 'Aprovar'}
+                            {aprovandoId === `apr-${item.id}` ? '…' : 'Aprovar'}
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            disabled={aprovandoId === item.id}
+                            disabled={aprovandoId === `apr-${item.id}`}
                             onClick={async () => {
-                              setAprovandoId(item.id);
+                              setAprovandoId(`apr-${item.id}`);
                               try { await aprovar({ id: item.id, idFalta: item.idFalta, tipo: 'apropriacao', acao: 'R' }); }
                               finally { setAprovandoId(null); }
                             }}
@@ -513,21 +514,21 @@ export default function GestaoPage() {
                           <div className="flex gap-2 flex-shrink-0">
                             <Button
                               size="sm"
-                              disabled={aprovandoId === item.idFerias}
+                              disabled={aprovandoId === `fer-${item.idFerias}`}
                               onClick={async () => {
-                                setAprovandoId(item.idFerias);
+                                setAprovandoId(`fer-${item.idFerias}`);
                                 try { await aprovar({ id: item.idFerias, tipo: 'ferias', acao: 'A' }); }
                                 finally { setAprovandoId(null); }
                               }}
                             >
-                              {aprovandoId === item.idFerias ? '…' : 'Aprovar'}
+                              {aprovandoId === `fer-${item.idFerias}` ? '…' : 'Aprovar'}
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
-                              disabled={aprovandoId === item.idFerias}
+                              disabled={aprovandoId === `fer-${item.idFerias}`}
                               onClick={async () => {
-                                setAprovandoId(item.idFerias);
+                                setAprovandoId(`fer-${item.idFerias}`);
                                 try { await aprovar({ id: item.idFerias, tipo: 'ferias', acao: 'R' }); }
                                 finally { setAprovandoId(null); }
                               }}
@@ -561,21 +562,21 @@ export default function GestaoPage() {
                         <div className="flex gap-2">
                           <Button
                             size="sm"
-                            disabled={aprovandoId === Number(item.idUnico)}
+                            disabled={aprovandoId === `abo-${item.idUnico}`}
                             onClick={async () => {
-                              setAprovandoId(Number(item.idUnico));
+                              setAprovandoId(`abo-${item.idUnico}`);
                               try { await aprovar({ id: Number(item.idUnico), tipo: 'abono', acao: 'A' }); }
                               finally { setAprovandoId(null); }
                             }}
                           >
-                            {aprovandoId === Number(item.idUnico) ? '…' : 'Aprovar'}
+                            {aprovandoId === `abo-${item.idUnico}` ? '…' : 'Aprovar'}
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            disabled={aprovandoId === Number(item.idUnico)}
+                            disabled={aprovandoId === `abo-${item.idUnico}`}
                             onClick={async () => {
-                              setAprovandoId(Number(item.idUnico));
+                              setAprovandoId(`abo-${item.idUnico}`);
                               try { await aprovar({ id: Number(item.idUnico), tipo: 'abono', acao: 'R' }); }
                               finally { setAprovandoId(null); }
                             }}

@@ -35,6 +35,9 @@ export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting }: Apon
   function validate(): string | null {
     if (!projetoId) return 'Selecione um projeto';
     if (temSubProj && !subprojetoId) return 'Selecione um subprojeto';
+    // Data no futuro não pode ser apontada (en-CA = YYYY-MM-DD na hora local)
+    const hojeIso = new Date().toLocaleDateString('en-CA');
+    if (data && data > hojeIso) return 'Não é possível registrar apontamento em data futura';
     if (!horaInicio || !horaFinal) return 'Informe horário de início e fim';
     if (horaFinal <= horaInicio) return 'Horário fim deve ser após o início';
     return null;

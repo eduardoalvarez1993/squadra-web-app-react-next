@@ -11,7 +11,9 @@ const DateRangeSchema = z.object({
 });
 
 const NovoApontamentoClientSchema = z.object({
-  data:            z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  // data não pode ser futura (compara YYYY-MM-DD lexicograficamente)
+  data:            z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+                     .refine((d) => d <= new Date().toLocaleDateString('en-CA'), 'Data futura não permitida'),
   horaInicio:      z.string().regex(/^\d{2}:\d{2}$/),
   horaFinal:       z.string().regex(/^\d{2}:\d{2}$/),
   projetoId:       z.number(),

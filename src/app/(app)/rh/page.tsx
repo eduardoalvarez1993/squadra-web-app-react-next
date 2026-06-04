@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useUserStore } from '@/store/user';
 import { temAcessoDP } from '@/lib/dp-access';
@@ -9,6 +9,7 @@ import { SolicitacaoCard } from '@/components/shared/SolicitacaoCard';
 import { EmptyState }    from '@/components/shared/EmptyState';
 import { ErrorSection }  from '@/components/shared/ErrorSection';
 import { Button }        from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useRH }         from '@/features/rh/hooks/useRH';
 import type { AbonoRH, FeriasRHItem } from '@/services/squadra-client';
 import { FeriasLoader }  from '@/features/gestao/components/GestaoLoaders';
@@ -37,79 +38,65 @@ function detectMime(b64: string): string {
 }
 
 // ── Viewer de anexo ───────────────────────────────────────────────────────────
+// Usa o Dialog do projeto (foco, aria-modal, Esc e retorno de foco gerenciados)
+// e renderiza o arquivo via Blob URL (evita data: URI gigante travar a UI).
 
 function AnexoViewer({ id, status, onClose }: { id: string | number; status: 'P' | 'A' | 'R'; onClose: () => void }) {
-  const [arquivo, setArquivo] = useState<string | null>(null);
-  const [erro,    setErro]    = useState(false);
+  const [url,  setUrl]  = useState<string | null>(null);
+  const [mime, setMime] = useState('');
+  const [erro, setErro] = useState(false);
 
   useEffect(() => {
+    let cancelado = false;
+    let objectUrl = '';
     fetch(`/api/rh/abonos/${id}/anexo?status=${status}`)
       .then((r) => r.json())
       .then((d) => {
-        const a = (d as { arquivo?: string }).arquivo;
-        if (a) setArquivo(a); else setErro(true);
+        const b64 = (d as { arquivo?: string }).arquivo?.replace(/\s/g, '');
+        if (!b64) { if (!cancelado) setErro(true); return; }
+        const m = detectMime(b64);
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        objectUrl = URL.createObjectURL(new Blob([bytes], { type: m }));
+        if (!cancelado) { setMime(m); setUrl(objectUrl); }
       })
-      .catch(() => setErro(true));
+      .catch(() => { if (!cancelado) setErro(true); });
+    return () => { cancelado = true; if (objectUrl) URL.revokeObjectURL(objectUrl); };
   }, [id, status]);
 
-  const handleKey = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  }, [onClose]);
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [handleKey]);
-
-  const mime = arquivo ? detectMime(arquivo) : '';
-  const src  = arquivo ? `data:${mime};base64,${arquivo}` : '';
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      onClick={onClose}
-    >
-      <div
-        className="relative bg-white rounded-xl shadow-2xl overflow-hidden max-w-2xl w-full max-h-[90vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <span className="text-sm font-semibold">Anexo</span>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors text-lg leading-none"
-            aria-label="Fechar"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-auto flex items-center justify-center p-4 min-h-[200px]">
-          {!arquivo && !erro && (
-            <div className="flex flex-col items-center gap-2 text-muted-foreground text-sm">
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Anexo</DialogTitle>
+        </DialogHeader>
+        <div className="overflow-auto flex items-center justify-center p-2 min-h-[200px] max-h-[70vh]">
+          {!url && !erro && (
+            <div className="flex flex-col items-center gap-2 text-muted-foreground text-sm" role="status" aria-live="polite">
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               Carregando anexo…
             </div>
           )}
           {erro && <ErrorSection message="Não foi possível carregar o anexo." />}
-          {arquivo && mime.startsWith('image/') && (
+          {url && mime.startsWith('image/') && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={src} alt="Anexo" className="max-w-full max-h-[70vh] object-contain rounded" />
+            <img src={url} alt="Anexo do abono" className="max-w-full max-h-[68vh] object-contain rounded" />
           )}
-          {arquivo && mime === 'application/pdf' && (
-            <iframe src={src} className="w-full h-[70vh] border-0 rounded" title="Anexo PDF" />
+          {url && mime === 'application/pdf' && (
+            <iframe src={url} className="w-full h-[68vh] border-0 rounded" title="Anexo PDF" />
           )}
-          {arquivo && mime === 'application/octet-stream' && (
+          {url && mime === 'application/octet-stream' && (
             <div className="text-center text-sm text-muted-foreground">
               <p>Formato não suportado para visualização.</p>
-              <a href={src} download="anexo" className="mt-2 inline-block text-primary underline underline-offset-2">
+              <a href={url} download="anexo" className="mt-2 inline-block text-primary underline underline-offset-2">
                 Baixar arquivo
               </a>
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -145,7 +132,7 @@ function AbonoList({
   onSetStatus: (s: 'P' | 'A' | 'R') => void;
   onAvaliar:   (id: string | number, acao: 'A' | 'R') => void;
 }) {
-  const [verAnexoId, setVerAnexoId] = useState<string | number | null>(null);
+  const [verAnexo, setVerAnexo] = useState<AbonoRH | null>(null);
 
   return (
     <>
@@ -176,7 +163,7 @@ function AbonoList({
               actions={
                 <div className="flex items-center gap-2 flex-wrap">
                   {a.temAnexo && (
-                    <Button size="sm" variant="outline" onClick={() => setVerAnexoId(a.idUnico)}>
+                    <Button size="sm" variant="outline" onClick={() => setVerAnexo(a)}>
                       📎 Ver anexo
                     </Button>
                   )}
@@ -197,8 +184,12 @@ function AbonoList({
         </div>
       )}
 
-      {verAnexoId !== null && (
-        <AnexoViewer id={verAnexoId} status={statusAbono} onClose={() => setVerAnexoId(null)} />
+      {verAnexo && (
+        <AnexoViewer
+          id={verAnexo.idUnico}
+          status={(verAnexo.status === 'C' ? 'P' : verAnexo.status) as 'P' | 'A' | 'R'}
+          onClose={() => setVerAnexo(null)}
+        />
       )}
     </>
   );

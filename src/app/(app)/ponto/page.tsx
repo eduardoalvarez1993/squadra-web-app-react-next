@@ -76,6 +76,10 @@ function PontoPageContent() {
   }
 
   function openFromCalendar(dia: PontoDia) {
+    // Ao visualizar o ponto de outro colaborador o modo é somente-leitura:
+    // não abrir registrar/apontar (o select usaria projetos do gestor logado e
+    // o POST gravaria no usuário logado, não no alvo).
+    if (outraSqhorasId) return;
     setDrawerDia(dia);
     if (dia.isFalta) {
       const st     = dia.statusLiberacaoFalta;
