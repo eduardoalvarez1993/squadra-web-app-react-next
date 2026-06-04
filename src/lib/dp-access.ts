@@ -13,6 +13,9 @@ export function temAcessoDP(
   perfilDP: boolean | undefined,
   cargo: string | null | undefined,
 ): boolean {
-  if (perfilDP) return true;                 // fonte oficial (quando populada)
-  return /personnel/i.test(cargo ?? '');     // fallback provisório por cargo — validar com TI
+  if (perfilDP) return true;                          // fonte oficial (quando populada)
+  // fallback provisório: cargo que COMEÇA com "Personnel" (ex.: "PERSONNEL ANALYST",
+  // "PERSONNEL ADMINISTRATION MANAGER"). Mais restrito que "contém personnel" para
+  // não casar cargos que mencionem o termo no meio. Validar lista exata com TI.
+  return /^\s*personnel\b/i.test(cargo ?? '');
 }

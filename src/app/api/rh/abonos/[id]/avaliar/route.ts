@@ -23,6 +23,7 @@ export async function POST(
   if (!temAcessoDP(session.permissoes?.perfilDP, session.cargo)) return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
 
   const { id: idParam } = await params;
+  if (!/^\d+$/.test(idParam)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
 
   let body: unknown;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Corpo inválido' }, { status: 400 }); }

@@ -24,6 +24,9 @@ export async function POST(
 
   const { id: idParam } = await params;
   const idFerias = Number(idParam);
+  if (!Number.isInteger(idFerias) || idFerias <= 0) {
+    return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+  }
 
   let body: unknown;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Corpo inválido' }, { status: 400 }); }

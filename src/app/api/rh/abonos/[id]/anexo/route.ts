@@ -13,7 +13,7 @@ export async function GET(
   if (!temAcessoDP(session.permissoes?.perfilDP, session.cargo)) return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
 
   const { id } = await params;
-  if (!id) return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+  if (!/^\d+$/.test(id)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
 
   const rawStatus = req.nextUrl.searchParams.get('status') ?? 'P';
   const status = (['P', 'A', 'R'] as const).includes(rawStatus as 'P' | 'A' | 'R')
