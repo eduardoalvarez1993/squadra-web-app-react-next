@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { FormFeedback } from '@/components/shared/FormFeedback';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PessoaAutocomplete } from './PessoaAutocomplete';
+import { GestaoProjetoLoader } from './GestaoLoaders';
 import { useAlterarGestorProjeto, useProjetosComGestor, useProjetosBusca, useUsuarioLogadoComoPessoa, useDebouncedValue } from '../hooks/useAlterarGestor';
 import type { PessoaData, ProjetoBuscaItem } from '@/services/squadra-client';
 
@@ -162,7 +163,7 @@ export function GestaoProjetoTab() {
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
             />
             {listaLoading ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">Carregando projetos…</p>
+              <GestaoProjetoLoader />
             ) : listaError ? (
               <p className="text-sm text-destructive py-6 text-center">Erro ao carregar a lista.</p>
             ) : listaFiltrada.length === 0 ? (

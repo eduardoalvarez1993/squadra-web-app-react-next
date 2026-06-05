@@ -97,7 +97,7 @@ function RHAbonosLoader() {
             width={230}
             height={230}
             className={`rh-abonos-stack-card rh-abonos-stack-card-${i + 1}`}
-            priority
+            loading="eager"
           />
         ))}
       </div>

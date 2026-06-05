@@ -196,12 +196,15 @@ export function invalidateGestaoCache(...keys: string[]): void {
 const KEY_PESSOAS  = 'pessoas-relatorio';
 const KEY_PROJETOS = 'relatorio-projetos';
 
-// Estas 2 telas leem 100% de HML (a feature ainda não foi pra prod).
+// Listagens "ver todos" leem de PRODUÇÃO (dados reais; o pessoasRelatorio em HML é
+// lento/instável e estourava timeout). As MUTAÇÕES e as buscas do form continuam em
+// HML — não existe endpoint de alterar gestor em prod ainda.
 function getPessoasRelatorio(token: string): Promise<ColaboradorComGestor[]> {
-  return cached(KEY_PESSOAS, () => squadra.pessoas.relatorio(token, HML_API_URL));
+  return cached(KEY_PESSOAS, () => squadra.pessoas.relatorio(token));
 }
 
-// Buscas dos formulários (autocomplete) — também em HML, só nestas telas.
+// Buscas do formulário (autocomplete) — em HML, pois a alteração ocorre em HML
+// (os IDs selecionados precisam ser válidos no mesmo ambiente da mutação).
 export async function buscarPessoasHml(nome: string, token: string): Promise<PessoaData[]> {
   return squadra.pessoas.buscar({ nome }, token, HML_API_URL);
 }
@@ -240,7 +243,7 @@ export type ProjetoComGestorView = {
 export async function listarProjetosComGestor(token: string): Promise<ProjetoComGestorView[]> {
   // relatorioProjetos traz o gestor por CPF; resolvemos o nome via relatório de pessoas.
   const [projetos, pessoas] = await Promise.all([
-    cached(KEY_PROJETOS, () => squadra.gestao.relatorioProjetos(token, HML_API_URL)),
+    cached(KEY_PROJETOS, () => squadra.gestao.relatorioProjetos(token)),
     getPessoasRelatorio(token).catch((): ColaboradorComGestor[] => []),
   ]);
   const cpfToNome = new Map<string, string>();

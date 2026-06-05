@@ -11,8 +11,9 @@ export function PendenciasLoader() {
           src={ASSETS.loadingPendencias}
           alt=""
           fill
+          sizes="(max-width: 480px) 80vw, 320px"
           className="gestao-loader-img"
-          priority
+          loading="eager"
         />
         <div className="pendencias-stamp" aria-hidden="true" />
       </div>
@@ -31,12 +32,13 @@ export function AlocarLoader() {
           src={ASSETS.loadingAlocar}
           alt=""
           fill
+          sizes="(max-width: 480px) 80vw, 320px"
           className="gestao-loader-img"
-          priority
+          loading="eager"
         />
         <div className="alocar-route-dot" aria-hidden="true" />
       </div>
-      <strong>Carregando projetos…</strong>
+      <strong>Organizando projetos...</strong>
     </div>
   );
 }
@@ -51,12 +53,14 @@ export function GestaoFuncionalLoader() {
           src={ASSETS.loadingGestaoFuncional}
           alt=""
           fill
+          sizes="(max-width: 480px) 80vw, 320px"
           className="gestao-loader-img"
-          priority
+          loading="eager"
         />
+        <div className="gestao-funcional-light-beam" aria-hidden="true" />
         <div className="gestao-funcional-route-dot" aria-hidden="true" />
       </div>
-      <strong>Carregando colaboradores…</strong>
+      <strong>Reunindo colaboradores…</strong>
     </div>
   );
 }
@@ -69,12 +73,17 @@ export function GestaoProjetoLoader() {
           src={ASSETS.loadingGestaoProjeto}
           alt=""
           fill
+          sizes="(max-width: 480px) 80vw, 320px"
           className="gestao-loader-img"
-          priority
+          loading="eager"
         />
-        <div className="gestao-projeto-pin-dot" aria-hidden="true" />
+        <div className="gestao-projeto-bars-v2" aria-hidden="true">
+          <span className="gestao-projeto-bar-v2 gestao-projeto-bar-v2-1" />
+          <span className="gestao-projeto-bar-v2 gestao-projeto-bar-v2-2" />
+          <span className="gestao-projeto-bar-v2 gestao-projeto-bar-v2-3" />
+        </div>
       </div>
-      <strong>Carregando projetos…</strong>
+      <strong>Organizando Projetos</strong>
     </div>
   );
 }
@@ -87,8 +96,9 @@ export function HoraExtraLoader() {
           src={ASSETS.loadingHoraExtra}
           alt=""
           fill
+          sizes="(max-width: 480px) 80vw, 320px"
           className="gestao-loader-img"
-          priority
+          loading="eager"
         />
         <div className="hora-extra-clock-pivot" aria-hidden="true">
           <div className="hora-extra-clock-hand hora-extra-hour" />
@@ -111,8 +121,9 @@ export function ApropriacaoLoader() {
           src={ASSETS.loadingPonto}
           alt=""
           fill
+          sizes="(max-width: 480px) 80vw, 320px"
           className="ponto-loading-panel"
-          priority
+          loading="eager"
         />
         <div className="ponto-clock-marker" aria-hidden="true">
           <div className="ponto-clock-hand ponto-clock-hour" />
@@ -134,8 +145,9 @@ export function FeriasLoader() {
           src={ASSETS.loadingFerias}
           alt=""
           fill
+          sizes="(max-width: 480px) 80vw, 320px"
           className="gestao-loader-img"
-          priority
+          loading="eager"
         />
         <div className="ferias-coco" aria-hidden="true" />
       </div>
@@ -154,8 +166,9 @@ export function AbonoLoader() {
           src={ASSETS.loadingAbonos}
           alt=""
           fill
+          sizes="(max-width: 480px) 80vw, 320px"
           className="gestao-loader-img"
-          priority
+          loading="eager"
         />
         <span className="abonos-stamp" aria-hidden="true" />
       </div>
@@ -174,8 +187,9 @@ export function EquipeSearchLoader() {
           src={ASSETS.buscandoEquipeBase}
           alt=""
           fill
+          sizes="(max-width: 480px) 80vw, 320px"
           className="gestao-loader-img"
-          priority
+          loading="eager"
         />
         <Image
           src={ASSETS.buscandoLupa}
@@ -183,7 +197,7 @@ export function EquipeSearchLoader() {
           width={80}
           height={80}
           className="equipe-search-lens"
-          priority
+          loading="eager"
         />
       </div>
       <strong>Buscando equipe…</strong>

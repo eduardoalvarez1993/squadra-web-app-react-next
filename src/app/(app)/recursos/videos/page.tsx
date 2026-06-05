@@ -14,8 +14,8 @@ function VideosLoader() {
   return (
     <div className="videos-loading-wrap" role="status" aria-live="polite">
       <span className="videos-loading-stage" aria-hidden="true">
-        <Image className="videos-loading-frame" src={ASSETS.loadingVideosFrame} alt="" width={320} height={220} priority unoptimized />
-        <Image className="videos-loading-reel" src={ASSETS.loadingVideosReel} alt="" width={180} height={180} priority unoptimized />
+        <Image className="videos-loading-frame" src={ASSETS.loadingVideosFrame} alt="" width={320} height={220} loading="eager" unoptimized />
+        <Image className="videos-loading-reel" src={ASSETS.loadingVideosReel} alt="" width={180} height={180} loading="eager" unoptimized />
       </span>
       <strong>Carregando vídeos...</strong>
     </div>

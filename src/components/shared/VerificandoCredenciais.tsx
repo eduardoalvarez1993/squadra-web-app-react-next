@@ -11,7 +11,7 @@ export function VerificandoCredenciais() {
           alt=""
           width={240}
           height={240}
-          priority
+          loading="eager"
           unoptimized
         />
         <span className="credentials-validation-ring" />

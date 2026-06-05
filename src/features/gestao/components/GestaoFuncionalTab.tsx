@@ -7,6 +7,7 @@ import { FormFeedback } from '@/components/shared/FormFeedback';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { AvatarGradient } from '@/components/shared/AvatarGradient';
 import { PessoaAutocomplete } from './PessoaAutocomplete';
+import { GestaoFuncionalLoader } from './GestaoLoaders';
 import { useAlterarGestorColaborador, useColaboradoresComGestor, useUsuarioLogadoComoPessoa } from '../hooks/useAlterarGestor';
 import type { PessoaData, ColaboradorComGestor } from '@/services/squadra-client';
 
@@ -109,7 +110,7 @@ export function GestaoFuncionalTab() {
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
             />
             {listaLoading ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">Carregando colaboradores…</p>
+              <GestaoFuncionalLoader />
             ) : listaError ? (
               <p className="text-sm text-destructive py-6 text-center">Erro ao carregar a lista.</p>
             ) : listaFiltrada.length === 0 ? (
@@ -126,7 +127,8 @@ export function GestaoFuncionalTab() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{cap(c.nome)}</p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {c.cargo ? `${cap(c.cargo)} · ` : ''}Gestor: {c.gerente ? cap(c.gerente) : '—'}
+                          {c.cargo ? <><span className="font-semibold">Cargo:</span> {cap(c.cargo)} · </> : ''}
+                          <span className="font-semibold">Gestor(a):</span> {c.gerente ? cap(c.gerente) : '—'}
                         </p>
                       </div>
                       <Button size="sm" variant="outline" onClick={() => prefill(c)}>Alterar</Button>

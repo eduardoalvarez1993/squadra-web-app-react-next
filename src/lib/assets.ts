@@ -13,8 +13,6 @@ export const PADRAO_IMAGENS = {
   emptyGestaoApropriacao: '/assets/ponto-loading.webp',
   emptyGestaoFerias:      '/assets/rh-ferias-empty.webp',
   emptyGestaoAbonos:      '/assets/rh-abonos-stack-base.webp',
-  loadingGestaoFuncional: '/assets/gestao-funcional-loading.webp',
-  loadingGestaoProjeto:   '/assets/gestao-projeto-loading.webp',
 
   // Initial states / detail panel
   selectColaborador:      '/assets/select-colaborador.webp',
@@ -32,6 +30,8 @@ export const PADRAO_IMAGENS = {
   loadingPonto:           '/assets/ponto-loading.webp',
   loadingAlocar:          '/assets/alocar-loading.webp',
   loadingPendencias:      '/assets/pendencias-loading.webp',
+  loadingGestaoFuncional: '/assets/gestao-funcional-parceria-loading.webp',
+  loadingGestaoProjeto:   '/assets/gestao-projeto-gantt-loading.webp',
   loadingHoraExtra:       '/assets/hora-extra-loading.webp',
   loadingFerias:          '/assets/rh-ferias-loading.webp',
   loadingAbonos:          '/assets/rh-abonos-loading.webp',

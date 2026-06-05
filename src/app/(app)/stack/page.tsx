@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { LayersIcon, ArrowRightIcon } from 'lucide-react';
+import { LayersIcon } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Dados de cada tecnologia
@@ -166,28 +166,6 @@ const TECH_GROUPS: { title: string; subtitle: string; techs: Tech[] }[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Fluxo de dados
-// ---------------------------------------------------------------------------
-
-const FLOW_STEPS = [
-  {
-    label: 'Browser',
-    color: 'bg-blue-100 text-blue-700 border-blue-200',
-    note: 'React + Next.js App Router',
-  },
-  {
-    label: 'Next.js\nAPI Route',
-    color: 'bg-violet-100 text-violet-700 border-violet-200',
-    note: 'Token lido do cookie HTTP-only',
-  },
-  {
-    label: 'API Squadra',
-    color: 'bg-green-100 text-green-700 border-green-200',
-    note: 'REST JSON · api.squadra.com.br',
-  },
-];
-
-// ---------------------------------------------------------------------------
 // Qualidade & Testes — visão de negócio
 // ---------------------------------------------------------------------------
 
@@ -221,155 +199,71 @@ const COVERAGE_AREAS: { label: string; note: string; pct: number; color: string 
 // Changelog
 // ---------------------------------------------------------------------------
 
-interface ChangelogEntry {
-  title: string;
-  date?: string;
-  tag: string;
-  tagColor: string;
-  items: string[];
+const TYPE_STYLE: Record<'novo' | 'melhoria' | 'fix' | 'infra', { label: string; cls: string }> = {
+  novo:     { label: 'novo',     cls: 'bg-violet-100 text-violet-700' },
+  melhoria: { label: 'melhoria', cls: 'bg-blue-100 text-blue-700' },
+  fix:      { label: 'fix',      cls: 'bg-amber-100 text-amber-700' },
+  infra:    { label: 'infra',    cls: 'bg-slate-100 text-slate-600' },
+};
+
+interface ReleaseChange {
+  type: keyof typeof TYPE_STYLE;
+  text: string;
 }
 
-const CHANGELOG: ChangelogEntry[] = [
+interface Release {
+  version: string;
+  title:   string;
+  date:    string;
+  changes: ReleaseChange[];
+}
+
+// Mais recente primeiro.
+const RELEASES: Release[] = [
   {
-    title: 'Gestão Funcional e Gestão de Projeto',
-    date: '04 Jun 2026',
-    tag: 'novo',
-    tagColor: 'bg-violet-100 text-violet-700',
-    items: [
-      'Duas novas abas no menu Gestão: alterar o gestor de um colaborador e de um projeto',
-      'Formulário com busca (autocomplete) do alvo e do novo gestor, já preenchido com o usuário logado',
-      '"Ver todos" com lazy load, busca e filtros — colaboradores e projetos com seus gestores atuais',
-      'Telas 100% em homologação (HML) durante a validação — sinalizadas com chip "HML"',
-      'Busca com debounce e cache das listagens para reduzir requisições',
+    version: 'v1.4.0',
+    title:   'Gestão de gestores & Qualidade',
+    date:    '04 Jun 2026',
+    changes: [
+      { type: 'novo',     text: 'Abas Gestão Funcional e Gestão de Projeto — alterar o gestor de um colaborador ou de um projeto' },
+      { type: 'novo',     text: 'Formulário com busca (autocomplete) do alvo e do novo gestor, pré-preenchido com o usuário logado' },
+      { type: 'novo',     text: '"Ver todos" com lazy load, busca e filtros — colaboradores e projetos com seus gestores atuais' },
+      { type: 'novo',     text: 'Suíte de testes automatizados: 234 testes (Vitest) e 8 fluxos E2E (Playwright), 0 falhas' },
+      { type: 'melhoria', text: 'Schemas da API validados contra payloads reais — blindam contra mudanças de contrato' },
     ],
   },
   {
-    title: 'Suíte de testes automatizados',
-    date: '04 Jun 2026',
-    tag: 'novo',
-    tagColor: 'bg-violet-100 text-violet-700',
-    items: [
-      '234 testes unitários e de integração (Vitest), 0 falhas',
-      'Cobertura ponderada por risco: rotas de segurança 88–91%, regras de negócio 64–76%, integração Squadra ~53%',
-      'Schemas da API validados contra payloads reais — blinda contra mudanças de contrato',
-      'Mock de API via MSW + sessão; cada bug de homologação vira teste de regressão',
-      '8 fluxos críticos ponta a ponta (Playwright)',
+    version: 'v1.3.0',
+    title:   'Extras & melhorias operacionais',
+    date:    '03 Jun 2026',
+    changes: [
+      { type: 'novo',     text: 'Seção Extras no menu: Links Importantes, Galeria de Vídeos e Central de Ajuda (62 dúvidas)' },
+      { type: 'melhoria', text: 'Ponto: calendário redesenhado, resumo Saldo/Carga/Realizado e ações por dia' },
+      { type: 'melhoria', text: 'RH: menu para o Departamento Pessoal; abonos em abas e anexo corrigido' },
+      { type: 'melhoria', text: 'Gestão: aprovar/reprovar no cartão; hora extra como Banco ou Folha; fotos nos cartões' },
+      { type: 'melhoria', text: 'Solicitações: hora extra com justificativa e período noturno' },
     ],
   },
   {
-    title: 'Seção Extras — Links, Vídeos e Ajuda',
-    date: '03 Jun 2026',
-    tag: 'novo',
-    tagColor: 'bg-violet-100 text-violet-700',
-    items: [
-      'Novo item "Extras" no menu (desktop e mobile)',
-      'Links Importantes por grupos, com busca e copiar URL',
-      'Galeria de Vídeos institucionais com busca e filtro por categoria',
-      'Central de Ajuda: 62 dúvidas em 12 categorias, com busca e navegação em árvore',
+    version: 'v1.2.0',
+    title:   'Stack & paridade visual',
+    date:    '02 Jun 2026',
+    changes: [
+      { type: 'novo',     text: 'Página Stack & Arquitetura no menu lateral' },
+      { type: 'melhoria', text: 'Paridade visual e funcional completa com o app vanilla (web-app)' },
+      { type: 'novo',     text: 'Modo simulação (DP / Coordenador) com banner de impersonação' },
     ],
   },
   {
-    title: 'Ponto, RH e Gestão — melhorias',
-    date: '03 Jun 2026',
-    tag: 'release',
-    tagColor: 'bg-green-100 text-green-700',
-    items: [
-      'Ponto: calendário do mês redesenhado, resumo Saldo/Carga/Realizado e ações por dia',
-      'Apontamento exibindo o nome do projeto e data travada para visualização',
-      'RH: menu disponível para o Departamento Pessoal; abonos em abas (Pendentes/Aprovados/Reprovados) e anexo corrigido',
-      'Gestão: Aprovar/Reprovar direto no cartão; hora extra como Banco de Horas ou Folha; fotos nos cartões',
-      'Solicitações: hora extra com justificativa e período noturno',
-      'Tela "Verificando credenciais", cursor de clique nos botões e avatares neutros',
-    ],
-  },
-  {
-    title: 'Página Stack & Arquitetura',
-    date: '02 Jun 2026',
-    tag: 'release',
-    tagColor: 'bg-green-100 text-green-700',
-    items: [
-      'Adicionado item "Stack" no menu lateral acima do botão Sair',
-      'Página com tecnologias, logos, fluxo de dados e changelog',
-    ],
-  },
-  {
-    title: 'Paridade visual completa com o app vanilla',
-    date: '02 Jun 2026',
-    tag: 'release',
-    tagColor: 'bg-green-100 text-green-700',
-    items: [
-      'Paridade visual e funcional com o web-app (SPA vanilla) validada',
-      'Modo simulação: trocar perfil entre DP / Coordenador',
-      'SimulandoBanner no topo durante impersonação',
-    ],
-  },
-  {
-    title: 'Features avançadas',
-    tag: 'feature',
-    tagColor: 'bg-blue-100 text-blue-700',
-    items: [
-      'Ponto diário e percentual de horas (gestores sem bateRep)',
-      'Gestão: equipe, pendências, alocação e solicitações',
-      'Feed: Squadra em Rede — posts, curtidas e comentários',
-      'Comunicados com renderização segura de HTML (DOMPurify)',
-      'Solicitações do colaborador: abono, day-off e hora extra',
-      'Módulo RH restrito ao perfil DP',
-    ],
-  },
-  {
-    title: 'Features base',
-    tag: 'feature',
-    tagColor: 'bg-blue-100 text-blue-700',
-    items: [
-      'Home/Dashboard com saldo de horas, aniversariantes e novos colaboradores',
-      'Holerite com contracheques e histórico salarial',
-      'Férias: saldo, pedidos e histórico',
-      'Perfil pessoal: dados, skills e kudos recebidos',
-      'Diretório de pessoas com busca e drawer de detalhes',
-    ],
-  },
-  {
-    title: 'Shell & Navegação',
-    tag: 'infra',
-    tagColor: 'bg-amber-100 text-amber-700',
-    items: [
-      'Sidebar com collapse, controle de permissões e FluencIA',
-      'Topbar com avatar, nome e menu mobile (drawer)',
-      'BottomNav fixo para dispositivos móveis',
-      'FluencIA Modal — assistente IA integrado ao Shell',
-    ],
-  },
-  {
-    title: 'Componentes compartilhados',
-    tag: 'infra',
-    tagColor: 'bg-amber-100 text-amber-700',
-    items: [
-      'Skeleton, EmptyState, ErrorSection, AlertCard',
-      'AvatarGradient, TabNav, StatusChip, FormFeedback',
-      'DrawerForm, ApprovalModal, SolicitacaoCard, PostCard',
-      'HistoricoTable, PerfilLoader',
-    ],
-  },
-  {
-    title: 'Autenticação',
-    tag: 'infra',
-    tagColor: 'bg-amber-100 text-amber-700',
-    items: [
-      'Login com iron-session — cookie HTTP-only criptografado (AES-GCM)',
-      'API Routes: POST /api/auth, DELETE /api/auth, GET /api/auth/me',
-      'Rate limiting via Upstash Redis (sliding window)',
-      'Middleware de proteção de rotas autenticadas',
-    ],
-  },
-  {
-    title: 'Foundation',
-    tag: 'infra',
-    tagColor: 'bg-amber-100 text-amber-700',
-    items: [
-      'Projeto Next.js 16 App Router + TypeScript strict + Tailwind CSS v4',
-      'Squadra API client com tipagem completa (squadra-client)',
-      'TanStack Query (QueryClientProvider) + Zustand store',
-      'check-origin middleware anti-CSRF',
+    version: 'v1.0.0',
+    title:   'Lançamento — Fundação',
+    date:    'Mai 2026',
+    changes: [
+      { type: 'novo',  text: 'Home, Holerite, Férias, Perfil e Diretório de pessoas' },
+      { type: 'novo',  text: 'Ponto (diário e percentual), Gestão (equipe, pendências, alocação), Feed e RH' },
+      { type: 'infra', text: 'Shell completo: sidebar, topbar, bottom-nav e FluencIA; biblioteca de componentes compartilhados' },
+      { type: 'infra', text: 'Autenticação iron-session (cookie HTTP-only), rate limiting e proteção de rotas' },
+      { type: 'infra', text: 'Base Next.js 16 + TypeScript strict + Tailwind v4; client Squadra tipado; TanStack Query + Zustand' },
     ],
   },
 ];
@@ -520,62 +414,47 @@ export default function StackPage() {
         </div>
       </section>
 
-      {/* Fluxo de dados */}
+      {/* Releases */}
       <section>
         <div className="mb-3 flex items-baseline gap-2">
-          <h2 className="text-base font-semibold text-foreground">Fluxo de Dados</h2>
-          <span className="text-xs text-muted-foreground">Como uma requisição percorre o sistema</span>
+          <h2 className="text-base font-semibold text-foreground">Releases</h2>
+          <span className="text-xs text-muted-foreground">Linha do tempo de entregas</span>
         </div>
-        <div className="bg-white border border-border rounded-xl p-5">
-          <div className="flex flex-wrap items-center gap-2">
-            {FLOW_STEPS.map((step, i) => (
-              <div key={step.label} className="flex items-center gap-2">
-                <div className={`border rounded-lg px-3 py-2 text-center ${step.color}`}>
-                  <p className="text-xs font-semibold leading-snug whitespace-pre-line">{step.label}</p>
-                  <p className="text-[10px] opacity-70 leading-tight mt-0.5">{step.note}</p>
-                </div>
-                {i < FLOW_STEPS.length - 1 && (
-                  <ArrowRightIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                )}
+        <div className="flex flex-col">
+          {RELEASES.map((r, i) => (
+            <div key={r.version} className="flex gap-3">
+              {/* Marcador + linha conectora */}
+              <div className="flex flex-col items-center pt-1.5">
+                <span className={`h-3.5 w-3.5 rounded-full border-2 flex-shrink-0 ${i === 0 ? 'bg-violet-500 border-violet-200' : 'bg-white border-slate-300'}`} />
+                {i < RELEASES.length - 1 && <span className="w-px flex-1 bg-border my-1" />}
               </div>
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground mt-4 leading-relaxed">
-            O token de autenticação da API Squadra é armazenado em um cookie{' '}
-            <strong className="text-foreground">HTTP-only criptografado</strong> (iron-session).
-            Ele nunca fica exposto ao JavaScript do browser — apenas as API Routes do Next.js
-            conseguem lê-lo no servidor para repassar à API.
-          </p>
-        </div>
-      </section>
 
-      {/* Changelog */}
-      <section>
-        <div className="mb-3 flex items-baseline gap-2">
-          <h2 className="text-base font-semibold text-foreground">Changelog</h2>
-          <span className="text-xs text-muted-foreground">Histórico de entregas do projeto</span>
-        </div>
-        <div className="flex flex-col gap-0 bg-white border border-border rounded-xl overflow-hidden divide-y divide-border">
-          {CHANGELOG.map((entry) => (
-            <div key={entry.title} className="px-4 py-3 flex gap-3 items-start">
-              <div className="flex flex-col items-end gap-1 flex-shrink-0 w-20 mt-0.5">
-                <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${entry.tagColor}`}>
-                  {entry.tag}
-                </span>
-                {entry.date && (
-                  <span className="text-[10px] text-muted-foreground text-right leading-tight">{entry.date}</span>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground mb-1">{entry.title}</p>
-                <ul className="flex flex-col gap-0.5">
-                  {entry.items.map((item) => (
-                    <li key={item} className="text-xs text-muted-foreground flex gap-1.5 items-start">
-                      <span className="mt-1.5 h-1 w-1 rounded-full bg-muted-foreground/40 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+              {/* Conteúdo da release */}
+              <div className="flex-1 min-w-0 pb-6">
+                <div className="bg-white border border-border rounded-xl p-4">
+                  <div className="flex items-center gap-2 flex-wrap mb-2.5">
+                    <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${i === 0 ? 'bg-violet-600 text-white' : 'bg-muted text-foreground'}`}>
+                      {r.version}
+                    </span>
+                    <span className="font-semibold text-sm text-foreground">{r.title}</span>
+                    {i === 0 && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-violet-100 text-violet-700 uppercase tracking-wide">
+                        atual
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground ml-auto">{r.date}</span>
+                  </div>
+                  <ul className="flex flex-col gap-1.5">
+                    {r.changes.map((c) => (
+                      <li key={c.text} className="flex items-start gap-2">
+                        <span className={`mt-px text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${TYPE_STYLE[c.type].cls}`}>
+                          {TYPE_STYLE[c.type].label}
+                        </span>
+                        <span className="text-xs text-muted-foreground leading-snug">{c.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
           ))}

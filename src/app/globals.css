@@ -1091,6 +1091,147 @@
 }
 
 /* ── Gestão/Hora Extra: relógio + símbolo + pulsando ────────── */
+.gestao-funcional-loading-stage {
+  position: relative;
+  width: min(300px, 76vw);
+  aspect-ratio: 1;
+  display: block;
+  isolation: isolate;
+}
+.gestao-funcional-route-dot {
+  position: absolute;
+  width: 7.5%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 36%, #f472b6, #7c3aed 58%, #1d4ed8);
+  box-shadow: 0 7px 16px rgba(124, 58, 237, .32);
+  z-index: 2;
+  animation: gestao-funcional-dot 3.4s cubic-bezier(.4, 0, .2, 1) infinite;
+  will-change: left, top, transform, opacity;
+}
+.gestao-funcional-light-beam,
+.gestao-funcional-light-beam::after {
+  position: absolute;
+  left: 28%;
+  width: 44%;
+  height: 5.5%;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg,
+      transparent 0%,
+      rgba(37, 99, 235, 0) 12%,
+      rgba(96, 165, 250, .68) 38%,
+      rgba(244, 114, 182, .82) 56%,
+      rgba(124, 58, 237, .45) 74%,
+      transparent 100%);
+  filter: blur(8px);
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  animation: gestao-funcional-beam 3.4s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+.gestao-funcional-light-beam {
+  top: 40.5%;
+}
+.gestao-funcional-light-beam::after {
+  content: '';
+  top: 330%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  animation-delay: .18s;
+}
+@keyframes gestao-funcional-dot {
+  0%   { left: 29%; top: 43%; opacity: 0; transform: translate(-50%, -50%) scale(.7); }
+  8%   { opacity: 1; transform: translate(-50%, -50%) scale(1.12); }
+  24%  { left: 50%; top: 43%; transform: translate(-50%, -50%) scale(.96); }
+  40%  { left: 71%; top: 43%; transform: translate(-50%, -50%) scale(1.1); }
+  50%  { left: 71%; top: 61%; transform: translate(-50%, -50%) scale(.92); }
+  66%  { left: 50%; top: 61%; transform: translate(-50%, -50%) scale(1); }
+  84%  { left: 29%; top: 61%; opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  100% { left: 29%; top: 43%; opacity: 0; transform: translate(-50%, -50%) scale(.72); }
+}
+@keyframes gestao-funcional-beam {
+  0%, 8%   { opacity: 0; transform: scaleX(.16) translateX(-28%); }
+  22%      { opacity: .9; transform: scaleX(.72) translateX(-12%); }
+  42%      { opacity: .75; transform: scaleX(1) translateX(0); }
+  58%      { opacity: .9; transform: scaleX(.72) translateX(12%); }
+  78%      { opacity: .72; transform: scaleX(1) translateX(0); }
+  92%,100% { opacity: 0; transform: scaleX(.16) translateX(-28%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gestao-funcional-route-dot { animation: none; left: 50%; top: 52%; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .gestao-funcional-light-beam,
+  .gestao-funcional-light-beam::after { animation: none; opacity: .45; transform: scaleX(.86); }
+}
+
+.gestao-projeto-loading-stage {
+  position: relative;
+  width: min(300px, 76vw);
+  aspect-ratio: 1;
+  display: block;
+  isolation: isolate;
+}
+.gestao-projeto-bars-v2 {
+  position: absolute;
+  left: 31%;
+  top: 38%;
+  width: 63%;
+  height: 42%;
+  z-index: 9;
+  pointer-events: none;
+  transform: rotate(.6deg);
+}
+.gestao-projeto-bar-v2 {
+  position: absolute;
+  left: var(--bar-left);
+  top: var(--bar-top);
+  width: var(--bar-width);
+  height: 13px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2563eb 0%, #6d28d9 58%, #f472b6 100%);
+  box-shadow:
+    0 8px 16px rgba(124, 58, 237, .28),
+    inset 0 1px 0 rgba(255, 255, 255, .5);
+  opacity: 1;
+  display: block;
+  transform: scaleX(.24);
+  transform-origin: left center;
+  animation: gestao-projeto-bar-sanfona-v2 2.8s cubic-bezier(.36, 0, .2, 1) infinite;
+  animation-delay: var(--bar-delay);
+  will-change: transform, opacity;
+}
+.gestao-projeto-bar-v2-1 {
+  --bar-left: 7%;
+  --bar-top: 10%;
+  --bar-width: 58%;
+  --bar-delay: 0s;
+}
+.gestao-projeto-bar-v2-2 {
+  --bar-left: 22%;
+  --bar-top: 43%;
+  --bar-width: 66%;
+  --bar-delay: .18s;
+}
+.gestao-projeto-bar-v2-3 {
+  --bar-left: 13%;
+  --bar-top: 76%;
+  --bar-width: 48%;
+  --bar-delay: .36s;
+}
+@keyframes gestao-projeto-bar-sanfona-v2 {
+  0%, 10%  { opacity: .78; transform: scaleX(.24); }
+  34%      { opacity: 1; transform: scaleX(1); }
+  58%      { opacity: 1; transform: scaleX(1); }
+  84%      { opacity: .86; transform: scaleX(.24); }
+  100%     { opacity: .78; transform: scaleX(.24); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gestao-projeto-bar-v2 { animation: none; opacity: 1; transform: scaleX(.78); }
+}
+
 .hora-extra-loading-stage {
   position: relative;
   width: min(230px, 64vw);

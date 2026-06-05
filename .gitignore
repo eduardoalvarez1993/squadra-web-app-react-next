@@ -25,6 +25,7 @@
 # misc
 .DS_Store
 *.pem
+_loader-originals-backup/
 
 # debug
 npm-debug.log*

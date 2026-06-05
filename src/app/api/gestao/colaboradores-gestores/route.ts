@@ -13,7 +13,14 @@ export async function GET() {
     return NextResponse.json(data);
   } catch (err) {
     if (err instanceof SquadraAuthError) return NextResponse.json({ error: 'Sessão expirada' }, { status: 401 });
-    console.error('[GET /api/gestao/colaboradores-gestores]', err);
-    return NextResponse.json({ error: 'Erro ao listar colaboradores' }, { status: 500 });
+    const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    console.error('[GET /api/gestao/colaboradores-gestores]', detail);
+    // Em dev, devolve a causa real para diagnóstico (em prod fica genérico).
+    return NextResponse.json(
+      process.env.NODE_ENV !== 'production'
+        ? { error: 'Erro ao listar colaboradores', detail }
+        : { error: 'Erro ao listar colaboradores' },
+      { status: 500 },
+    );
   }
 }

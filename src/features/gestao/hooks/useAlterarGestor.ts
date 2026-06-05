@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserStore } from '@/store/user';
 import type { ColaboradorComGestor, PessoaData, ProjetoBuscaItem } from '@/services/squadra-client';
 import type { ProjetoComGestorView } from '@/services/gestao';
@@ -51,16 +51,21 @@ async function getJson<T>(url: string): Promise<T> {
 }
 
 export function useAlterarGestorColaborador() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: { coordId: number; recId: number }) =>
       postJson('/api/gestao/altera-gestor-colaborador', input),
+    // Invalida a listagem "ver todos" (o servidor já invalidou seu próprio cache).
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['gestao', 'colaboradores-gestores'] }),
   });
 }
 
 export function useAlterarGestorProjeto() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: { coordId: number; prjId: number }) =>
       postJson('/api/gestao/altera-gestor-projeto', input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['gestao', 'projetos-gestores'] }),
   });
 }
 

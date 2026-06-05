@@ -7,6 +7,9 @@ const TITLE       = 'Squadra Web App · Gerencie, conecte, reconheça';
 const DESCRIPTION = 'A Squadra num só lugar. Acompanhe sua jornada, reconheça colegas, gerencie equipes e mantenha tudo em dia — de forma simples e humana.';
 
 export const metadata: Metadata = {
+  // Base para resolver URLs relativas de OG/Twitter images em produção
+  // (sem isso, o Next usa http://localhost:3000 e os previews de link quebram).
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
   title:           TITLE,
   description:     DESCRIPTION,
   applicationName: 'Squadra',

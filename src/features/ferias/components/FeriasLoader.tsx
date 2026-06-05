@@ -9,8 +9,9 @@ export function FeriasLoader() {
           src={ASSETS.loadingFerias}
           alt=""
           fill
+          sizes="(max-width: 480px) 80vw, 320px"
           className="gestao-loader-img"
-          priority
+          loading="eager"
         />
         <div className="ferias-coco" aria-hidden="true" />
       </div>
