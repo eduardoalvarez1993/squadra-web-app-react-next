@@ -24,12 +24,12 @@ export function BottomNav() {
   return (
     <nav aria-label="Menu inferior" className="md:hidden fixed bottom-0 inset-x-0 z-40 flex items-center justify-around border-t border-border bg-white px-2 pb-safe">
       <Link href="/home" className={itemCls('/home')}>
-        <HomeIcon className="h-5 w-5" />
+        <HomeIcon className="h-5 w-5 text-blue-500" />
         <span className={labelCls}>Home</span>
       </Link>
 
       <Link href="/pessoas" className={itemCls('/pessoas')}>
-        <SearchIcon className="h-5 w-5" />
+        <SearchIcon className="h-5 w-5 text-green-500" />
         <span className={labelCls}>Pessoas</span>
       </Link>
 
@@ -53,7 +53,7 @@ export function BottomNav() {
         className={itemCls('#mais')}
         onClick={() => setDrawer(true)}
       >
-        <MoreHorizontalIcon className="h-5 w-5" />
+        <MoreHorizontalIcon className="h-5 w-5 text-violet-500" />
         <span className={labelCls}>Mais</span>
       </button>
     </nav>

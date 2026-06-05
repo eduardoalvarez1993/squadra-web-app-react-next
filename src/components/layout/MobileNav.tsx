@@ -58,23 +58,23 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
 
   // Home separado para inserir Ponto logo após
   const afterHome = [
-    { href: '/pessoas',      label: 'Pessoas',      icon: <SearchIcon        className="h-5 w-5" /> },
-    { href: '/ferias',       label: 'Férias',       icon: <UmbrellaIcon      className="h-5 w-5" /> },
-    { href: '/holerite',     label: 'Holerite',     icon: <WalletIcon        className="h-5 w-5" /> },
-    { href: '/solicitacoes', label: 'Solicitar',    icon: <ClipboardListIcon className="h-5 w-5" /> },
-    { href: '/recursos',     label: 'Extras',       icon: <LayoutGridIcon    className="h-5 w-5" /> },
+    { href: '/pessoas',      label: 'Pessoas',      icon: <SearchIcon        className="h-5 w-5 text-green-500" /> },
+    { href: '/ferias',       label: 'Férias',       icon: <UmbrellaIcon      className="h-5 w-5 text-emerald-500" /> },
+    { href: '/holerite',     label: 'Holerite',     icon: <WalletIcon        className="h-5 w-5 text-amber-500" /> },
+    { href: '/solicitacoes', label: 'Solicitar',    icon: <ClipboardListIcon className="h-5 w-5 text-orange-500" /> },
+    { href: '/recursos',     label: 'Extras',       icon: <LayoutGridIcon    className="h-5 w-5 text-violet-500" /> },
   ];
 
   const conditionalItems = [];
   if (hydrated) {
     if (permissoes.gerenteFuncional && temEquipe) {
-      conditionalItems.push({ href: '/gestao',     label: 'Gestão',     icon: <UsersIcon     className="h-5 w-5" /> });
+      conditionalItems.push({ href: '/gestao',     label: 'Gestão',     icon: <UsersIcon     className="h-5 w-5 text-purple-500" /> });
     }
     if (permissoes.gerenteFuncional && !permissoes.bateRep && temEquipe) {
-      conditionalItems.push({ href: '/percentual', label: 'Percentual', icon: <PercentIcon   className="h-5 w-5" /> });
+      conditionalItems.push({ href: '/percentual', label: 'Percentual', icon: <PercentIcon   className="h-5 w-5 text-indigo-500" /> });
     }
     if (temAcessoDP(permissoes.perfilDP, cargo)) {
-      conditionalItems.push({ href: '/rh',         label: 'RH',         icon: <BriefcaseIcon className="h-5 w-5" /> });
+      conditionalItems.push({ href: '/rh',         label: 'RH',         icon: <BriefcaseIcon className="h-5 w-5 text-teal-500" /> });
     }
   }
 
@@ -89,14 +89,14 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
         <nav className="flex flex-col gap-1 px-3 py-3 h-full">
           {/* Home */}
           <Link href="/home" className={itemCls('/home')} onClick={onClose}>
-            <HomeIcon className="h-5 w-5" />
+            <HomeIcon className="h-5 w-5 text-blue-500" />
             Home
           </Link>
 
           {/* Ponto — logo após Home */}
           {showPonto && (
             <Link href="/ponto" className={itemCls('/ponto')} onClick={onClose}>
-              <ClockIcon className="h-5 w-5" />
+              <ClockIcon className="h-5 w-5 text-sky-500" />
               Ponto
             </Link>
           )}
