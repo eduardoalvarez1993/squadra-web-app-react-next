@@ -3,15 +3,14 @@
  *
  * Particularidades desta feature:
  *  - Todas as rotas exigem `permissoes.gerenteFuncional` (403 sem ele).
- *  - O upstream é a base de HOMOLOGAÇÃO (`HML_API_URL`), não a de produção
- *    (`UPSTREAM` do route-helpers) — os handlers MSW vão na base HML.
+ *  - O upstream é a base de PRODUÇÃO (`UPSTREAM` do route-helpers) — mutação e
+ *    buscas migraram pra prod após o deploy do alterar-gestor.
  *  - O service mantém cache in-memory (TTL 10min). `invalidateGestaoCache()`
  *    no beforeEach isola os testes das listagens cacheadas.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server, makeRequest, makeSession, UPSTREAM } from '@/__tests__/route-helpers';
-import { HML_API_URL } from '@/services/squadra-client';
 import { invalidateGestaoCache } from '@/services/gestao';
 
 vi.mock('@/lib/session', () => ({ getSession: vi.fn() }));
@@ -24,7 +23,6 @@ import { GET as GET_PROJS } from '@/app/api/gestao/projetos-gestores/route';
 import { GET as GET_PESSOAS } from '@/app/api/gestao/pessoas-busca/route';
 import { GET as GET_PROJ_BUSCA } from '@/app/api/gestao/projetos-busca/route';
 
-const HML = HML_API_URL;
 const gerente = () => makeSession({ permissoes: { gerenteFuncional: true } });
 
 beforeEach(() => {
@@ -64,9 +62,9 @@ describe('POST /api/gestao/altera-gestor-colaborador', () => {
     expect(res.status).toBe(400);
   });
 
-  it('200 sucesso (mock upstream HML)', async () => {
+  it('200 sucesso (mock upstream PROD)', async () => {
     let chamou = false;
-    server.use(http.post(`${HML}/v1/alteraGestorColaborador/5/10`, () => {
+    server.use(http.post(`${UPSTREAM}/v1/alteraGestorColaborador/5/10`, () => {
       chamou = true;
       return HttpResponse.json({ sucesso: true });
     }));
@@ -76,7 +74,7 @@ describe('POST /api/gestao/altera-gestor-colaborador', () => {
   });
 
   it('422 com a mensagem do upstream quando rejeitado', async () => {
-    server.use(http.post(`${HML}/v1/alteraGestorColaborador/5/10`, () =>
+    server.use(http.post(`${UPSTREAM}/v1/alteraGestorColaborador/5/10`, () =>
       HttpResponse.json({ erros: [{ mensagem: 'Coordenador inválido' }] }, { status: 422 })));
     const res = await POST_COLAB(makeRequest(url, { method: 'POST', body }));
     expect(res.status).toBe(422);
@@ -107,13 +105,13 @@ describe('POST /api/gestao/altera-gestor-projeto', () => {
     expect((await POST_PROJ(makeRequest(url, { method: 'POST', body: { coordId: 7 } }))).status).toBe(400);
   });
 
-  it('200 sucesso (mock upstream HML)', async () => {
-    server.use(http.post(`${HML}/v1/alteraGestorProjeto/7/20`, () => HttpResponse.json({ sucesso: true })));
+  it('200 sucesso (mock upstream PROD)', async () => {
+    server.use(http.post(`${UPSTREAM}/v1/alteraGestorProjeto/7/20`, () => HttpResponse.json({ sucesso: true })));
     expect((await POST_PROJ(makeRequest(url, { method: 'POST', body }))).status).toBe(200);
   });
 
   it('422 com a mensagem do upstream', async () => {
-    server.use(http.post(`${HML}/v1/alteraGestorProjeto/7/20`, () =>
+    server.use(http.post(`${UPSTREAM}/v1/alteraGestorProjeto/7/20`, () =>
       HttpResponse.json({ erros: [{ mensagem: 'Projeto inexistente' }] }, { status: 422 })));
     const res = await POST_PROJ(makeRequest(url, { method: 'POST', body }));
     expect(res.status).toBe(422);
@@ -195,8 +193,8 @@ describe('GET /api/gestao/pessoas-busca', () => {
     expect(await res.json()).toEqual([]);
   });
 
-  it('200 com resultados quando q >= 3 (mock HML)', async () => {
-    server.use(http.post(`${HML}/v1/pessoas/buscarpessoas`, () => HttpResponse.json({
+  it('200 com resultados quando q >= 3 (mock PROD)', async () => {
+    server.use(http.post(`${UPSTREAM}/v1/pessoas/buscarpessoas`, () => HttpResponse.json({
       retorno: [{ id: 1, nome: 'Ana', login: 'ana' }],
     })));
     const res = await GET_PESSOAS(makeRequest(url('ana')));
@@ -224,8 +222,8 @@ describe('GET /api/gestao/projetos-busca', () => {
     expect(res.status).toBe(400);
   });
 
-  it('200 com resultados quando q >= 3 (mock HML)', async () => {
-    server.use(http.post(`${HML}/v2/projetos/pornomev2`, () => HttpResponse.json({
+  it('200 com resultados quando q >= 3 (mock PROD)', async () => {
+    server.use(http.post(`${UPSTREAM}/v2/projetos/pornomev2`, () => HttpResponse.json({
       retorno: [{ id: 1, nome: 'Projeto Alpha', cliente: 'Cliente A' }],
     })));
     const res = await GET_PROJ_BUSCA(makeRequest(url('alpha')));

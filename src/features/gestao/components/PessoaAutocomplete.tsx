@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { AvatarGradient } from '@/components/shared/AvatarGradient';
-import { usePessoasHml, useDebouncedValue } from '../hooks/useAlterarGestor';
+import { usePessoasBusca, useDebouncedValue } from '../hooks/useAlterarGestor';
 import type { PessoaData } from '@/services/squadra-client';
 
 interface Props {
@@ -19,7 +19,7 @@ export function PessoaAutocomplete({ label, placeholder, selected, onSelect }: P
   const [open,  setOpen]  = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const debouncedQuery = useDebouncedValue(query);
-  const { data: resultados, isFetching } = usePessoasHml(debouncedQuery);
+  const { data: resultados, isFetching } = usePessoasBusca(debouncedQuery);
   // "buscando…" também durante a espera do debounce
   const buscando = isFetching || (query.trim().length >= 3 && query !== debouncedQuery);
 

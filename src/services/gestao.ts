@@ -12,7 +12,6 @@ import {
   type ColaboradorComGestor,
   type PessoaData,
   type ProjetoBuscaItem,
-  HML_API_URL,
 } from './squadra-client';
 
 function toUpstreamDate(iso: string): string {
@@ -196,24 +195,23 @@ export function invalidateGestaoCache(...keys: string[]): void {
 const KEY_PESSOAS  = 'pessoas-relatorio';
 const KEY_PROJETOS = 'relatorio-projetos';
 
-// Listagens "ver todos" leem de PRODUÇÃO (dados reais; o pessoasRelatorio em HML é
-// lento/instável e estourava timeout). As MUTAÇÕES e as buscas do form continuam em
-// HML — não existe endpoint de alterar gestor em prod ainda.
+// Listagens "ver todos" leem de PRODUÇÃO (dados reais). As mutações e as buscas do
+// form também estão em PROD desde o deploy do alterar-gestor.
 function getPessoasRelatorio(token: string): Promise<ColaboradorComGestor[]> {
   return cached(KEY_PESSOAS, () => squadra.pessoas.relatorio(token));
 }
 
-// Buscas do formulário (autocomplete) — em HML, pois a alteração ocorre em HML
-// (os IDs selecionados precisam ser válidos no mesmo ambiente da mutação).
-export async function buscarPessoasHml(nome: string, token: string): Promise<PessoaData[]> {
-  return squadra.pessoas.buscar({ nome }, token, HML_API_URL);
+// Buscas do formulário (autocomplete) — em PROD, mesmo ambiente da mutação
+// (os IDs selecionados precisam ser válidos onde o alterar-gestor é aplicado).
+export async function buscarPessoas(nome: string, token: string): Promise<PessoaData[]> {
+  return squadra.pessoas.buscar({ nome }, token);
 }
 
-export async function buscarProjetosHml(q: string, token: string): Promise<ProjetoBuscaItem[]> {
-  return squadra.percentual.buscarProjetos(q, token, HML_API_URL);
+export async function buscarProjetos(q: string, token: string): Promise<ProjetoBuscaItem[]> {
+  return squadra.percentual.buscarProjetos(q, token);
 }
 
-// ── Alterar gestor (HML) ──────────────────────────────────────────────────────
+// ── Alterar gestor (PROD) ─────────────────────────────────────────────────────
 export async function alteraGestorColaborador(coordId: number, recId: number, token: string): Promise<{ ok: true }> {
   const res = await squadra.gestao.alteraGestorColaborador(coordId, recId, token);
   invalidateGestaoCache(KEY_PESSOAS);   // o gestor do colaborador mudou

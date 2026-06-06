@@ -123,10 +123,6 @@ export function GestaoProjetoTab() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center gap-2">
-        <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-700 border border-amber-200 text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide">HML</span>
-        <span className="text-xs text-muted-foreground">Esta tela opera 100% em homologação.</span>
-      </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <p className="text-sm text-muted-foreground">Altere o gestor de um projeto.</p>
         <ProjetoAutocomplete selected={projeto} onSelect={(p) => { setProjeto(p); setFeedback(null); }} />

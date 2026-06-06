@@ -88,8 +88,8 @@ export function useProjetosComGestor(enabled: boolean) {
   });
 }
 
-// Busca de pessoas em HML (autocomplete) — exclusiva destas abas.
-export function usePessoasHml(query: string) {
+// Busca de pessoas (autocomplete, PROD) — exclusiva destas abas.
+export function usePessoasBusca(query: string) {
   return useQuery<PessoaData[]>({
     queryKey:  ['gestao', 'pessoas-busca', query],
     queryFn:   () => getJson(`/api/gestao/pessoas-busca?q=${encodeURIComponent(query)}`),
@@ -98,7 +98,7 @@ export function usePessoasHml(query: string) {
   });
 }
 
-// Busca de projetos em HML (autocomplete) — exclusiva desta aba.
+// Busca de projetos (autocomplete, PROD) — exclusiva desta aba.
 export function useProjetosBusca(query: string) {
   return useQuery<ProjetoBuscaItem[]>({
     queryKey:  ['gestao', 'projetos-busca', query],

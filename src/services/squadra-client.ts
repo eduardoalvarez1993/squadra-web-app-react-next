@@ -3,10 +3,6 @@ import { SQUADRA_API_URL } from '@/lib/config';
 
 const TIMEOUT_MS = Number(process.env.SQUADRA_API_TIMEOUT_MS ?? 15_000);
 
-// Homologação. As chamadas alteraGestor* só existem aqui; as abas Gestão Funcional/
-// Gestão de Projeto também LEEM daqui (feature 100% em HML enquanto não vai pra prod).
-export const HML_API_URL = 'https://api-hml.squadra.com.br/api';
-
 // ─── Error types ────────────────────────────────────────────────────────────
 
 export class SquadraAuthError extends Error {
@@ -1425,13 +1421,13 @@ export const squadra = {
       const id = Number(first['id'] ?? 0);
       return id > 0 ? id : null;
     },
-    // ── Alterar gestor (HML) — coordId = id do USUÁRIO do novo gestor ────────
+    // ── Alterar gestor (PROD) — coordId = id do USUÁRIO do novo gestor ───────
     // recId = id da pessoa do colaborador · prjId = id do projeto. POST sem body.
     async alteraGestorColaborador(coordId: number, recId: number, token: string) {
-      return sq('POST', `/v1/alteraGestorColaborador/${coordId}/${recId}`, {}, token, OkSchema, true, 'application/json', HML_API_URL);
+      return sq('POST', `/v1/alteraGestorColaborador/${coordId}/${recId}`, {}, token, OkSchema);
     },
     async alteraGestorProjeto(coordId: number, prjId: number, token: string) {
-      return sq('POST', `/v1/alteraGestorProjeto/${coordId}/${prjId}`, {}, token, OkSchema, true, 'application/json', HML_API_URL);
+      return sq('POST', `/v1/alteraGestorProjeto/${coordId}/${prjId}`, {}, token, OkSchema);
     },
     // Relatório de projetos cadastrados — inclui cpfGerente (gestor atual, por CPF).
     async relatorioProjetos(token: string, baseUrl?: string) {

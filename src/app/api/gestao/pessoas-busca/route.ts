@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
-import { buscarPessoasHml } from '@/services/gestao';
+import { buscarPessoas } from '@/services/gestao';
 import { SquadraAuthError } from '@/services/squadra-client';
 
-// Busca de pessoas em HML — exclusiva das abas Gestão Funcional/Projeto.
+// Busca de pessoas (PROD) — exclusiva das abas Gestão Funcional/Projeto.
 export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session.token) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   if (q.length < 3) return NextResponse.json([]);
 
   try {
-    const data = await buscarPessoasHml(q, session.token);
+    const data = await buscarPessoas(q, session.token);
     return NextResponse.json(data);
   } catch (err) {
     if (err instanceof SquadraAuthError) return NextResponse.json({ error: 'Sessão expirada' }, { status: 401 });
