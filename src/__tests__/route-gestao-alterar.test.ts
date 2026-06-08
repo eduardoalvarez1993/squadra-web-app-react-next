@@ -157,19 +157,16 @@ describe('GET /api/gestao/projetos-gestores', () => {
     expect((await GET_PROJS()).status).toBe(403);
   });
 
-  it('200 e resolve o nome do gestor por CPF', async () => {
+  it('200 e devolve o gestor por CPF cru (sem enriquecer)', async () => {
     server.use(
       http.get(`${UPSTREAM}/v1/gestor/relatorioProjetosCadastrados`, () => HttpResponse.json({
         retorno: [{ id: 30, nome: 'Projeto Z', nomeCliente: 'Cliente A', situacao: 'Ativo', cpfGerente: '111.111.111-11' }],
-      })),
-      http.get(`${UPSTREAM}/v1/pessoasRelatorio`, () => HttpResponse.json({
-        retorno: [{ id: 1, nome: 'Bruno', cpf: '11111111111' }],  // mesmo CPF (sem máscara)
       })),
     );
     const res = await GET_PROJS();
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data[0]).toMatchObject({ nome: 'Projeto Z', gestor: 'Bruno' });
+    expect(data[0]).toMatchObject({ nome: 'Projeto Z', cpf: '111.111.111-11' });
   });
 });
 

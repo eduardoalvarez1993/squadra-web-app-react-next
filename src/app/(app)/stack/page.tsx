@@ -170,8 +170,8 @@ const TECH_GROUPS: { title: string; subtitle: string; techs: Tech[] }[] = [
 // ---------------------------------------------------------------------------
 
 const QUALITY_STATS: { value: string; label: string }[] = [
-  { value: '234',     label: 'testes automatizados' },
-  { value: '18',      label: 'suítes de teste' },
+  { value: '261',     label: 'testes automatizados' },
+  { value: '19',      label: 'suítes de teste' },
   { value: '0',       label: 'falhas na suíte' },
   { value: '88–91%',  label: 'cobertura das rotas críticas' },
 ];
@@ -220,6 +220,20 @@ interface Release {
 
 // Mais recente primeiro.
 const RELEASES: Release[] = [
+  {
+    version: 'v1.5.0',
+    title:   'Ponto do gestor, Marketing & Segurança',
+    date:    '08 Jun 2026',
+    changes: [
+      { type: 'novo',     text: 'Aba Ponto no detalhe do colaborador (Minha Equipe e Pendências) com calendário em visão mobile' },
+      { type: 'novo',     text: 'Gestor libera ou confirma falta direto pelo dia — Liberar (livre) e Falta, alinhado ao app oficial' },
+      { type: 'novo',     text: 'Painel de Marketing com acesso por perfil (substitui o controle via planilha)' },
+      { type: 'melhoria', text: 'Pessoas: aba Dados revisada (projetos, datas DD/MM, rótulos) e drawers carregados sob demanda' },
+      { type: 'melhoria', text: 'Alterar gestor com atualização instantânea na tela (otimista) e empty states ilustrados' },
+      { type: 'infra',    text: 'Autorização por equipe nas rotas de gestão; sessão de 7 dias com retorno à rota após expirar' },
+      { type: 'infra',    text: 'Suíte de testes: 261 testes em 19 suítes (Vitest), 0 falhas' },
+    ],
+  },
   {
     version: 'v1.4.0',
     title:   'Gestão de gestores & Qualidade',
