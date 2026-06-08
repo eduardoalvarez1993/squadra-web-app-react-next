@@ -1,10 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { AvatarGradient } from '@/components/shared/AvatarGradient';
-import { DrawerColaborador } from '@/features/pessoas/components/DrawerColaborador';
 import { ASSETS } from '@/lib/assets';
 import type { ColaboradorResumo } from '@/services/squadra-client';
+
+// Lazy: o drawer do colaborador só carrega ao clicar num aniversariante.
+const DrawerColaborador = dynamic(() => import('@/features/pessoas/components/DrawerColaborador').then((m) => m.DrawerColaborador));
 
 function AniversariantesLoading() {
   return (
@@ -62,14 +65,12 @@ export function AnivCard({ label, items, isLoading, isAniv = true }: AnivCardPro
     return (
       <section aria-label={label}>
         <div className="aniversariantes-empty">
-          {isAniv && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={ASSETS.emptyAniversariantes} alt="" loading="lazy" />
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={isAniv ? ASSETS.emptyAniversariantes : ASSETS.emptyNovosColabs} alt="" loading="lazy" />
           <span>
             {isAniv
               ? 'Que pena, nenhum aniversariante para comemorar hoje.'
-              : 'Nenhum novo colaborador recentemente.'}
+              : 'Ainda não chegou ninguém novo Squader por aqui.'}
           </span>
         </div>
       </section>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import DOMPurify from 'dompurify';
 import { GreetingCard } from '@/features/home/components/GreetingCard';
 import { AnivCard } from '@/features/home/components/AnivCard';
@@ -11,10 +12,12 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorSection } from '@/components/shared/ErrorSection';
 import { useHome } from '@/features/home/hooks/useHome';
 import { useFeed, type Post, type Comunicado } from '@/features/feed/hooks/useFeed';
-import { FeedDrawer } from '@/features/feed/components/FeedDrawer';
 import { ComposeBox } from '@/features/feed/components/ComposeBox';
 import { useUserStore } from '@/store/user';
 import { ASSETS } from '@/lib/assets';
+
+// Lazy: só carrega o chunk do drawer quando o usuário abre um post.
+const FeedDrawer = dynamic(() => import('@/features/feed/components/FeedDrawer').then((m) => m.FeedDrawer));
 
 const ANIV_TABS = [
   { id: 'aniv',  label: 'Aniversariantes 🎂' },

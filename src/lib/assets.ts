@@ -7,12 +7,14 @@ export const PADRAO_IMAGENS = {
   emptyPessoas:           '/assets/pessoas-empty.webp',
   emptyInteresses:        '/assets/interesses-empty.webp',
   emptyAniversariantes:   '/assets/aniversariantes-empty.webp',
+  emptyNovosColabs:       '/assets/novos-colaboradores-empty.webp',
   emptyFerias:            '/assets/rh-ferias-empty.webp',
   emptyFeriasHistorico:   '/assets/rh-ferias-empty.webp',
   emptyGestaoHoraExtra:   '/assets/hora-extra-loading.webp',
   emptyGestaoApropriacao: '/assets/ponto-loading.webp',
   emptyGestaoFerias:      '/assets/rh-ferias-empty.webp',
   emptyGestaoAbonos:      '/assets/rh-abonos-stack-base.webp',
+  emptySolicitacoesAbono: '/assets/abono-empty.webp',
 
   // Initial states / detail panel
   selectColaborador:      '/assets/select-colaborador.webp',

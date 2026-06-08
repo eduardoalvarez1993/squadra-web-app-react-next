@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { AvatarGradient } from '@/components/shared/AvatarGradient';
-import { FeedDrawer } from './FeedDrawer';
 import type { Post } from '@/features/feed/hooks/useFeed';
+
+// Lazy: o drawer só é baixado quando o card é aberto.
+const FeedDrawer = dynamic(() => import('./FeedDrawer').then((m) => m.FeedDrawer));
 
 export const TIPO_EMOJI: Record<string, string> = {
   C: '⭐', D: '💬', I: '💡', K: '❤️',
