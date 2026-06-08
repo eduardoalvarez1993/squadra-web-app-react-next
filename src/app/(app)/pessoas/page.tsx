@@ -1,14 +1,17 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Input } from '@/components/ui/input';
 import { PessoaCard } from '@/components/shared/PessoaCard';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorSection } from '@/components/shared/ErrorSection';
 import { usePessoas } from '@/features/pessoas/hooks/usePessoas';
-import { DrawerColaborador } from '@/features/pessoas/components/DrawerColaborador';
 import type { PessoaData } from '@/services/squadra-client';
 import { ASSETS } from '@/lib/assets';
+
+// Lazy: o drawer do colaborador só carrega ao selecionar alguém.
+const DrawerColaborador = dynamic(() => import('@/features/pessoas/components/DrawerColaborador').then((m) => m.DrawerColaborador));
 
 function SearchHint() {
   return (

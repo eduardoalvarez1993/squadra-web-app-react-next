@@ -43,6 +43,13 @@ function Stars({ nivel }: { nivel: number }) {
   );
 }
 
+// Formata datas ISO ("2025-05-14T00:00:00") como DD/MM/YYYY; demais valores passam direto.
+function fmtCampo(value: unknown): string {
+  const s = String(value);
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : s;
+}
+
 function tag(s: string, i: number) {
   return (
     <span key={i} className="bg-[#f0f2f5] text-xs font-medium text-foreground px-3 py-1 rounded-full">
@@ -59,7 +66,6 @@ function TabDados({ p }: { p: Pessoa }) {
     ['Cidade',           p['cidade']],
     ['Aniversário',      p['dataNascimento']],
     ['Admissão',         p['dataAdmissao']],
-    ['Disponibilidade',  p['dataDisponibilidade']],
     ['Gestor(a)',        p['gerente']],
     ['E-mail',           p.email],
     ['Celular',          p.celular],
@@ -73,7 +79,7 @@ function TabDados({ p }: { p: Pessoa }) {
     Array.isArray(p['skills'])              ? p['skills']              : []
   ) as string[];
 
-  const projetos = (Array.isArray(p['listaProjetos']) ? p['listaProjetos'] : []) as Record<string, unknown>[];
+  const projetos = (Array.isArray(p['listaProjetos']) ? p['listaProjetos'] : []) as unknown[];
 
   const formacao = typeof p['formacaoAcademica'] === 'string'
     ? p['formacaoAcademica'].split('|').map((s) => s.trim()).filter(Boolean)
@@ -86,8 +92,8 @@ function TabDados({ p }: { p: Pessoa }) {
         <div className="bg-white rounded-xl p-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
           {fields.map(([label, value]) => (
             <Fragment key={label}>
-              <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">{label}</span>
-              <span className="text-xs text-foreground break-words">{String(value)}</span>
+              <span className="text-xs text-foreground font-bold whitespace-nowrap">{label}</span>
+              <span className="text-xs text-foreground break-words">{fmtCampo(value)}</span>
             </Fragment>
           ))}
         </div>
@@ -98,11 +104,18 @@ function TabDados({ p }: { p: Pessoa }) {
         <div className="bg-white rounded-xl p-4">
           <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3">Projetos</p>
           <ul className="flex flex-col gap-1.5">
-            {projetos.map((pr, i) => (
-              <li key={String(pr['id'] ?? pr['projetoId'] ?? i)} className="text-sm text-foreground">
-                {String(pr['nome'] ?? pr['servico'] ?? pr['nomeProjeto'] ?? '—')}
-              </li>
-            ))}
+            {projetos.map((pr, i) => {
+              // listaProjetos pode vir como array de strings (API atual) ou de objetos
+              const nome = typeof pr === 'string'
+                ? pr
+                : String((pr as Record<string, unknown>)['nome']
+                    ?? (pr as Record<string, unknown>)['servico']
+                    ?? (pr as Record<string, unknown>)['nomeProjeto']
+                    ?? '—');
+              return (
+                <li key={i} className="text-sm text-foreground">{nome}</li>
+              );
+            })}
           </ul>
         </div>
       )}
