@@ -8,6 +8,7 @@ import { ErrorSection } from '@/components/shared/ErrorSection';
 import { Skeleton }     from '@/components/shared/Skeleton';
 import { DrawerForm }   from '@/components/shared/DrawerForm';
 import { FormFeedback } from '@/components/shared/FormFeedback';
+import { ASSETS }       from '@/lib/assets';
 import { Button }       from '@/components/ui/button';
 import { Input }        from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -63,10 +64,11 @@ function SolCard({ item }: { item: AbonoItem }) {
   );
 }
 
-function HistoricoList({ items, isLoading, emptyLabel, loadingFallback }: {
+function HistoricoList({ items, isLoading, emptyLabel, emptyImage, loadingFallback }: {
   items: AbonoItem[];
   isLoading: boolean;
   emptyLabel: string;
+  emptyImage?: string;
   loadingFallback?: ReactNode;
 }) {
   if (isLoading) {
@@ -79,7 +81,7 @@ function HistoricoList({ items, isLoading, emptyLabel, loadingFallback }: {
       </div>
     );
   }
-  if (!items.length) return <EmptyState title={emptyLabel} />;
+  if (!items.length) return <EmptyState image={emptyImage} title={emptyLabel} />;
   return (
     <div className="flex flex-col gap-2">
       {items.map((item, i) => <SolCard key={`${item.id}-${item.dataInicio}-${i}`} item={item} />)}
@@ -114,7 +116,8 @@ function TabAbono() {
         <HistoricoList
           items={abonos}
           isLoading={isLoading}
-          emptyLabel="Nenhum abono encontrado"
+          emptyLabel="Nenhum abono solicitado até o momento"
+          emptyImage={ASSETS.emptySolicitacoesAbono}
           loadingFallback={<AbonoLoader />}
         />
       </div>
