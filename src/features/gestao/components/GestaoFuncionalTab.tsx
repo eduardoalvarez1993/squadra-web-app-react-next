@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { FormFeedback } from '@/components/shared/FormFeedback';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -15,10 +16,13 @@ function cap(nome: string): string {
 }
 
 export function GestaoFuncionalTab() {
+  const qc = useQueryClient();
   const usuarioLogado = useUsuarioLogadoComoPessoa();
   const [colaborador, setColaborador] = useState<PessoaData | null>(null);
   const [gestor,      setGestor]      = useState<PessoaData | null>(usuarioLogado);
   const [feedback,    setFeedback]    = useState<{ type: 'ok' | 'error'; message: string } | null>(null);
+  // Linha em reconciliação após o submit (mostra badge "atualizando…" até o refetch).
+  const [atualizandoId, setAtualizandoId] = useState<number | null>(null);
 
   const mutation = useAlterarGestorColaborador();
 
@@ -40,14 +44,22 @@ export function GestaoFuncionalTab() {
     setFeedback(null);
     if (!colaborador) { setFeedback({ type: 'error', message: 'Selecione um colaborador' }); return; }
     if (!gestor)      { setFeedback({ type: 'error', message: 'Selecione o novo gestor' }); return; }
-    const coordId = gestor.usuarioId || gestor.id;
+    const coordId    = gestor.usuarioId || gestor.id;
+    const recId      = colaborador.id;
+    const nomeColab  = colaborador.nome;
+    const nomeGestor = gestor.nome;
+    setAtualizandoId(recId);
     try {
-      await mutation.mutateAsync({ coordId, recId: colaborador.id, gestorNome: gestor.nome });
-      setFeedback({ type: 'ok', message: `Gestor de ${cap(colaborador.nome)} alterado para ${cap(gestor.nome)}.` });
+      await mutation.mutateAsync({ coordId, recId });
+      setFeedback({ type: 'ok', message: `Gestor de ${cap(nomeColab)} alterado para ${cap(nomeGestor)}.` });
       setColaborador(null);
       setGestor(usuarioLogado);
+      // Mantém o badge até o refetch trazer a verdade do servidor (reconciliação).
+      await qc.invalidateQueries({ queryKey: ['gestao', 'colaboradores-gestores'] });
     } catch (err) {
       setFeedback({ type: 'error', message: (err as Error).message });
+    } finally {
+      setAtualizandoId(null);
     }
   }
 
@@ -123,6 +135,12 @@ export function GestaoFuncionalTab() {
                           {c.cargo ? <><span className="font-semibold">Cargo:</span> {cap(c.cargo)} · </> : ''}
                           <span className="font-semibold">Gestor(a):</span> {c.gerente ? cap(c.gerente) : '—'}
                         </p>
+                        {atualizandoId === c.id && (
+                          <span className="mt-1 inline-flex items-center gap-1 text-[0.65rem] font-semibold text-amber-700 bg-amber-100 rounded-full px-2 py-0.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            atualizando…
+                          </span>
+                        )}
                       </div>
                       <Button size="sm" variant="outline" onClick={() => prefill(c)}>Alterar</Button>
                     </div>
