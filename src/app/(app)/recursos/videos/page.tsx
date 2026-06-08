@@ -116,10 +116,12 @@ export default function VideosPage() {
                 className="group bg-white border border-border rounded-xl overflow-hidden hover:shadow-md transition-shadow"
               >
                 <div className="relative aspect-video bg-muted overflow-hidden">
-                  <img
+                  <Image
                     src={`https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`}
                     alt={video.titulo}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 640px) 100vw, 50vw"
+                    className="object-cover"
                     onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">

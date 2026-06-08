@@ -17,9 +17,11 @@ import {
   ChevronRightIcon,
   LayersIcon,
   LayoutGridIcon,
+  MegaphoneIcon,
 } from 'lucide-react';
 import { useUserStore } from '@/store/user';
 import { temAcessoDP } from '@/lib/dp-access';
+import { temAcessoMarketing } from '@/lib/marketing-access';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { ASSETS } from '@/lib/assets';
 
@@ -68,6 +70,9 @@ export function Sidebar() {
     }
     if (temAcessoDP(permissoes.perfilDP, cargo)) {
       conditional.push({ href: '/rh',         label: 'RH',         icon: <BriefcaseIcon className="h-5 w-5 text-teal-500" /> });
+    }
+    if (temAcessoMarketing(permissoes.perfilMarketing)) {
+      conditional.push({ href: '/marketing',  label: 'Marketing',  icon: <MegaphoneIcon className="h-5 w-5 text-pink-500" /> });
     }
   }
 

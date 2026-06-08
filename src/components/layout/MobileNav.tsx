@@ -15,6 +15,7 @@ import {
   ClipboardListIcon,
   LogOutIcon,
   LayoutGridIcon,
+  MegaphoneIcon,
 } from 'lucide-react';
 import {
   Sheet,
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/sheet';
 import { useUserStore } from '@/store/user';
 import { temAcessoDP } from '@/lib/dp-access';
+import { temAcessoMarketing } from '@/lib/marketing-access';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { ASSETS } from '@/lib/assets';
 
@@ -75,6 +77,9 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
     }
     if (temAcessoDP(permissoes.perfilDP, cargo)) {
       conditionalItems.push({ href: '/rh',         label: 'RH',         icon: <BriefcaseIcon className="h-5 w-5 text-teal-500" /> });
+    }
+    if (temAcessoMarketing(permissoes.perfilMarketing)) {
+      conditionalItems.push({ href: '/marketing',  label: 'Marketing',  icon: <MegaphoneIcon className="h-5 w-5 text-pink-500" /> });
     }
   }
 
