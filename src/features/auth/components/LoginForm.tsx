@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
+import { safeNext } from '@/lib/auth-redirect';
 
 type FormState = { error: string | null; loading: boolean };
 
@@ -10,6 +11,17 @@ export function LoginForm() {
   const router = useRouter();
   const [state,       setState]       = useState<FormState>({ error: null, loading: false });
   const [showSenha,   setShowSenha]   = useState(false);
+  const [expired,     setExpired]     = useState(false);
+
+  // Aviso de "sessão expirada" quando redirecionado de uma rota protegida.
+  // Lê de window.location (em vez de useSearchParams) para não exigir Suspense.
+  // setState no effect é intencional: o valor só existe no browser e ler pós-
+  // hydration evita mismatch SSR (servidor não conhece a query string aqui).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setExpired(params.get('reason') === 'expired');
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -27,7 +39,9 @@ export function LoginForm() {
       });
 
       if (res.ok) {
-        router.push('/home');
+        const params = new URLSearchParams(window.location.search);
+        const dest   = safeNext(params.get('next'));
+        router.push(dest);
         router.refresh();
         return;
       }
@@ -63,6 +77,24 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} method="post" className="flex flex-col" style={{ gap: '16px' }}>
+
+      {/* Aviso de sessão expirada */}
+      {expired && !state.error && (
+        <p
+          role="status"
+          style={{
+            color:        '#92400e',
+            background:   '#fef3c7',
+            border:       '1px solid #fde68a',
+            borderRadius: '8px',
+            padding:      '10px 12px',
+            fontSize:     '.83rem',
+            margin:       0,
+          }}
+        >
+          Sua sessão expirou. Faça login novamente para continuar.
+        </p>
+      )}
 
       {/* Usuário */}
       <div className="flex flex-col" style={{ gap: '6px' }}>

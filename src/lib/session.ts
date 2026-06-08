@@ -27,11 +27,18 @@ declare module 'iron-session' {
   }
 }
 
+// O token da Squadra (JWT) vale 7 dias (168h) — verificado pelo claim `exp`.
+// O cookie precisa acompanhar essa validade; antes estava em 8h (28800s),
+// o que deslogava a pessoa muito antes do token expirar. Como o backend NÃO
+// emite refresh token (o login só devolve `token`), 7 dias é o teto real da
+// sessão — não há como estendê-la além disso sem novo login.
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 dias, alinhado ao token
+
 const sessionOptions = {
   cookieName: 'squadra-session',
   password: SESSION_SECRET,
   cookieOptions: {
-    maxAge: 28800,
+    maxAge: SESSION_MAX_AGE,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax' as const,
     httpOnly: true,

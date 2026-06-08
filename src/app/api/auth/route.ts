@@ -55,8 +55,8 @@ export async function POST(req: NextRequest) {
     session.nome        = upstream.nome;
     session.cargo       = upstream.cargo;
     // foto NÃO vai para o cookie — base64 excederia 4 KB
-    // bateRep: /v1/pessoa é fonte primária (igual ao PHP), permissoes é fallback
-    session.bateRep     = upstream.bateRepPessoa || permissoes.bateRep;
+    // bateRep: o permissionamento é a fonte oficial (endpoint corrigido em 2026-06-08).
+    session.bateRep     = permissoes.bateRep;
     session.permissoes  = permissoes;
     session.simulando   = false;
     session.podeSimular = upstream.id === 995;

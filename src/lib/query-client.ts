@@ -2,6 +2,7 @@
 
 import { QueryCache, QueryClient, MutationCache } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { is401, redirectToLogin } from './auth-redirect';
 
 function makeQueryClient() {
   return new QueryClient({
@@ -10,15 +11,14 @@ function makeQueryClient() {
     },
     queryCache: new QueryCache({
       onError: (error) => {
-        if ((error as Error & { status?: number }).status === 401) {
-          window.location.href = '/login';
-        }
+        // Sessão expirada em qualquer query → volta pro login preservando a rota.
+        if (is401(error)) redirectToLogin();
       },
     }),
     mutationCache: new MutationCache({
       onError: (error, _vars, _ctx, mutation) => {
-        if ((error as Error & { status?: number }).status === 401) {
-          window.location.href = '/login';
+        if (is401(error)) {
+          redirectToLogin();
           return;
         }
         if ((mutation.meta as { silentError?: boolean } | undefined)?.silentError) return;

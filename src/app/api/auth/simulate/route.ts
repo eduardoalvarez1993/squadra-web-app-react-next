@@ -58,14 +58,11 @@ export async function POST(req: NextRequest) {
     let cargo    = '';
     let login    = session.login;
 
-    let pessoaBateRep: boolean | undefined;
     try {
       const pessoaAlvo = await squadra.pessoas.getById(id, session.token);
       nome  = pessoaAlvo.nome  || nome;
       cargo = pessoaAlvo.cargo || cargo;
       if (pessoaAlvo.login) login = pessoaAlvo.login as string;
-      const bateRepAlvo = (pessoaAlvo as Record<string, unknown>)['bateRep'];
-      if (bateRepAlvo !== undefined) pessoaBateRep = Boolean(bateRepAlvo);
     } catch { /* prossegue com dados parciais */ }
 
     // Permissões do alvo — pessoaId == usuarioId (confirmado na API), mesmo ID do login real
@@ -76,8 +73,8 @@ export async function POST(req: NextRequest) {
       permissoes = { gerenteFuncional: false, perfilDP: false, bateRep: false, perfilCoordenador: false, perfilTI: false, perfilMarketing: false };
     }
 
-    // bateRep: perfil da pessoa é a fonte primária (igual ao login), permissões é fallback
-    const bateRep = pessoaBateRep ?? permissoes.bateRep;
+    // bateRep: o permissionamento é a fonte oficial (endpoint corrigido em 2026-06-08).
+    const bateRep = permissoes.bateRep;
 
     // Sobrescrever sessão com dados do alvo (foto omitida — não armazenada no cookie)
     session.gestorId   = id;

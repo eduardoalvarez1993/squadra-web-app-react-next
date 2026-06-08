@@ -5,6 +5,7 @@ import { useQuery, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { useUserStore } from '@/store/user';
 import { getQueryClient } from '@/lib/query-client';
+import { redirectToLogin } from '@/lib/auth-redirect';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { BottomNav } from './BottomNav';
@@ -47,7 +48,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
       const res = await fetch('/api/auth/me');
       if (res.status === 401) {
         clearUser();
-        window.location.href = '/login';
+        redirectToLogin();
         throw new Error('401');
       }
       return res.json();

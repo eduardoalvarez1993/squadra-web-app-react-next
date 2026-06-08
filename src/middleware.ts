@@ -56,7 +56,10 @@ export async function middleware(req: NextRequest) {
 
   if (isProtected) {
     if (!(await hasValidSession(req))) {
-      return NextResponse.redirect(new URL('/login', req.url));
+      const loginUrl = new URL('/login', req.url);
+      loginUrl.searchParams.set('reason', 'expired');
+      loginUrl.searchParams.set('next', pathname + req.nextUrl.search);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
