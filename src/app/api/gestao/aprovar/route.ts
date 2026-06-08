@@ -5,6 +5,14 @@ import { checkOrigin } from '@/lib/check-origin';
 import { aprovarSolicitacao } from '@/services/gestao';
 import { SquadraAuthError, SquadraClientError } from '@/services/squadra-client';
 
+// Extrai a mensagem real do corpo de erro da API Squadra ({ erros: [{ mensagem }] }).
+function mensagemErro(raw: string): string | null {
+  try {
+    const j = JSON.parse(raw) as { erros?: Array<{ mensagem?: string }>; mensagem?: string };
+    return j.erros?.[0]?.mensagem ?? j.mensagem ?? null;
+  } catch { return null; }
+}
+
 const AprovarSchema = z.object({
   id:               z.number(),
   idFalta:          z.number().optional(),
@@ -35,7 +43,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     if (err instanceof SquadraAuthError) return NextResponse.json({ error: 'Sessão expirada' }, { status: 401 });
-    if (err instanceof SquadraClientError) return NextResponse.json({ error: 'Aprovação rejeitada pela API' }, { status: 422 });
+    if (err instanceof SquadraClientError) {
+      return NextResponse.json({ error: mensagemErro(err.message) ?? 'Aprovação rejeitada pela API' }, { status: 422 });
+    }
     console.error('[POST /api/gestao/aprovar]', err);
     return NextResponse.json({ error: 'Erro ao processar aprovação' }, { status: 500 });
   }

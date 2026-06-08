@@ -38,24 +38,38 @@ const STATUS = {
   info: 'bg-blue-100 text-blue-700',
 } as const;
 
+// Cor de cada CTA: liberar = verde (positivo), confirmar = vermelho (danger), demais = âmbar.
+const CTA_CLS = {
+  registrar: 'bg-amber-500 hover:bg-amber-600 text-white',
+  apontar:   'bg-amber-500 hover:bg-amber-600 text-white',
+  solicitar: 'bg-amber-500 hover:bg-amber-600 text-white',
+  liberar:   'bg-green-600 hover:bg-green-700 text-white',
+  confirmar: 'bg-red-600 hover:bg-red-700 text-white',
+} as const;
+
 type BarKey    = keyof typeof BAR;
 type StatusKey = keyof typeof STATUS;
-type CtaTipo   = 'registrar' | 'solicitar' | 'apontar';
+type CtaTipo   = 'registrar' | 'solicitar' | 'apontar' | 'liberar' | 'confirmar';
+type Cta       = { tipo: CtaTipo; label: string };
 
 interface DiaComputed {
   barKey:      BarKey;
   statusKey:   StatusKey | null;
   statusText:  string;
   showBadge:   boolean;
-  cta:         { tipo: CtaTipo; label: string } | null;
+  ctas:        Cta[];            // pode ter mais de um (ex.: gestor com Liberar + Confirmar falta)
   liberadoBtn: boolean;          // botão verde "Liberado" (falta aprovada com horas)
   aguardarBtn: boolean;          // botão cinza "Aguardar" (disabled)
   horasDisplay: string;
   horaExtra:   string;
 }
 
-// Replica fielmente a árvore de decisão de renderDias() do web-app vanilla.
-function computeDia(dia: PontoDia, hoje: Date): DiaComputed {
+// Replica a árvore de decisão de renderDias() do web-app vanilla (visão colaborador).
+// gestorMode SOBRESCREVE os CTAs pela regra do app-react (dirigida por flags do backend):
+//   confirmaFalta → "Confirmar falta" (marcaFalta/cadastrar)
+//   permissaoLiberacao OU falta passada → "Liberar" (removeFaltaColab — liberação livre,
+//   mantida mesmo sem permissaoLiberacao e mesmo em dia que já passou).
+function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed {
   const diaDate  = parseDMY(dia.data);
   const prevMin  = toMin(dia.horasPrevistas);
   const realMin  = toMin(dia.horasRealizadas);
@@ -63,10 +77,11 @@ function computeDia(dia: PontoDia, hoje: Date): DiaComputed {
   const isFeriado = dia.fimDeSemana;
   const isAbono   = dia.isFalta && !!dia.horasAbono && dia.horasAbono !== '00:00' && !!dia.descricaoTipoAbono;
   const isToday   = diaDate.getTime() === hoje.getTime();
+  const isFaltaDia = dia.isFalta || (dia.falta && Number(dia.faltaId) > 0);
 
   const base: DiaComputed = {
     barKey: 'pend', statusKey: null, statusText: '', showBadge: false,
-    cta: null, liberadoBtn: false, aguardarBtn: false,
+    ctas: [], liberadoBtn: false, aguardarBtn: false,
     horasDisplay: '', horaExtra: '',
   };
 
@@ -86,27 +101,46 @@ function computeDia(dia: PontoDia, hoje: Date): DiaComputed {
   } else if (dia.isFalta && st === 'A') {
     r = { ...r, barKey: 'ok', statusKey: 'ok' };
     if (realMin === 0) {
-      r = { ...r, statusText: 'Liberado', cta: { tipo: 'apontar', label: 'Apontar' } };
+      r = { ...r, statusText: 'Liberado', ctas: [{ tipo: 'apontar', label: 'Apontar' }] };
     } else {
       r = { ...r, liberadoBtn: true };
     }
   } else if (dia.isFalta && st === 'R') {
     r = { ...r, barKey: 'err', statusKey: 'err', statusText: 'Recusado' };
-  } else if (dia.isFalta || (dia.falta && Number(dia.faltaId) > 0)) {
+  } else if (isFaltaDia) {
     const fSt = computeFaltaStatus(dia);
     if (fSt === 'nao_solicitado') {
-      r = { ...r, barKey: 'err', cta: { tipo: 'solicitar', label: 'Solicitar' } };
+      r = { ...r, barKey: 'err', ctas: [{ tipo: 'solicitar', label: 'Solicitar' }] };
     } else if (fSt === 'pendente' && realMin > 0) {
       r = { ...r, barKey: 'ok' };
     } else {
       r = { ...r, barKey: 'pend', aguardarBtn: true };
     }
   } else if (realMin === 0 && prevMin > 0) {
-    r = { ...r, barKey: 'pend', statusKey: 'pend', statusText: 'Sem apontamento', cta: { tipo: 'registrar', label: 'Registrar' } };
+    r = { ...r, barKey: 'pend', statusKey: 'pend', statusText: 'Sem apontamento', ctas: [{ tipo: 'registrar', label: 'Registrar' }] };
   } else if (realMin >= prevMin) {
     r = { ...r, barKey: 'ok' };
   } else {
     r = { ...r, barKey: 'pend', statusKey: 'pend', statusText: dia.horasRealizadas || '—' };
+  }
+
+  // ── Modo gestor (regra do squadra-app-react) ────────────────────────────────
+  // Dia com falta aplicada e ainda não liberada → o gestor escolhe:
+  //   • Confirmar falta (sempre) → marcaFalta/cadastrar
+  //   • Liberar (excusar)        → removeFaltaColab
+  // No app-react o "Liberar" só aparece no dia útil anterior; aqui mantemos a
+  // liberação LIVRE (qualquer falta passada), por pedido do usuário.
+  if (gestorMode) {
+    const ctas: Cta[] = [];
+    const jaLiberada = dia.liberacaoGestor === 'S';
+    if (isFaltaDia && !jaLiberada) {
+      if (!isToday) ctas.push({ tipo: 'liberar', label: 'Liberar' });
+      ctas.push({ tipo: 'confirmar', label: 'Falta' });
+    }
+    r = { ...r, ctas, aguardarBtn: false };
+    if (isFaltaDia && jaLiberada) {
+      r = { ...r, barKey: 'ok', statusKey: 'ok', statusText: 'Falta liberada' };
+    }
   }
 
   // showBadge: oculta badge quando barra ok e não é falta (vanilla)
@@ -115,13 +149,20 @@ function computeDia(dia: PontoDia, hoje: Date): DiaComputed {
 }
 
 interface PontoCalendarProps {
-  dias:         PontoDia[];
-  loading?:     boolean;
-  onDiaClick:   (dia: PontoDia) => void;
-  onSolicitar?: (idFalta: number) => Promise<void>;
+  dias:          PontoDia[];
+  loading?:      boolean;
+  onDiaClick:    (dia: PontoDia, tipo?: CtaTipo) => void;
+  onSolicitar?:  (idFalta: number) => Promise<void>;
+  hideProjetos?: boolean;   // oculta a coluna de horários do projeto (uso em espaços estreitos, ex.: drawer)
+  gestorMode?:   boolean;   // CTAs do gestor ("Liberar"/"Confirmar falta") em vez dos do colaborador
 }
 
-export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar }: PontoCalendarProps) {
+export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProjetos, gestorMode }: PontoCalendarProps) {
+  // Dia + dia-da-semana ficam numa só célula (1ª coluna), liberando espaço.
+  // Sem a coluna do projeto, a coluna de ações vira 1fr para a barra preencher a linha.
+  const gridCols = hideProjetos
+    ? 'grid-cols-[64px_42px_1fr]'
+    : 'grid-cols-[64px_1fr_42px_auto]';
   const [solicitados, setSolicitados] = useState<Set<string>>(new Set());
   const [solicitando, setSolicitando] = useState<string | null>(null);
 
@@ -159,13 +200,14 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar }: PontoC
       rows.push(
         <div
           key={dia.data}
-          className="grid grid-cols-[46px_28px_1fr_42px_auto] items-center gap-x-1.5 px-3.5 py-2.5 border-b border-gray-100 last:border-0 text-[0.82rem] opacity-35 pointer-events-none"
+          className={`grid ${gridCols} items-center gap-x-1.5 px-3.5 py-2.5 border-b border-gray-100 last:border-0 text-[0.82rem] opacity-35 pointer-events-none`}
         >
-          <span className="font-semibold text-gray-700">{dia.data.slice(0, 5)}</span>
-          <span className="text-[0.72rem] text-gray-400">{abrev}</span>
+          <span className="font-semibold text-gray-700 whitespace-nowrap">
+            {dia.data.slice(0, 5)} <span className="text-[0.72rem] font-normal text-gray-400">{abrev}</span>
+          </span>
+          {!hideProjetos && <span />}
           <span />
-          <span />
-          <div className="flex items-center gap-1.5 min-w-[140px]">
+          <div className="flex items-center gap-1.5 min-w-[120px]">
             <div className={`flex-1 min-w-[40px] h-1.5 rounded-full ${BAR.future}`} />
           </div>
         </div>,
@@ -173,7 +215,7 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar }: PontoC
       continue;
     }
 
-    const c = computeDia(dia, hoje);
+    const c = computeDia(dia, hoje, gestorMode);
 
     const projetoTimes = Array.isArray(dia.projeto) && dia.projeto.length > 0
       ? dia.projeto.map((p) => `${p.horaInicio}–${p.horaTermino}`).join(' — ')
@@ -181,22 +223,25 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar }: PontoC
 
     // Botão "Solicitar" inline já clicado nesta sessão
     const jaSolicitado = solicitados.has(dia.data);
-    const podeSolicitarInline = !!onSolicitar && c.cta?.tipo === 'solicitar' && dia.faltaId > 0;
+    const podeSolicitarInline = !!onSolicitar && c.ctas.some((x) => x.tipo === 'solicitar') && dia.faltaId > 0;
 
     rows.push(
       <div
         key={dia.data}
-        className="grid grid-cols-[46px_28px_1fr_42px_auto] items-center gap-x-1.5 px-3.5 py-2.5 border-b border-gray-100 last:border-0 text-[0.82rem] hover:bg-gray-50"
+        className={`grid ${gridCols} items-center gap-x-1.5 px-3.5 py-2.5 border-b border-gray-100 last:border-0 text-[0.82rem] hover:bg-gray-50`}
       >
-        <span className="font-semibold text-gray-700">{dia.data.slice(0, 5)}</span>
-        <span className="text-[0.72rem] text-gray-400">{abrev}</span>
-        <span className="text-[0.72rem] text-gray-500 leading-snug break-words">{projetoTimes}</span>
+        <span className="font-semibold text-gray-700 whitespace-nowrap">
+          {dia.data.slice(0, 5)} <span className="text-[0.72rem] font-normal text-gray-400">{abrev}</span>
+        </span>
+        {!hideProjetos && (
+          <span className="text-[0.72rem] text-gray-500 leading-snug break-words">{projetoTimes}</span>
+        )}
         <span className="text-[0.82rem] font-bold text-gray-700 text-right leading-tight">
           {c.horasDisplay}
           {c.horaExtra && <span className="block text-[0.66rem] font-bold text-red-600 leading-tight">+{c.horaExtra}</span>}
         </span>
 
-        <div className="flex items-center gap-1.5 min-w-[140px]">
+        <div className="flex flex-wrap items-center justify-end gap-1.5 min-w-[120px]">
           {/* Barra horizontal */}
           <div className={`flex-1 min-w-[40px] h-1.5 rounded-full ${BAR[c.barKey]}`} />
 
@@ -225,51 +270,51 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar }: PontoC
             </button>
           )}
 
-          {/* CTA: Registrar / Apontar / Solicitar */}
-          {c.cta && c.cta.tipo !== 'solicitar' && (
-            <button
-              type="button"
-              onClick={() => onDiaClick(dia)}
-              className="text-[0.7rem] font-bold rounded-md px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white whitespace-nowrap"
-            >
-              {c.cta.label}
-            </button>
-          )}
-
-          {/* CTA Solicitar: inline quando possível, senão abre drawer */}
-          {c.cta?.tipo === 'solicitar' && (
-            jaSolicitado ? (
-              <span className="text-[0.7rem] font-bold rounded-md px-2.5 py-1 bg-green-600 text-white whitespace-nowrap">
-                ✓ Solicitado
-              </span>
-            ) : podeSolicitarInline ? (
+          {/* CTAs: pode ter mais de um (ex.: gestor com Liberar + Confirmar falta) */}
+          {c.ctas.map((cta) => {
+            // Solicitar (colaborador): inline quando possível, senão abre o drawer.
+            if (cta.tipo === 'solicitar') {
+              if (jaSolicitado) {
+                return (
+                  <span key="solicitado" className="text-[0.7rem] font-bold rounded-md px-2.5 py-1 bg-green-600 text-white whitespace-nowrap">
+                    ✓ Solicitado
+                  </span>
+                );
+              }
+              if (podeSolicitarInline) {
+                return (
+                  <button
+                    key="solicitar-inline"
+                    type="button"
+                    disabled={solicitando === dia.data}
+                    onClick={async () => {
+                      if (!onSolicitar || solicitando) return;
+                      setSolicitando(dia.data);
+                      try {
+                        await onSolicitar(dia.faltaId);
+                        setSolicitados((prev) => new Set(prev).add(dia.data));
+                      } finally {
+                        setSolicitando(null);
+                      }
+                    }}
+                    className={`text-[0.7rem] font-bold rounded-md px-2.5 py-1 whitespace-nowrap disabled:opacity-50 ${CTA_CLS.solicitar}`}
+                  >
+                    {solicitando === dia.data ? 'Solicitando…' : 'Solicitar'}
+                  </button>
+                );
+              }
+            }
+            return (
               <button
+                key={cta.tipo}
                 type="button"
-                disabled={solicitando === dia.data}
-                onClick={async () => {
-                  if (!onSolicitar || solicitando) return;
-                  setSolicitando(dia.data);
-                  try {
-                    await onSolicitar(dia.faltaId);
-                    setSolicitados((prev) => new Set(prev).add(dia.data));
-                  } finally {
-                    setSolicitando(null);
-                  }
-                }}
-                className="text-[0.7rem] font-bold rounded-md px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white whitespace-nowrap disabled:opacity-50"
+                onClick={() => onDiaClick(dia, cta.tipo)}
+                className={`text-[0.7rem] font-bold rounded-md px-2.5 py-1 whitespace-nowrap ${CTA_CLS[cta.tipo]}`}
               >
-                {solicitando === dia.data ? 'Solicitando…' : 'Solicitar'}
+                {cta.label}
               </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onDiaClick(dia)}
-                className="text-[0.7rem] font-bold rounded-md px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white whitespace-nowrap"
-              >
-                Solicitar
-              </button>
-            )
-          )}
+            );
+          })}
         </div>
       </div>,
     );

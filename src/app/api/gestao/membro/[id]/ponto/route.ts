@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getSession } from '@/lib/session';
 import { getDadosColab } from '@/services/ponto';
+import { getIdsSobGestao } from '@/services/gestao';
 import { squadra, SquadraAuthError, SquadraClientError, SquadraServerError } from '@/services/squadra-client';
 
 const QuerySchema = z.object({
@@ -35,6 +36,12 @@ export async function GET(
     getDadosColab(id, parsed.data.inicio, parsed.data.fim, session.token);
 
   try {
+    // Object-level authz: só membros da própria equipe/pendências do gestor
+    const idsSobGestao = await getIdsSobGestao(session.gestorId, session.token);
+    if (!idsSobGestao.has(memberId)) {
+      return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
+    }
+
     try {
       const data = await tryFetch(memberId);
       return NextResponse.json(data);

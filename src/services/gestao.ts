@@ -80,9 +80,43 @@ export async function getPendencias(gestorId: number, token: string): Promise<Co
     saldoFeriasColaborador:          Number(c['saldoFeriasColaborador'] ?? 0),
     terminoPeriodoDeGozoColaborador: (c['terminoPeriodoDeGozoColaborador'] as string | null) || null,
     bancoHorasColaborador:           Number(c['bancoHorasColaborador'] ?? 0),
-    datasSemApontamento:             Array.isArray(c['datasSemApontamento']) ? (c['datasSemApontamento'] as string[]) : [],
+    // Backend manda [{ horas, dia }] — extraímos o `dia` (dd/MM/yyyy). Em algum
+    // ambiente pode vir string direto, então tratamos os dois casos.
+    datasSemApontamento:             (Array.isArray(c['datasSemApontamento']) ? c['datasSemApontamento'] : [])
+      .map((d: unknown) => typeof d === 'string' ? d : String((d as Record<string, unknown>)?.['dia'] ?? ''))
+      .filter(Boolean),
     preFechamentoPendente:           Array.isArray(c['preFechamentoPendenteColaborador']) && (c['preFechamentoPendenteColaborador'] as unknown[]).length > 0,
   }));
+}
+
+// ── Autorização por objeto (object-level) ──────────────────────────────────────
+// Conjunto de IDs de colaboradores sob gestão do gestor (equipe + pendências).
+// Usado pelas rotas /api/gestao/membro/[id]/* para garantir que o gestor só
+// acessa/age sobre membros da PRÓPRIA equipe — não basta ter o papel.
+// Durante simulação, session.gestorId é o usuário simulado → o escopo passa a ser
+// a equipe DELE, que é o comportamento correto.
+// Cache curto (60s) porque getEquipe é caro (saldoGlobal + resolveLogin).
+const IDS_SOB_GESTAO_TTL_MS = 60 * 1000;
+const _idsSobGestao = new Map<number, { at: number; ids: Set<number> }>();
+
+export async function getIdsSobGestao(gestorId: number, token: string): Promise<Set<number>> {
+  const hit = _idsSobGestao.get(gestorId);
+  if (hit && Date.now() - hit.at < IDS_SOB_GESTAO_TTL_MS) return hit.ids;
+
+  const [equipe, pend] = await Promise.allSettled([
+    getEquipe(gestorId, token),
+    getPendencias(gestorId, token),
+  ]);
+
+  // Falha total nos dois → propaga o erro (vira 401/5xx na rota, não um 403 enganoso)
+  if (equipe.status === 'rejected' && pend.status === 'rejected') throw equipe.reason;
+
+  const ids = new Set<number>();
+  if (equipe.status === 'fulfilled') for (const m of equipe.value) if (m.id) ids.add(m.id);
+  if (pend.status === 'fulfilled')  for (const p of pend.value)  if (p.id) ids.add(p.id);
+
+  _idsSobGestao.set(gestorId, { at: Date.now(), ids });
+  return ids;
 }
 
 export type SolicitacoesGestao = {
@@ -235,27 +269,19 @@ export type ProjetoComGestorView = {
   nome:     string;
   cliente:  string;
   situacao: string;
-  gestor:   string;   // nome resolvido a partir do cpfGerente
+  cpf:      string;   // cpfGerente cru — TODO(Fernando): endpoint que já devolve o nome
 };
 
 export async function listarProjetosComGestor(token: string): Promise<ProjetoComGestorView[]> {
-  // relatorioProjetos traz o gestor por CPF; resolvemos o nome via relatório de pessoas.
-  const [projetos, pessoas] = await Promise.all([
-    cached(KEY_PROJETOS, () => squadra.gestao.relatorioProjetos(token)),
-    getPessoasRelatorio(token).catch((): ColaboradorComGestor[] => []),
-  ]);
-  const cpfToNome = new Map<string, string>();
-  for (const p of pessoas) {
-    const cpf = p.cpf.replace(/\D/g, '');
-    if (cpf) cpfToNome.set(cpf, p.nome);
-  }
+  // Sem enriquecer CPF→nome por ora; exibimos o cpfGerente cru.
+  const projetos = await cached(KEY_PROJETOS, () => squadra.gestao.relatorioProjetos(token));
   return projetos
     .map((pr): ProjetoComGestorView => ({
       id:       pr.id,
       nome:     pr.nome,
       cliente:  pr.cliente,
       situacao: pr.situacao,
-      gestor:   cpfToNome.get(pr.cpfGerente.replace(/\D/g, '')) ?? '',
+      cpf:      pr.cpfGerente,
     }))
     .sort((a, b) => a.nome.localeCompare(b.nome));
 }

@@ -36,13 +36,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'inicio e fim obrigatórios (YYYY-MM-DD)' }, { status: 400 });
   }
 
-  const sqhorasIdParam = searchParams.get('sqhorasId');
-  if (sqhorasIdParam && Number(sqhorasIdParam) !== session.sqhorasId) {
-    if (!session.permissoes?.gerenteFuncional) {
-      return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
-    }
-  }
-  const sqhorasId = sqhorasIdParam ? Number(sqhorasIdParam) : session.sqhorasId;
+  // O ponto desta rota é SEMPRE o do próprio usuário da sessão. Ponto de terceiros
+  // (visão do gestor) passa por /api/gestao/membro/[id]/ponto, com checagem de equipe.
+  const sqhorasId = session.sqhorasId;
 
   try {
     const data = await getDadosColab(sqhorasId, parsed.data.inicio, parsed.data.fim, session.token);

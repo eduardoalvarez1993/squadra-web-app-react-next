@@ -65,6 +65,10 @@ export async function marcarFalta(idUsuario: number, data: string, token: string
   return squadra.ponto.marcarFalta(idUsuario, data, token);
 }
 
+export async function liberarFaltaLivre(idUsuario: number, data: string, token: string): Promise<{ ok: true }> {
+  return squadra.ponto.liberarFaltaLivre(idUsuario, data, token);
+}
+
 export async function getDiasSemApontamento(token: string): Promise<DiasSemApontamentoItem[]> {
   return squadra.ponto.getDiasSemApontamento(token);
 }

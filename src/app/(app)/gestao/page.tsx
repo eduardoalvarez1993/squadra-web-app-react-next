@@ -47,16 +47,17 @@ const SOL_TABS = [
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function projetoLabel(nome: string): string {
-  const parts = nome.split(' - ');
-  return parts.length > 1 ? parts.slice(1).join(' - ') : nome;
-}
-
 function fmtData(s: string): string {
   if (!s) return '';
   const d = new Date(s);
   if (isNaN(d.getTime())) return s;
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+}
+
+// DD/MM/YYYY a partir de ISO (yyyy-MM-dd) ou pt-BR (dd/MM/yyyy).
+function fmtDataCompleta(s: unknown): string {
+  const d = parseDate(s);
+  return d ? d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
 }
 
 function hasAlerta(c: ColaboradorPendencia): boolean {
@@ -138,13 +139,10 @@ function PendenciaCard({
           <p className="text-xs text-muted-foreground truncate">
             {c.projetosAlocados.length === 0
               ? <span className="text-red-500">Sem projeto alocado</span>
-              : `${projetoLabel(c.projetosAlocados[0].nome)} até ${fmtData(c.projetosAlocados[0].dataTermino)}`
+              : `${c.projetosAlocados[0].nome} até ${fmtData(c.projetosAlocados[0].dataTermino)}`
             }
           </p>
         </div>
-        {c.datasSemApontamento.length > 0 && (
-          <DateBox iso={c.datasSemApontamento[0]} />
-        )}
         {alerta && <span className="text-amber-500 text-base flex-shrink-0">⚠</span>}
         <span className={`text-muted-foreground transition-transform text-xs ${open ? 'rotate-180' : ''}`}>▼</span>
       </button>
@@ -153,7 +151,7 @@ function PendenciaCard({
         <div className="px-3 pb-3 flex flex-col gap-1 border-t border-border pt-2">
           {c.projetosAlocados.length > 0
             ? c.projetosAlocados.map((p, i) => (
-                <PendRow key={i} type="ok" text={`${projetoLabel(p.nome)} até ${fmtData(p.dataTermino)}`} />
+                <PendRow key={i} type="ok" text={`${p.nome} até ${fmtData(p.dataTermino)}`} />
               ))
             : <PendRow type="err" text="Sem alocação em projeto" />
           }
@@ -174,11 +172,16 @@ function PendenciaCard({
             <div className="flex flex-col gap-1.5 py-0.5">
               <div className="flex items-center gap-1.5 text-sm">
                 <span>❌</span>
-                <span className="text-amber-700 dark:text-amber-400">Data da Falta</span>
+                <span className="text-amber-700 dark:text-amber-400">Dias sem apontamento</span>
               </div>
-              <div className="flex flex-wrap gap-2 pl-6">
+              <div className="flex flex-wrap gap-1.5 pl-6">
                 {c.datasSemApontamento.map((dt, i) => (
-                  <DateBox key={i} iso={dt} />
+                  <span
+                    key={i}
+                    className="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-medium px-2 py-0.5 tabular-nums"
+                  >
+                    {fmtDataCompleta(dt)}
+                  </span>
                 ))}
               </div>
             </div>
@@ -377,7 +380,7 @@ export default function GestaoPage() {
                   : 'bg-green-100 text-green-700 border-0';
                 return (
                   <PessoaCard
-                    key={m.login ?? i}
+                    key={`${m.login ?? m.id ?? 'm'}-${i}`}
                     variant="equipe"
                     nome={m.nome}
                     foto={m.foto}

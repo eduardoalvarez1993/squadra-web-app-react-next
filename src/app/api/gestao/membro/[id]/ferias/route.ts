@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { squadra } from '@/services/squadra-client';
 import { SquadraAuthError } from '@/services/squadra-client';
+import { getIdsSobGestao } from '@/services/gestao';
 
 export async function GET(
   _req: NextRequest,
@@ -16,6 +17,12 @@ export async function GET(
   if (!membroId) return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
 
   try {
+    // Object-level authz: só membros da própria equipe/pendências do gestor
+    const idsSobGestao = await getIdsSobGestao(session.gestorId, session.token);
+    if (!idsSobGestao.has(membroId)) {
+      return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
+    }
+
     const data = await squadra.ferias.getDados(membroId, session.token);
     return NextResponse.json(data);
   } catch (err) {

@@ -397,7 +397,21 @@ export type PessoaData = {
   email:      string;
   celular:    string;
   login:      string;
+  // Listas de interesses/competências (serializadas com marcador {*} para nível) —
+  // mesmo endpoint /v1/pessoas/{id} já retorna estes campos para qualquer colaborador.
+  // Opcionais: algumas origens (busca, alteração de gestor) montam PessoaData sem eles.
+  listaInteresses?:          string[];
+  listaExperiencias?:        string[];
+  listaExperienciasSoft?:    string[];
+  listaOutrasCompetencias?:  string[];
+  listaCertificacoes?:       string[];
+  listaIdiomas?:             string[];
 };
+
+function toStrList(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return (raw as unknown[]).map((s) => String(s)).filter(Boolean);
+}
 
 const PessoaItemSchema = z.unknown().transform((raw): PessoaData => {
   const d = raw as Record<string, unknown>;
@@ -412,6 +426,12 @@ const PessoaItemSchema = z.unknown().transform((raw): PessoaData => {
     email:      String(d['email'] ?? ''),
     celular:    String(d['celular'] ?? ''),
     login:      String(d['login'] ?? d['loginUsuario'] ?? d['usuario'] ?? ''),
+    listaInteresses:         toStrList(d['listaInteresses']),
+    listaExperiencias:       toStrList(d['listaExperiencias']),
+    listaExperienciasSoft:   toStrList(d['listaExperienciasSoft']),
+    listaOutrasCompetencias: toStrList(d['listaOutrasCompetencias']),
+    listaCertificacoes:      toStrList(d['listaCertificacoes']),
+    listaIdiomas:            toStrList(d['listaIdiomas']),
   };
 });
 
@@ -1454,6 +1474,11 @@ export const squadra = {
     },
     async marcarFalta(idUsuario: number, data: string, token: string): Promise<{ ok: true }> {
       return sq('POST', '/v1/marcaFalta/cadastrar', { idUsuario, data }, token, OkSchema);
+    },
+    // Liberação livre de falta pelo gestor — remove a falta do dia sem depender de
+    // solicitação do colaborador (espelha o liberar_falta_livre do web-app legado).
+    async liberarFaltaLivre(idUsuario: number, data: string, token: string): Promise<{ ok: true }> {
+      return sq('PUT', `/v1/gestor/removeFaltaColab/${idUsuario}`, { data }, token, OkSchema);
     },
     async getDiasSemApontamento(token: string): Promise<DiasSemApontamentoItem[]> {
       const raw = await sq('GET', '/v2/RetornaDiasSemApontamento', null, token, z.unknown());
