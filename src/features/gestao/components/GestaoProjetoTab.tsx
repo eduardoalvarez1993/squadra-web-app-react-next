@@ -93,6 +93,8 @@ export function GestaoProjetoTab() {
 
   const [verTodos, setVerTodos] = useState(false);
   const [busca,    setBusca]    = useState('');
+  // Linha em reconciliação após o submit (mostra badge "atualizando…" até o refetch).
+  const [atualizandoId, setAtualizandoId] = useState<number | null>(null);
   const { data: lista, isLoading: listaLoading, isError: listaError } = useProjetosComGestor(verTodos);
 
   const listaFiltrada = useMemo(() => {
@@ -100,7 +102,7 @@ export function GestaoProjetoTab() {
     const q = busca.trim().toLowerCase();
     if (!q) return lista;
     return lista.filter(
-      (p) => p.nome.toLowerCase().includes(q) || p.cliente.toLowerCase().includes(q) || p.gestor.toLowerCase().includes(q),
+      (p) => p.nome.toLowerCase().includes(q) || p.cliente.toLowerCase().includes(q) || p.cpf.includes(q),
     );
   }, [lista, busca]);
 
@@ -110,14 +112,20 @@ export function GestaoProjetoTab() {
     if (!projeto) { setFeedback({ type: 'error', message: 'Selecione um projeto' }); return; }
     if (!gestor)  { setFeedback({ type: 'error', message: 'Selecione o novo gestor' }); return; }
     const coordId = gestor.usuarioId || gestor.id;
+    const pid     = projeto.id;
+    const nomeProj = projeto.nome;
+    setAtualizandoId(pid);
     try {
-      await mutation.mutateAsync({ coordId, prjId: projeto.id });
-      setFeedback({ type: 'ok', message: `Gestor do projeto ${projeto.nome} alterado para ${cap(gestor.nome)}.` });
+      await mutation.mutateAsync({ coordId, prjId: pid });
+      setFeedback({ type: 'ok', message: `Gestor do projeto ${nomeProj} alterado para ${cap(gestor.nome)}.` });
       setProjeto(null);
       setGestor(usuarioLogado);
-      qc.invalidateQueries({ queryKey: ['gestao', 'projetos-gestores'] });
+      // Mantém o badge até o refetch trazer a verdade do servidor (reconciliação).
+      await qc.invalidateQueries({ queryKey: ['gestao', 'projetos-gestores'] });
     } catch (err) {
       setFeedback({ type: 'error', message: (err as Error).message });
+    } finally {
+      setAtualizandoId(null);
     }
   }
 
@@ -153,7 +161,7 @@ export function GestaoProjetoTab() {
           <div className="border-t border-border p-4 flex flex-col gap-3">
             <input
               type="search"
-              placeholder="Buscar por projeto, cliente ou gestor…"
+              placeholder="Buscar por projeto, cliente ou CPF…"
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
@@ -175,8 +183,14 @@ export function GestaoProjetoTab() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{p.nome}</p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {p.cliente ? `${p.cliente} · ` : ''}Gestor: {p.gestor ? cap(p.gestor) : '—'}
+                          {p.cliente ? `${p.cliente} · ` : ''}Gestor (CPF): {p.cpf || '—'} · #{p.id}
                         </p>
+                        {atualizandoId === p.id && (
+                          <span className="mt-1 inline-flex items-center gap-1 text-[0.65rem] font-semibold text-amber-700 bg-amber-100 rounded-full px-2 py-0.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            atualizando…
+                          </span>
+                        )}
                       </div>
                       <Button
                         size="sm"

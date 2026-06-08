@@ -50,13 +50,32 @@ async function getJson<T>(url: string): Promise<T> {
   return res.json();
 }
 
+const KEY_COLAB = ['gestao', 'colaboradores-gestores'] as const;
+
 export function useAlterarGestorColaborador() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { coordId: number; recId: number }) =>
-      postJson('/api/gestao/altera-gestor-colaborador', input),
-    // Invalida a listagem "ver todos" (o servidor já invalidou seu próprio cache).
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['gestao', 'colaboradores-gestores'] }),
+    // gestorNome só serve ao update otimista — a route recebe apenas coordId/recId.
+    mutationFn: (input: { coordId: number; recId: number; gestorNome?: string }) =>
+      postJson('/api/gestao/altera-gestor-colaborador', { coordId: input.coordId, recId: input.recId }),
+    // Update otimista: troca o gestor da linha no mesmo instante.
+    onMutate: async (input) => {
+      await qc.cancelQueries({ queryKey: KEY_COLAB });
+      const previous = qc.getQueryData<ColaboradorComGestor[]>(KEY_COLAB);
+      if (previous && input.gestorNome) {
+        qc.setQueryData<ColaboradorComGestor[]>(
+          KEY_COLAB,
+          previous.map((c) => (c.id === input.recId ? { ...c, gerente: input.gestorNome! } : c)),
+        );
+      }
+      return { previous };
+    },
+    // Falhou → desfaz o otimista.
+    onError: (_err, _input, ctx) => {
+      if (ctx?.previous) qc.setQueryData(KEY_COLAB, ctx.previous);
+    },
+    // Sempre revalida com o servidor (reconcilia a verdade; expõe no-op se houver).
+    onSettled: () => qc.invalidateQueries({ queryKey: KEY_COLAB }),
   });
 }
 

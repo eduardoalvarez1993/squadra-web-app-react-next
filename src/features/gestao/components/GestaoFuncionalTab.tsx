@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { FormFeedback } from '@/components/shared/FormFeedback';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -16,7 +15,6 @@ function cap(nome: string): string {
 }
 
 export function GestaoFuncionalTab() {
-  const qc = useQueryClient();
   const usuarioLogado = useUsuarioLogadoComoPessoa();
   const [colaborador, setColaborador] = useState<PessoaData | null>(null);
   const [gestor,      setGestor]      = useState<PessoaData | null>(usuarioLogado);
@@ -44,11 +42,10 @@ export function GestaoFuncionalTab() {
     if (!gestor)      { setFeedback({ type: 'error', message: 'Selecione o novo gestor' }); return; }
     const coordId = gestor.usuarioId || gestor.id;
     try {
-      await mutation.mutateAsync({ coordId, recId: colaborador.id });
+      await mutation.mutateAsync({ coordId, recId: colaborador.id, gestorNome: gestor.nome });
       setFeedback({ type: 'ok', message: `Gestor de ${cap(colaborador.nome)} alterado para ${cap(gestor.nome)}.` });
       setColaborador(null);
       setGestor(usuarioLogado);
-      qc.invalidateQueries({ queryKey: ['gestao', 'colaboradores-gestores'] });
     } catch (err) {
       setFeedback({ type: 'error', message: (err as Error).message });
     }
