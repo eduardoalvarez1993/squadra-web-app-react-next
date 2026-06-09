@@ -664,11 +664,11 @@ export default function GestaoPage() {
           onClose={() => setHeModal({ open: false, item: null })}
           titulo={`Aprovar Hora Extra — ${heModal.item.nomeColaborador}`}
           fields={[
-            { type: 'select', name: 'tipoAprovacao', label: 'Contabilizar como', options: [
+            { type: 'select', name: 'tipoAprovacao', label: 'Contabilizar como', defaultValue: 'B', options: [
               { value: 'B', label: 'Banco de Horas' },
               { value: 'P', label: 'Folha de Pagamento' },
             ]},
-            { type: 'static',   name: 'projeto',          label: 'Projeto',               value: heModal.item.projetoDescricao },
+            { type: 'static',   name: 'projeto',          label: 'Projeto',               value: heModal.item.nomeProjeto || heModal.item.projetoDescricao },
             { type: 'textarea', name: 'observacaoGestor',  label: 'Observação (opcional)' },
           ]}
           confirmLabel="Confirmar"

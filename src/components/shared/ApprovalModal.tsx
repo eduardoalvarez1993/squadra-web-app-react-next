@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -20,10 +20,19 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 
 type Field =
-  | { type: 'select'; name: string; label: string; options: { value: string; label: string }[] }
+  | { type: 'select'; name: string; label: string; options: { value: string; label: string }[]; defaultValue?: string }
   | { type: 'input';  name: string; label: string; inputType?: string }
   | { type: 'textarea'; name: string; label: string }
   | { type: 'static';  name: string; label: string; value: string };
+
+// Valores iniciais a partir dos defaults declarados nos campos (hoje só select).
+function computeDefaults(fields: Field[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const f of fields) {
+    if (f.type === 'select' && f.defaultValue) out[f.name] = f.defaultValue;
+  }
+  return out;
+}
 
 interface ApprovalModalProps {
   open: boolean;
@@ -44,9 +53,15 @@ export function ApprovalModal({
   confirmLabel = 'Confirmar',
   confirmVariant = 'default',
 }: ApprovalModalProps) {
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(() => computeDefaults(fields));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Ao (re)abrir, restaura os defaults para o que se vê bater com o que será enviado.
+  useEffect(() => {
+    if (open) setValues(computeDefaults(fields));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function setValue(name: string, value: string) {
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -63,7 +78,7 @@ export function ApprovalModal({
     setError(null);
     try {
       await onConfirm(values);
-      setValues({});
+      setValues(computeDefaults(fields));
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err) || 'Erro ao processar.');
@@ -85,9 +100,13 @@ export function ApprovalModal({
                 {field.label}
               </label>
               {field.type === 'select' && (
-                <Select onValueChange={(v) => setValue(field.name, v as string)}>
-                  <SelectTrigger id={field.name}>
-                    <SelectValue placeholder="Selecione…" />
+                <Select value={values[field.name] ?? ''} onValueChange={(v) => setValue(field.name, v as string)}>
+                  <SelectTrigger id={field.name} className="w-full">
+                    <SelectValue>
+                      {(v: string | null) =>
+                        field.options.find((o) => o.value === v)?.label ?? 'Selecione…'
+                      }
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {field.options.map((opt) => (
