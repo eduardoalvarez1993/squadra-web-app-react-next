@@ -29,6 +29,7 @@ import { ASSETS } from '@/lib/assets';
 import { statusLabel } from '@/lib/status';
 import { AvatarGradient } from '@/components/shared/AvatarGradient';
 import { DateBadge } from '@/components/shared/DateBadge';
+import { StatusChip } from '@/components/shared/StatusChip';
 import {
   PendenciasLoader,
   AlocarLoader,
@@ -432,20 +433,25 @@ export default function GestaoPage() {
                       nome={item.nomeColaborador}
                       foto={item.foto}
                       status={statusLabel(item.statusSolicitacao)}
-                      detalhes={
-                        <div className="flex items-start gap-3">
+                      hideTipoLabel
+                      hideStatus
+                      headerRight={
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           <DateBadge date={item.dataSolicitacao} />
-                          <div className="flex flex-col gap-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span><span className="font-semibold text-foreground">Tipo:</span> Hora Extra</span>
-                              <span className={`text-[0.65rem] font-semibold rounded-full px-2 py-0.5 ${item.isNoturno ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-700'}`}>
-                                {item.isNoturno ? '🌙 Noturna' : '☀️ Diurna'}
-                              </span>
-                            </div>
-                            <span className="truncate"><span className="font-semibold text-foreground">Motivo:</span> {item.projetoDescricao || '—'}</span>
-                            <span><span className="font-semibold text-foreground">Data:</span> {fmtDataUTC(item.dataSolicitacao)}</span>
-                            <span className="text-sm font-bold text-foreground">+{fmtHoras(item.qtdadeHoras)}hs extras</span>
+                          <StatusChip status={statusLabel(item.statusSolicitacao)} />
+                        </div>
+                      }
+                      detalhes={
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-bold text-green-600">+{fmtHoras(item.qtdadeHoras)}hs extras</span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span><span className="font-semibold text-foreground">Tipo:</span> Hora Extra</span>
+                            <span className={`text-[0.65rem] font-semibold rounded-full px-2 py-0.5 ${item.isNoturno ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {item.isNoturno ? '🌙 Noturna' : '☀️ Diurna'}
+                            </span>
                           </div>
+                          <span className="truncate"><span className="font-semibold text-foreground">Motivo:</span> {item.projetoDescricao || '—'}</span>
+                          <span><span className="font-semibold text-foreground">Data:</span> {fmtDataUTC(item.dataSolicitacao)}</span>
                         </div>
                       }
                       actions={
