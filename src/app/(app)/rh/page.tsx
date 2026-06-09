@@ -222,8 +222,7 @@ function FeriasList({
 
 export default function RHPage() {
   const perfilDP = useUserStore((s) => s.permissoes.perfilDP);
-  const cargo    = useUserStore((s) => s.cargo);
-  const acessoDP = temAcessoDP(perfilDP, cargo);
+  const acessoDP = temAcessoDP(perfilDP);
   const [tab, setTab] = useState('abonos');
 
   const {

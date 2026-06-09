@@ -4,21 +4,15 @@ import { casosDPAccess } from '@/__tests__/fixtures';
 
 describe('temAcessoDP', () => {
   it.each(casosDPAccess)(
-    'perfilDP=%s cargo=%s → %s',
-    (perfilDP, cargo, esperado) => {
-      expect(temAcessoDP(perfilDP, cargo)).toBe(esperado);
+    'perfilDP=%s → %s',
+    (perfilDP, esperado) => {
+      expect(temAcessoDP(perfilDP)).toBe(esperado);
     },
   );
 
-  it('perfilDP=true tem precedência sobre cargo vazio', () => {
-    expect(temAcessoDP(true, '')).toBe(true);
-  });
-
-  it('cargo "SENIOR PERSONNEL" não começa com personnel → false', () => {
-    expect(temAcessoDP(false, 'SENIOR PERSONNEL')).toBe(false);
-  });
-
-  it('case-insensitive para o fallback de cargo', () => {
-    expect(temAcessoDP(false, 'personnel administration manager')).toBe(true);
+  it('acesso controlado exclusivamente pela permissão (sem fallback por cargo)', () => {
+    expect(temAcessoDP(true)).toBe(true);
+    expect(temAcessoDP(false)).toBe(false);
+    expect(temAcessoDP(undefined)).toBe(false);
   });
 });

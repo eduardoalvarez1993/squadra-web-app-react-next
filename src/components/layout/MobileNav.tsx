@@ -35,7 +35,7 @@ interface MobileNavProps {
 }
 
 export function MobileNav({ open, onClose }: MobileNavProps) {
-  const { permissoes, cargo, temEquipe, gestorId, setFluencia, clearUser } = useUserStore();
+  const { permissoes, temEquipe, gestorId, setFluencia, clearUser } = useUserStore();
   const pathname = usePathname();
   const router   = useRouter();
   const hydrated = gestorId !== 0;
@@ -74,7 +74,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
   // RH e Marketing seguem depois dos itens fixos (Gestão/Ponto/Percentual sobem para perto da Home)
   const conditionalItems = [];
   if (hydrated) {
-    if (temAcessoDP(permissoes.perfilDP, cargo)) {
+    if (temAcessoDP(permissoes.perfilDP)) {
       conditionalItems.push({ href: '/rh',         label: 'RH',         icon: <BriefcaseIcon className="h-5 w-5 text-teal-500" /> });
     }
     if (temAcessoMarketing(permissoes.perfilMarketing)) {

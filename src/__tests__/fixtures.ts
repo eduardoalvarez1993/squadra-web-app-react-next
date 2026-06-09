@@ -486,17 +486,11 @@ export const envelopes = {
 // ║ FASE 1 — entradas de funções puras (lib/)                                 ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
-/** temAcessoDP(perfilDP, cargo) → esperado */
-export const casosDPAccess: Array<[boolean | undefined, string | null | undefined, boolean]> = [
-  [true,  null,                              true],   // flag oficial
-  [false, 'PERSONNEL ANALYST',               true],   // fallback cargo
-  [false, 'PERSONNEL ADMINISTRATION MANAGER', true],
-  [false, 'personnel analyst',               true],   // case-insensitive
-  [false, 'SENIOR PERSONNEL',                false],  // não COMEÇA com personnel
-  [false, '',                                false],
-  [false, null,                              false],
-  [false, undefined,                         false],
-  [undefined, '',                            false],
+/** temAcessoDP(perfilDP) → esperado — controle exclusivo pela permissão */
+export const casosDPAccess: Array<[boolean | undefined, boolean]> = [
+  [true,      true],   // flag oficial
+  [false,     false],
+  [undefined, false],
 ];
 
 /** checkOrigin: env ALLOWED_ORIGINS/APP_URL + header Origin → 403? (null=ok) */

@@ -43,7 +43,7 @@ const ALWAYS: NavItem[] = [
 
 export function Sidebar() {
   const {
-    permissoes, cargo, temEquipe, gestorId,
+    permissoes, temEquipe, gestorId,
     setFluencia, clearUser,
     sidebarCollapsed, toggleSidebar,
   } = useUserStore();
@@ -69,7 +69,7 @@ export function Sidebar() {
   // RH e Marketing seguem depois dos itens fixos (Gestão/Ponto/Percentual sobem para perto da Home)
   const conditional: NavItem[] = [];
   if (hydrated) {
-    if (temAcessoDP(permissoes.perfilDP, cargo)) {
+    if (temAcessoDP(permissoes.perfilDP)) {
       conditional.push({ href: '/rh',         label: 'RH',         icon: <BriefcaseIcon className="h-5 w-5 text-teal-500" /> });
     }
     if (temAcessoMarketing(permissoes.perfilMarketing)) {

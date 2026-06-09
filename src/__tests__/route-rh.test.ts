@@ -49,11 +49,10 @@ describe('GET /api/rh/abonos', () => {
     expect(body[0]).toMatchObject({ idUnico: 9001, status: 'P', temAnexo: true });
   });
 
-  it('200 com acesso DP via cargo (fallback PERSONNEL ANALYST)', async () => {
+  it('403 com cargo PERSONNEL mas sem perfilDP (fallback por cargo removido)', async () => {
     vi.mocked(getSession).mockResolvedValue(makeSession({ cargo: 'PERSONNEL ANALYST' }) as never);
-    server.use(http.get(LISTA_ABONOS_P, () => HttpResponse.json(rawAbonosRH)));
     const res = await GET_ABONOS(makeRequest('http://localhost/api/rh/abonos'));
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
   });
 });
 
