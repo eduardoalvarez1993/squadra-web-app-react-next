@@ -450,7 +450,8 @@ export default function GestaoPage() {
                               {item.isNoturno ? '🌙 Noturna' : '☀️ Diurna'}
                             </span>
                           </div>
-                          <span className="truncate"><span className="font-semibold text-foreground">Motivo:</span> {item.projetoDescricao || '—'}</span>
+                          <span className="truncate"><span className="font-semibold text-foreground">Projeto:</span> {item.nomeProjeto || item.projetoDescricao || '—'}</span>
+                          <span className="truncate"><span className="font-semibold text-foreground">Motivo:</span> {item.motivo || '—'}</span>
                           <span><span className="font-semibold text-foreground">Data:</span> {fmtDataUTC(item.dataSolicitacao)}</span>
                         </div>
                       }

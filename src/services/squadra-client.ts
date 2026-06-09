@@ -819,6 +819,8 @@ export type HoraExtraItem = {
   qtdadeHoras:       number;
   projetoId:         number;
   projetoDescricao:  string;
+  nomeProjeto:       string;   // nome do projeto (ex.: "Homologação do site")
+  motivo:            string;   // justificativa livre da solicitação
   solicitacaoTipo:   string;
   statusSolicitacao: number;
   isNoturno:         boolean | null;
@@ -883,6 +885,16 @@ const EquipeSchema = z.unknown().transform((raw): MembroEquipe[] => {
   return list.map((x) => MembroEquipeItemSchema.parse(x));
 });
 
+// isNoturno pode vir como boolean ou string "S"/"N" — Boolean("N") seria true (bug).
+function parseNoturno(v: unknown): boolean | null {
+  if (v == null || v === '') return null;
+  if (typeof v === 'string') {
+    const s = v.trim().toUpperCase();
+    return s === 'S' || s === 'TRUE' || s === '1';
+  }
+  return Boolean(v);
+}
+
 const HoraExtraItemSchema = z.unknown().transform((raw): HoraExtraItem => {
   const d = raw as Record<string, unknown>;
   return {
@@ -891,11 +903,13 @@ const HoraExtraItemSchema = z.unknown().transform((raw): HoraExtraItem => {
     foto:              normalizeFoto(d['foto'] ?? d['fotoColaborador'] ?? null),
     dataSolicitacao:   String(d['dataSolicitacao'] ?? d['data'] ?? ''),
     qtdadeHoras:       Number(d['qtdadeHoras'] ?? d['horas'] ?? 0),
-    projetoId:         Number(d['projetoId'] ?? 0),
+    projetoId:         Number(d['projetoId'] ?? d['projeto'] ?? 0),
     projetoDescricao:  String(d['projetoDescricao'] ?? d['projeto'] ?? ''),
-    solicitacaoTipo:   String(d['solicitacaoTipo'] ?? ''),
+    nomeProjeto:       String(d['nomeProjeto'] ?? d['projetoDescricao'] ?? ''),
+    motivo:            String(d['motivo'] ?? d['motivoSolicitacao'] ?? ''),
+    solicitacaoTipo:   String(d['solicitacaoTipo'] ?? d['tipo'] ?? ''),
     statusSolicitacao: Number(d['statusSolicitacao'] ?? 0),
-    isNoturno:         d['isNoturno'] == null ? null : Boolean(d['isNoturno']),
+    isNoturno:         parseNoturno(d['isNoturno']),
   };
 });
 
