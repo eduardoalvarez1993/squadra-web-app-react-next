@@ -132,11 +132,13 @@ function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed 
   // liberação LIVRE (qualquer falta passada), por pedido do usuário.
   if (gestorMode) {
     const ctas: Cta[] = [];
-    const jaLiberada = dia.liberacaoGestor === 'S';
+    const jaLiberada = dia.liberacaoGestor === 'S' || dia.statusLiberacaoFalta === 'A';
     const confirmada = !!dia.confirmaFalta;
     if (isFaltaDia && jaLiberada) {
-      // Falta excusada pelo gestor → chip readonly.
-      r = { ...r, barKey: 'ok', statusKey: 'ok', statusText: 'Falta liberada' };
+      // Liberada: se a pessoa já apropriou (tem horas) → "Apropriado"; senão "Falta liberada".
+      r = realMin > 0
+        ? { ...r, barKey: 'ok', statusKey: 'ok', statusText: 'Apropriado' }
+        : { ...r, barKey: 'ok', statusKey: 'ok', statusText: 'Falta liberada' };
     } else if (isFaltaDia && confirmada) {
       // Já confirmada → ação encerrada no app (alterar só via chamado) → chip readonly.
       r = { ...r, barKey: 'err', statusKey: 'err', statusText: 'Falta confirmada' };
@@ -145,12 +147,13 @@ function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed 
       if (!isToday) ctas.push({ tipo: 'liberar', label: 'Liberar' });
       ctas.push({ tipo: 'confirmar', label: 'Falta' });
     }
-    r = { ...r, ctas, aguardarBtn: false };
+    // Limpa o botão "Liberado" do colaborador — no gestor o status vira chip único.
+    r = { ...r, ctas, aguardarBtn: false, liberadoBtn: false };
   }
 
   // showBadge: oculta badge quando barra ok e não é falta (visão colaborador).
-  // No modo gestor, os status próprios (Falta confirmada/liberada) sempre aparecem.
-  const statusGestor = gestorMode && (r.statusText === 'Falta confirmada' || r.statusText === 'Falta liberada');
+  // No modo gestor, os status próprios (chips readonly) sempre aparecem.
+  const statusGestor = gestorMode && ['Apropriado', 'Falta confirmada', 'Falta liberada'].includes(r.statusText);
   r.showBadge = statusGestor || (!!r.statusText && !(r.barKey === 'ok' && !dia.isFalta));
   return r;
 }
