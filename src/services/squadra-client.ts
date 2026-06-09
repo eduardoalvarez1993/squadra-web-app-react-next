@@ -735,36 +735,58 @@ export type PercentualData = {
 export type ProjetoBuscaItem = { id: string | number; nome: string; cliente?: string };
 export type SubprojetoPercentual = { id: string | number; nome: string };
 
+// Item de /v1/gestor/listarHorasPercentuais — cada item traz horasPrevistas
+// (previsto do mês, igual em todos os itens) e horasRegistradas. O percentual
+// é derivado (a API não envia). id = idPercentual (usado no DELETE).
 const PercentualItemSchema2 = z.unknown().transform((raw): PercentualItem => {
   const d = raw as Record<string, unknown>;
+  const horasRegistradas = Number(d['horasRegistradas'] ?? d['horas'] ?? d['totalHoras'] ?? 0);
+  const horasPrevistas   = Number(d['horasPrevistas'] ?? 0);
   return {
-    id:               (d['id'] ?? 0) as string | number,
+    id:               (d['idPercentual'] ?? d['id'] ?? 0) as string | number,
     clienteNome:      d['clienteNome'] != null ? String(d['clienteNome']) : null,
     projetoNome:      String(d['projetoNome'] ?? d['nomeProjeto'] ?? d['projeto'] ?? d['servicoDescricao'] ?? ''),
     subProjetoNome:   (() => { const v = d['subProjetoNome'] ?? d['nomeSubProjeto'] ?? d['subProjeto'] ?? d['subProjetoDescricao'] ?? null; return v != null ? String(v) : null; })(),
-    horasRegistradas: Number(d['horasRegistradas'] ?? d['horas'] ?? d['totalHoras'] ?? 0),
-    percentual:       d['percentual'] != null ? Number(d['percentual']) : null,
+    horasRegistradas,
+    percentual:       d['percentual'] != null ? Number(d['percentual'])
+                    : horasPrevistas > 0 ? Math.round((horasRegistradas / horasPrevistas) * 100)
+                    : null,
   };
 });
 
+// Contrato real (espelha o app-react): { sucesso, retorno: Item[] }. `retorno`
+// é uma LISTA; horasPrevistas vem do 1º item e horasRegistradas é a soma.
+// Item placeholder ("NENHUM ... REGISTRADO", 0h) = mês sem alocação.
 const PercentualDataSchema2 = z.unknown().transform((raw): PercentualData => {
   const d = raw as Record<string, unknown>;
-  const retorno = (d['retorno'] as Record<string, unknown>) ?? d;
-  const itensList: unknown[] = Array.isArray(retorno['itens'])
-    ? retorno['itens']
-    : Array.isArray(retorno['horasPercentuais'])
-    ? retorno['horasPercentuais']
-    : Array.isArray(retorno['retorno'])
-    ? retorno['retorno']
+  const lista: unknown[] = Array.isArray(d['retorno'])
+    ? (d['retorno'] as unknown[])
     : Array.isArray(d['itens'])
-    ? d['itens'] as unknown[]
+    ? (d['itens'] as unknown[])
+    : Array.isArray(raw)
+    ? (raw as unknown[])
     : [];
+
+  const isPlaceholder = (it: Record<string, unknown>) =>
+    String(it['projetoNome'] ?? '').toUpperCase().includes('NENHUM') &&
+    Number(it['horasRegistradas'] ?? 0) === 0;
+
+  // horasPrevistas é igual em todos os itens (inclusive no placeholder) → 1º item.
+  const primeiro = (lista[0] ?? {}) as Record<string, unknown>;
+  const horasPrevistas = Number(primeiro['horasPrevistas'] ?? 0);
+
+  const reais = lista.filter((x) => !isPlaceholder(x as Record<string, unknown>));
+  const horasRegistradas = reais.reduce<number>(
+    (sum, x) => sum + Number((x as Record<string, unknown>)['horasRegistradas'] ?? 0),
+    0,
+  );
+
   return {
-    itens:            itensList.map((x) => PercentualItemSchema2.parse(x)),
-    horasPrevistas:   Number(retorno['horasPrevistas'] ?? retorno['horasContratadas'] ?? d['horasPrevistas'] ?? 0),
-    horasRegistradas: Number(retorno['horasRegistradas'] ?? retorno['horasAlocadas'] ?? d['horasRegistradas'] ?? 0),
-    fechado:          Boolean(retorno['fechado'] ?? retorno['mesFechado'] ?? d['fechado'] ?? false),
-    dataFechamento:   ((retorno['dataFechamento'] ?? retorno['dataFechado'] ?? d['dataFechamento'] ?? null) as string | null) || null,
+    itens:            reais.map((x) => PercentualItemSchema2.parse(x)),
+    horasPrevistas,
+    horasRegistradas,
+    fechado:          Boolean(d['fechado'] ?? d['mesFechado'] ?? false),
+    dataFechamento:   ((d['dataFechamento'] ?? d['dataFechado'] ?? null) as string | null) || null,
   };
 });
 

@@ -155,48 +155,53 @@ describe('PapeisSchema', () => {
 // ── PercentualDataSchema ──────────────────────────────────────────────────────
 
 describe('PercentualDataSchema', () => {
-  const itemBase = { id: 1, projetoNome: 'P1', horasRegistradas: 8, percentual: 50 };
+  // Contrato real (espelha o app-react): retorno é uma LISTA de itens, cada um
+  // com horasPrevistas (igual em todos = previsto do mês) e horasRegistradas.
+  const item = (over: Record<string, unknown> = {}) => ({
+    idPercentual: 1, clienteNome: 'Cli', projetoNome: 'P1', subProjetoNome: 'Sub',
+    horasRegistradas: 8, horasPrevistas: 160, ...over,
+  });
 
-  it('parseia via retorno.itens', () => {
-    const raw = { retorno: { itens: [itemBase], horasPrevistas: 160, horasRegistradas: 8, fechado: false } };
+  it('soma horasRegistradas e tira horasPrevistas do 1º item', () => {
+    const raw = { sucesso: true, retorno: [
+      item({ idPercentual: 1, horasRegistradas: 8 }),
+      item({ idPercentual: 2, horasRegistradas: 12 }),
+    ] };
     const result = PercentualDataSchema.parse(raw);
-    expect(result.itens).toHaveLength(1);
-    expect(result.itens[0].horasRegistradas).toBe(8);
+    expect(result.itens).toHaveLength(2);
     expect(result.horasPrevistas).toBe(160);
-    expect(result.fechado).toBe(false);
+    expect(result.horasRegistradas).toBe(20);
   });
 
-  it('parseia via retorno.horasPercentuais (alias)', () => {
-    const raw = { retorno: { horasPercentuais: [itemBase], horasContratadas: 180 } };
+  it('deriva o percentual do item quando a API não envia', () => {
+    const raw = { retorno: [item({ horasRegistradas: 40, horasPrevistas: 160 })] };
     const result = PercentualDataSchema.parse(raw);
-    expect(result.itens).toHaveLength(1);
-    expect(result.horasPrevistas).toBe(180);
+    expect(result.itens[0].percentual).toBe(25);
+    expect(result.itens[0].id).toBe(1); // id = idPercentual (usado no DELETE)
   });
 
-  it('parseia via retorno.retorno (alias profundo)', () => {
-    const raw = { retorno: { retorno: [itemBase] } };
+  it('mês sem alocação: placeholder NENHUM vira lista vazia, mas mantém previstas', () => {
+    const raw = { retorno: [
+      { clienteNome: 'NENHUM CLIENTE REGISTRADO', projetoNome: 'NENHUM PROJETO REGISTRADO',
+        subProjetoNome: 'NENHUM SUBPROJETO REGISTRADO', horasRegistradas: 0, horasPrevistas: 168, idPercentual: 0 },
+    ] };
     const result = PercentualDataSchema.parse(raw);
-    expect(result.itens).toHaveLength(1);
+    expect(result.itens).toHaveLength(0);
+    expect(result.horasRegistradas).toBe(0);
+    expect(result.horasPrevistas).toBe(168);
   });
 
-  it('parseia via d.itens (raiz)', () => {
-    const raw = { itens: [itemBase], horasPrevistas: 100 };
-    const result = PercentualDataSchema.parse(raw);
-    expect(result.itens).toHaveLength(1);
-  });
-
-  it('dataFechamento null quando ausente', () => {
-    const raw = { retorno: { itens: [] } };
-    const result = PercentualDataSchema.parse(raw);
+  it('lista vazia → tudo zero e dataFechamento null', () => {
+    const result = PercentualDataSchema.parse({ retorno: [] });
+    expect(result.itens).toHaveLength(0);
+    expect(result.horasPrevistas).toBe(0);
     expect(result.dataFechamento).toBeNull();
   });
 
   it('aceita aliases de campos no item', () => {
-    const raw = {
-      retorno: {
-        itens: [{ id: 5, servicoDescricao: 'Serv', horas: 4, subProjetoDescricao: 'SubX' }],
-      },
-    };
+    const raw = { retorno: [
+      { idPercentual: 5, servicoDescricao: 'Serv', horas: 4, subProjetoDescricao: 'SubX', horasPrevistas: 100 },
+    ] };
     const result = PercentualDataSchema.parse(raw);
     expect(result.itens[0].projetoNome).toBe('Serv');
     expect(result.itens[0].horasRegistradas).toBe(4);
