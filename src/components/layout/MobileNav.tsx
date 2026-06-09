@@ -56,7 +56,10 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
   }
 
   // Menus iguais ao vanilla (sem Feed/Rede e sem Perfil)
-  const showPonto = hydrated && permissoes.bateRep;
+  // Percentual: gestor com equipe que NÃO bate ponto. Ponto é o fallback universal
+  // (quem não cai em Percentual vê Ponto), espelhando o app-react.
+  const showPercentual = hydrated && permissoes.gerenteFuncional && !permissoes.bateRep && temEquipe;
+  const showPonto = hydrated && !showPercentual;
 
   // Home separado para inserir Ponto logo após
   const afterHome = [
@@ -72,7 +75,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
     if (permissoes.gerenteFuncional && temEquipe) {
       conditionalItems.push({ href: '/gestao',     label: 'Gestão',     icon: <UsersIcon     className="h-5 w-5 text-purple-500" /> });
     }
-    if (permissoes.gerenteFuncional && !permissoes.bateRep && temEquipe) {
+    if (showPercentual) {
       conditionalItems.push({ href: '/percentual', label: 'Percentual', icon: <PercentIcon   className="h-5 w-5 text-indigo-500" /> });
     }
     if (temAcessoDP(permissoes.perfilDP, cargo)) {

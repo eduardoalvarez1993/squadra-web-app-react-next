@@ -57,15 +57,19 @@ export function Sidebar() {
     router.push('/login');
   }
 
-  // Ponto fica logo após Home — separado dos demais condicionais
-  const showPonto = hydrated && permissoes.bateRep;
+  // Percentual: gestor com equipe que NÃO bate ponto (apropria horas por %)
+  const showPercentual = hydrated && permissoes.gerenteFuncional && !permissoes.bateRep && temEquipe;
+  // Ponto fica logo após Home. É o fallback universal: quem não cai em Percentual
+  // vê Ponto — espelha o app-react, onde quem não vai para apropriação por % cai em /horas.
+  // Garante que ninguém fique sem nenhum dos dois (ex.: bateRep desatualizado no cadastro).
+  const showPonto = hydrated && !showPercentual;
 
   const conditional: NavItem[] = [];
   if (hydrated) {
     if (permissoes.gerenteFuncional && temEquipe) {
       conditional.push({ href: '/gestao',     label: 'Gestão',     icon: <UsersIcon     className="h-5 w-5 text-purple-500" /> });
     }
-    if (permissoes.gerenteFuncional && !permissoes.bateRep && temEquipe) {
+    if (showPercentual) {
       conditional.push({ href: '/percentual', label: 'Percentual', icon: <PercentIcon   className="h-5 w-5 text-indigo-500" /> });
     }
     if (temAcessoDP(permissoes.perfilDP, cargo)) {

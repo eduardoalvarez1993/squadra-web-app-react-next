@@ -30,8 +30,14 @@ type DrawerMode = 'registrar' | 'solicitar' | 'aguardar' | 'apontar' | null;
 
 function PontoPageContent() {
   const bateRep      = useUserStore((s) => s.permissoes.bateRep);
+  const gerente      = useUserStore((s) => s.permissoes.gerenteFuncional);
+  const temEquipe    = useUserStore((s) => s.temEquipe);
   const gestorId     = useUserStore((s) => s.gestorId);
   const hydrated     = gestorId !== 0;
+  // Percentual: gestor com equipe que NÃO bate ponto. Esses apropriam horas por %,
+  // não por ponto — só eles ficam fora desta tela. Todo o resto (inclusive cadastros
+  // com bateRep desatualizado) cai aqui como fallback, igual ao app-react.
+  const ehPercentual = gerente && !bateRep && temEquipe;
   const searchParams = useSearchParams();
 
   // Ver ponto de outro usuário via search params ?sqhorasId=X&nome=Y
@@ -173,7 +179,7 @@ function PontoPageContent() {
   }
 
   if (!hydrated) return <VerificandoCredenciais />;
-  if (!bateRep)  return <AccessDenied description="O ponto fica disponivel apenas para colaboradores com permissao de apontamento." />;
+  if (ehPercentual) return <AccessDenied description="Voce apropria horas por percentual. Use o menu Percentual para registrar suas horas." />;
 
   if (isError) {
     if (errorCode === 'sqhoras_not_found') {
