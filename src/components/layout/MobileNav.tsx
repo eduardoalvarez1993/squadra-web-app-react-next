@@ -60,8 +60,9 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
   // (quem não cai em Percentual vê Ponto), espelhando o app-react.
   const showPercentual = hydrated && permissoes.gerenteFuncional && !permissoes.bateRep && temEquipe;
   const showPonto = hydrated && !showPercentual;
+  const showGestao = hydrated && permissoes.gerenteFuncional && temEquipe;
 
-  // Home separado para inserir Ponto logo após
+  // Home separado para inserir o bloco Gestão/Ponto/Percentual logo após
   const afterHome = [
     { href: '/pessoas',      label: 'Pessoas',      icon: <SearchIcon        className="h-5 w-5 text-green-500" /> },
     { href: '/ferias',       label: 'Férias',       icon: <UmbrellaIcon      className="h-5 w-5 text-emerald-500" /> },
@@ -70,14 +71,9 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
     { href: '/recursos',     label: 'Extras',       icon: <LayoutGridIcon    className="h-5 w-5 text-violet-500" /> },
   ];
 
+  // RH e Marketing seguem depois dos itens fixos (Gestão/Ponto/Percentual sobem para perto da Home)
   const conditionalItems = [];
   if (hydrated) {
-    if (permissoes.gerenteFuncional && temEquipe) {
-      conditionalItems.push({ href: '/gestao',     label: 'Gestão',     icon: <UsersIcon     className="h-5 w-5 text-purple-500" /> });
-    }
-    if (showPercentual) {
-      conditionalItems.push({ href: '/percentual', label: 'Percentual', icon: <PercentIcon   className="h-5 w-5 text-indigo-500" /> });
-    }
     if (temAcessoDP(permissoes.perfilDP, cargo)) {
       conditionalItems.push({ href: '/rh',         label: 'RH',         icon: <BriefcaseIcon className="h-5 w-5 text-teal-500" /> });
     }
@@ -101,11 +97,23 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
             Home
           </Link>
 
-          {/* Ponto — logo após Home */}
+          {/* Bloco de trabalho — logo após Home: Gestão, Ponto, Percentual */}
+          {showGestao && (
+            <Link href="/gestao" className={itemCls('/gestao')} onClick={onClose}>
+              <UsersIcon className="h-5 w-5 text-purple-500" />
+              Gestão
+            </Link>
+          )}
           {showPonto && (
             <Link href="/ponto" className={itemCls('/ponto')} onClick={onClose}>
               <ClockIcon className="h-5 w-5 text-sky-500" />
               Ponto
+            </Link>
+          )}
+          {showPercentual && (
+            <Link href="/percentual" className={itemCls('/percentual')} onClick={onClose}>
+              <PercentIcon className="h-5 w-5 text-indigo-500" />
+              Percentual
             </Link>
           )}
 

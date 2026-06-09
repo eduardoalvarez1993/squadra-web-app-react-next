@@ -63,15 +63,12 @@ export function Sidebar() {
   // vê Ponto — espelha o app-react, onde quem não vai para apropriação por % cai em /horas.
   // Garante que ninguém fique sem nenhum dos dois (ex.: bateRep desatualizado no cadastro).
   const showPonto = hydrated && !showPercentual;
+  // Gestão: gestor com equipe. Junto de Ponto/Percentual forma o bloco logo após a Home.
+  const showGestao = hydrated && permissoes.gerenteFuncional && temEquipe;
 
+  // RH e Marketing seguem depois dos itens fixos (Gestão/Ponto/Percentual sobem para perto da Home)
   const conditional: NavItem[] = [];
   if (hydrated) {
-    if (permissoes.gerenteFuncional && temEquipe) {
-      conditional.push({ href: '/gestao',     label: 'Gestão',     icon: <UsersIcon     className="h-5 w-5 text-purple-500" /> });
-    }
-    if (showPercentual) {
-      conditional.push({ href: '/percentual', label: 'Percentual', icon: <PercentIcon   className="h-5 w-5 text-indigo-500" /> });
-    }
     if (temAcessoDP(permissoes.perfilDP, cargo)) {
       conditional.push({ href: '/rh',         label: 'RH',         icon: <BriefcaseIcon className="h-5 w-5 text-teal-500" /> });
     }
@@ -127,12 +124,32 @@ export function Sidebar() {
         <span className={labelCls}>{ALWAYS[0].label}</span>
       </Link>
 
-      {/* Ponto — logo após Home */}
-      {showPonto && (
-        <Link href="/ponto" className={itemCls('/ponto')}>
-          <ClockIcon className="h-5 w-5 text-sky-500" />
-          <span className={labelCls}>Ponto</span>
-        </Link>
+      {/* Bloco de trabalho — logo após Home: Gestão, Ponto, Percentual */}
+      {!hydrated ? (
+        <div className="flex flex-col gap-1 w-full" aria-hidden>
+          <Skeleton height="40px" width="100%" borderRadius="8px" />
+        </div>
+      ) : (
+        <>
+          {showGestao && (
+            <Link href="/gestao" className={itemCls('/gestao')}>
+              <UsersIcon className="h-5 w-5 text-purple-500" />
+              <span className={labelCls}>Gestão</span>
+            </Link>
+          )}
+          {showPonto && (
+            <Link href="/ponto" className={itemCls('/ponto')}>
+              <ClockIcon className="h-5 w-5 text-sky-500" />
+              <span className={labelCls}>Ponto</span>
+            </Link>
+          )}
+          {showPercentual && (
+            <Link href="/percentual" className={itemCls('/percentual')}>
+              <PercentIcon className="h-5 w-5 text-indigo-500" />
+              <span className={labelCls}>Percentual</span>
+            </Link>
+          )}
+        </>
       )}
 
       {/* Restante dos itens fixos */}
@@ -143,19 +160,13 @@ export function Sidebar() {
         </Link>
       ))}
 
-      {/* Gestão, Percentual, RH */}
-      {!hydrated ? (
-        <div className="flex flex-col gap-1 mt-1 w-full" aria-hidden>
-          <Skeleton height="40px" width="100%" borderRadius="8px" />
-        </div>
-      ) : (
-        conditional.map((item) => (
-          <Link key={item.href} href={item.href} className={itemCls(item.href)}>
-            {item.icon}
-            <span className={labelCls}>{item.label}</span>
-          </Link>
-        ))
-      )}
+      {/* RH, Marketing */}
+      {hydrated && conditional.map((item) => (
+        <Link key={item.href} href={item.href} className={itemCls(item.href)}>
+          {item.icon}
+          <span className={labelCls}>{item.label}</span>
+        </Link>
+      ))}
 
       {/* FluencIA — item de menu junto com os demais */}
       <button className={btnCls()} onClick={() => setFluencia(true)}>
