@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
-import { useUserStore } from '@/store/user';
+import { useUserStore, type SessionUser } from '@/store/user';
 import { getQueryClient } from '@/lib/query-client';
 import { redirectToLogin } from '@/lib/auth-redirect';
+import { getFotoCache, setFotoCache } from '@/lib/foto-cache';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { BottomNav } from './BottomNav';
@@ -35,12 +36,29 @@ interface MeResponse {
   temEquipe:   boolean;
 }
 
-function AppContent({ children }: { children: React.ReactNode }) {
+function AppContent({
+  children,
+  initialUser,
+}: {
+  children: React.ReactNode;
+  initialUser: SessionUser | null;
+}) {
   const setUser      = useUserStore((s) => s.setUser);
   const clearUser    = useUserStore((s) => s.clearUser);
   const simulando    = useUserStore((s) => s.simulando);
   const fluenciaOpen = useUserStore((s) => s.fluenciaOpen);
   const setFluencia  = useUserStore((s) => s.setFluencia);
+
+  // Hidrata o store a partir da sessão do servidor já no primeiro render do
+  // cliente — UI aparece sem esperar o /me. A foto vem do cache de sessão
+  // (sessionStorage, por pessoaId) quando existe, então nem o avatar pisca no
+  // F5; senão fica null (iniciais) até o /me. Guardado por ref + window para
+  // não vazar entre requests no SSR (store é singleton de módulo).
+  const hydratedRef = useRef(false);
+  if (typeof window !== 'undefined' && !hydratedRef.current && initialUser) {
+    setUser({ ...initialUser, foto: getFotoCache(initialUser.pessoaId) });
+    hydratedRef.current = true;
+  }
 
   const { data, error } = useQuery<MeResponse>({
     queryKey: ['auth', 'me'],
@@ -53,7 +71,10 @@ function AppContent({ children }: { children: React.ReactNode }) {
       }
       return res.json();
     },
+    // refetch em background ao montar (busca a foto), mas sem bloquear a UI:
+    // o store já foi hidratado pela sessão acima.
     staleTime: Infinity,
+    refetchOnMount: 'always',
     retry: false,
   });
 
@@ -72,10 +93,16 @@ function AppContent({ children }: { children: React.ReactNode }) {
         podeSimular: data.podeSimular,
         temEquipe:   data.temEquipe,
       });
+      // Revalida o cache de sessão para o pessoaId atual (cobre simulação:
+      // a chave muda junto com o pessoaId do simulado).
+      setFotoCache(data.pessoaId, data.foto);
     }
   }, [data, setUser]);
 
-  if (error) return null;
+  // 401 já dispara redirectToLogin no queryFn. Só apaga a tela se não houver
+  // sessão hidratada do servidor — assim um erro transitório do /me (ex.: foto)
+  // não derruba a UInteira de quem está logado.
+  if (error && !initialUser) return null;
 
   return (
     <div className={`flex min-h-dvh${simulando ? ' is-simulating' : ''}`}>
@@ -98,11 +125,17 @@ function AppContent({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function Shell({ children }: { children: React.ReactNode }) {
+export function Shell({
+  children,
+  initialUser,
+}: {
+  children: React.ReactNode;
+  initialUser: SessionUser | null;
+}) {
   const queryClient = getQueryClient();
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContent>{children}</AppContent>
+      <AppContent initialUser={initialUser}>{children}</AppContent>
     </QueryClientProvider>
   );
 }
