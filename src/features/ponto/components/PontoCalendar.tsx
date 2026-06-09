@@ -133,18 +133,25 @@ function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed 
   if (gestorMode) {
     const ctas: Cta[] = [];
     const jaLiberada = dia.liberacaoGestor === 'S';
-    if (isFaltaDia && !jaLiberada) {
+    const confirmada = !!dia.confirmaFalta;
+    if (isFaltaDia && jaLiberada) {
+      // Falta excusada pelo gestor → chip readonly.
+      r = { ...r, barKey: 'ok', statusKey: 'ok', statusText: 'Falta liberada' };
+    } else if (isFaltaDia && confirmada) {
+      // Já confirmada → ação encerrada no app (alterar só via chamado) → chip readonly.
+      r = { ...r, barKey: 'err', statusKey: 'err', statusText: 'Falta confirmada' };
+    } else if (isFaltaDia) {
+      // Pendente de decisão do gestor: liberar (livre, passado) ou confirmar a falta.
       if (!isToday) ctas.push({ tipo: 'liberar', label: 'Liberar' });
       ctas.push({ tipo: 'confirmar', label: 'Falta' });
     }
     r = { ...r, ctas, aguardarBtn: false };
-    if (isFaltaDia && jaLiberada) {
-      r = { ...r, barKey: 'ok', statusKey: 'ok', statusText: 'Falta liberada' };
-    }
   }
 
-  // showBadge: oculta badge quando barra ok e não é falta (vanilla)
-  r.showBadge = !!r.statusText && !(r.barKey === 'ok' && !dia.isFalta);
+  // showBadge: oculta badge quando barra ok e não é falta (visão colaborador).
+  // No modo gestor, os status próprios (Falta confirmada/liberada) sempre aparecem.
+  const statusGestor = gestorMode && (r.statusText === 'Falta confirmada' || r.statusText === 'Falta liberada');
+  r.showBadge = statusGestor || (!!r.statusText && !(r.barKey === 'ok' && !dia.isFalta));
   return r;
 }
 
