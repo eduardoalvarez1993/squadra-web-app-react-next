@@ -28,6 +28,7 @@ import { MembroDrawer } from '@/features/gestao/components/MembroDrawer';
 import { ASSETS } from '@/lib/assets';
 import { statusLabel } from '@/lib/status';
 import { AvatarGradient } from '@/components/shared/AvatarGradient';
+import { DateBadge } from '@/components/shared/DateBadge';
 import {
   PendenciasLoader,
   AlocarLoader,
@@ -52,6 +53,21 @@ function fmtData(s: string): string {
   const d = new Date(s);
   if (isNaN(d.getTime())) return s;
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+}
+
+// DD/MM/YYYY a partir de ISO em UTC (data chega como "...T00:00:00Z").
+function fmtDataUTC(s: string): string {
+  if (!s) return '—';
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return s;
+  const dia = String(d.getUTCDate()).padStart(2, '0');
+  const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
+  return `${dia}/${mes}/${d.getUTCFullYear()}`;
+}
+
+// 0.75 → "0,75" (decimal pt-BR, sem casas desnecessárias)
+function fmtHoras(n: number): string {
+  return n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 }
 
 // DD/MM/YYYY a partir de ISO (yyyy-MM-dd) ou pt-BR (dd/MM/yyyy).
@@ -416,7 +432,22 @@ export default function GestaoPage() {
                       nome={item.nomeColaborador}
                       foto={item.foto}
                       status={statusLabel(item.statusSolicitacao)}
-                      detalhes={`${item.qtdadeHoras}h — ${item.projetoDescricao} — ${item.dataSolicitacao}`}
+                      detalhes={
+                        <div className="flex items-start gap-3">
+                          <DateBadge date={item.dataSolicitacao} />
+                          <div className="flex flex-col gap-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span><span className="font-semibold text-foreground">Tipo:</span> Hora Extra</span>
+                              <span className={`text-[0.65rem] font-semibold rounded-full px-2 py-0.5 ${item.isNoturno ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-700'}`}>
+                                {item.isNoturno ? '🌙 Noturna' : '☀️ Diurna'}
+                              </span>
+                            </div>
+                            <span className="truncate"><span className="font-semibold text-foreground">Motivo:</span> {item.projetoDescricao || '—'}</span>
+                            <span><span className="font-semibold text-foreground">Data:</span> {fmtDataUTC(item.dataSolicitacao)}</span>
+                            <span className="text-sm font-bold text-foreground">+{fmtHoras(item.qtdadeHoras)}hs extras</span>
+                          </div>
+                        </div>
+                      }
                       actions={
                         <div className="flex gap-2">
                           <Button
