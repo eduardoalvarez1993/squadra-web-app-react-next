@@ -170,8 +170,8 @@ const TECH_GROUPS: { title: string; subtitle: string; techs: Tech[] }[] = [
 // ---------------------------------------------------------------------------
 
 const QUALITY_STATS: { value: string; label: string }[] = [
-  { value: '310',     label: 'testes automatizados' },
-  { value: '26',      label: 'suítes de teste' },
+  { value: '321',     label: 'testes automatizados' },
+  { value: '27',      label: 'suítes de teste' },
   { value: '0',       label: 'falhas na suíte' },
   { value: '88–91%',  label: 'cobertura das rotas críticas' },
 ];
@@ -226,9 +226,12 @@ const RELEASES: Release[] = [
     date:    '11 Jun 2026',
     changes: [
       { type: 'melhoria', text: 'Melhorias no fluxo de ponto: jornada não passa da carga do dia (aviso em tela; excedente vira hora extra), limite de 6h por período, hora extra com digitação livre (até 2h) e abono completo (período, grau de parentesco, dia inteiro ou horas, anexo) com atalhos no próprio dia' },
-      { type: 'melhoria', text: 'Dia sem carga prevista (fim de semana/feriado) aparece como "Sem hora prevista" e só aceita registro com hora extra aprovada' },
-      { type: 'melhoria', text: 'Banco de horas: aviso de quando o saldo será descontado e a regra dos ciclos, abaixo do resumo do ponto' },
+      { type: 'melhoria', text: 'Fim de semana mostra "Sem hora prevista" e feriado mostra "Feriado"; ambos só aceitam registro com hora extra aprovada' },
+      { type: 'melhoria', text: 'Clicar em qualquer dia do calendário abre o detalhe — dá para gerenciar/excluir apontamentos inclusive em dias já completos' },
+      { type: 'fix',      text: 'Dia com jornada incompleta (bateu só parte) ganhou o botão "Registrar"; falta liberada pelo gestor deixa completar o dia (não fica mais em "Aguardar")' },
+      { type: 'melhoria', text: 'Banco de horas: saldo negativo informa quando será descontado e o positivo quando será pago, na home e no resumo do ponto' },
       { type: 'fix',      text: 'Aviso de falha de sincronização entre o app e o ERP no dia, orientando refazer os apontamentos' },
+      { type: 'melhoria', text: 'Solicitação de abono com área de anexo mais clara (arraste/clique para PNG, JPG ou PDF)' },
       { type: 'novo',     text: 'Registrar hora extra aprovada direto no ponto: o que passa da carga do dia vira hora extra automaticamente, respeitando o limite aprovado' },
       { type: 'novo',     text: 'Dia com hora extra liberada exibe o selo "H.Extra liberada" e o botão Registrar (some após o lançamento) — na lista de pendentes e no calendário' },
       { type: 'melhoria', text: 'Aprovação de hora extra em painel lateral com escolha Banco de Horas ou Pagamento em Folha; reprovar agora pede confirmação' },
@@ -236,7 +239,7 @@ const RELEASES: Release[] = [
       { type: 'fix',      text: 'Hora extra gravava a data trocada (dia/mês); agora envia no formato correto e o dia solicitado é respeitado' },
       { type: 'fix',      text: 'Gestão: aba Equipe voltou a carregar (mesmo endpoint do app) e uma falha nela não derruba mais as outras abas' },
       { type: 'fix',      text: 'Percentual: leitura correta das horas por mês; menu Ponto × Percentual estável (sem oscilação)' },
-      { type: 'infra',    text: 'Suíte de testes: 310 testes em 26 suítes (Vitest), 0 falhas' },
+      { type: 'infra',    text: 'Suíte de testes: 321 testes em 27 suítes (Vitest), 0 falhas' },
     ],
   },
   {
