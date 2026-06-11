@@ -94,9 +94,9 @@ export function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaCo
   };
 
   const horaExtra = dia.horaExtra && dia.horaExtra !== '00:00' ? dia.horaExtra : '';
-  const horasDisplay = isAbono
-    ? dia.horasAbono
-    : (dia.horasRealizadas !== '00:00' ? dia.horasRealizadas : '');
+  // Sempre exibe um valor na coluna de horas (00:00 quando zerado) para a coluna
+  // ficar alinhada; o tom (cinza claro vs escuro) é decidido no render.
+  const horasDisplay = isAbono ? dia.horasAbono : (dia.horasRealizadas || '00:00');
 
   let r: DiaComputed = { ...base, horaExtra, horasDisplay };
 
@@ -207,8 +207,8 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
   // Dia + dia-da-semana ficam numa só célula (1ª coluna), liberando espaço.
   // Sem a coluna do projeto, a coluna de ações vira 1fr para a barra preencher a linha.
   const gridCols = hideProjetos
-    ? 'grid-cols-[64px_42px_1fr]'
-    : 'grid-cols-[64px_1fr_42px_auto]';
+    ? 'grid-cols-[64px_52px_1fr]'
+    : 'grid-cols-[64px_1fr_52px_auto]';
   const [solicitados, setSolicitados] = useState<Set<string>>(new Set());
   const [solicitando, setSolicitando] = useState<string | null>(null);
 
@@ -290,7 +290,7 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
         {!hideProjetos && (
           <span className="text-[0.72rem] text-gray-500 leading-snug break-words">{projetoTimes}</span>
         )}
-        <span className="text-[0.82rem] font-bold text-gray-700 text-right leading-tight">
+        <span className={`text-[0.82rem] font-bold text-right leading-tight tabular-nums ${c.horasDisplay === '00:00' ? 'text-gray-300' : 'text-gray-700'}`}>
           {c.horasDisplay}
           {c.horaExtra && <span className="block text-[0.82rem] font-bold text-red-600 leading-tight">+{c.horaExtra}</span>}
         </span>
