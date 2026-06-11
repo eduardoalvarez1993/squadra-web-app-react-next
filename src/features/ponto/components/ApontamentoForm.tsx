@@ -9,6 +9,7 @@ import { FormFeedback } from '@/components/shared/FormFeedback';
 import type { ProjetoAlocado } from '@/services/squadra-client';
 import { isPeriodoFechado } from '@/lib/periodo-fechado';
 import { toMin, type NovoApontamentoClientInput, type Periodo } from '../hooks/usePonto';
+import { tetoJornadaError } from '../apontamento-rules';
 
 interface ApontamentoFormProps {
   data:          string;
@@ -77,6 +78,13 @@ export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting, cargaM
   const tipoAuto: TipoApropriacao = (heAprovadaMin > 0 && excedeMin > 0) ? 'HORA_EXTRA' : 'JORNADA';
   const tipoApropriacao: TipoApropriacao = mostrarToggle ? (tipoManual ?? tipoAuto) : tipoAuto;
 
+  // Teto de jornada (espelha o app-react): como JORNADA o total do dia não pode
+  // passar da carga. Avisa em tela e bloqueia o submit; o excedente só entra via
+  // HORA_EXTRA aprovada. Só vale quando há carga prevista (> 0).
+  const tetoJornadaMsg = cargaMin > 0
+    ? tetoJornadaError({ tipoApropriacao, jaApontadoMin, novoMin, cargaMin, cargaLabel: fmtMin(cargaMin), temHEAprovada: heAprovadaMin > 0 })
+    : null;
+
   function validate(): string | null {
     if (!projetoIdSel) return 'Selecione um projeto';
     if (temSubProj && !subprojetoIdSel) return 'Selecione um subprojeto';
@@ -96,6 +104,8 @@ export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting, cargaM
     for (let i = 1; i < ord.length; i++) {
       if (ord[i].horaInicio < ord[i - 1].horaFinal) return 'Os períodos não podem se sobrepor';
     }
+    // Teto de jornada: como JORNADA não pode exceder a carga (excedente vira HORA_EXTRA).
+    if (tetoJornadaMsg) return tetoJornadaMsg;
     // Teto da hora extra aprovada: ao marcar HORA EXTRA, o excedente da carga não pode
     // passar do aprovado (só checamos quando a aprovação foi detectada no payload do dia).
     if (tipoApropriacao === 'HORA_EXTRA' && heAprovadaMin > 0 && excedeMin > heAprovadaMin) {
@@ -245,12 +255,20 @@ export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting, cargaM
         />
       </div>
 
+      {/* Aviso ao vivo de teto de jornada (âmbar) — antes mesmo do submit. */}
+      {tetoJornadaMsg && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 px-3 py-2 text-sm text-amber-800 dark:text-amber-300">
+          <span aria-hidden>⚠️</span>
+          <span>{tetoJornadaMsg}</span>
+        </div>
+      )}
+
       {ok    && <FormFeedback type="ok"    message="Apontamento registrado com sucesso!" />}
       {error && <FormFeedback type="error" message={error} />}
       {dataFutura && <FormFeedback type="error" message="Não é possível registrar apontamento em data futura." />}
       {bloqueado && <FormFeedback type="error" message="Período fechado — mês já computado." />}
 
-      <Button type="submit" disabled={isSubmitting || dataFutura || bloqueado} className="w-full">
+      <Button type="submit" disabled={isSubmitting || dataFutura || bloqueado || !!tetoJornadaMsg} className="w-full">
         {isSubmitting ? 'Registrando…' : 'Registrar apontamento'}
       </Button>
     </form>
