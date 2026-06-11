@@ -269,11 +269,11 @@ export type ProjetoComGestorView = {
   nome:     string;
   cliente:  string;
   situacao: string;
-  cpf:      string;   // cpfGerente cru — TODO(Fernando): endpoint que já devolve o nome
+  cpf:      string;   // cpfGerente cru
+  gestor:   string;   // nome do gestor (vindo do relatório)
 };
 
 export async function listarProjetosComGestor(token: string): Promise<ProjetoComGestorView[]> {
-  // Sem enriquecer CPF→nome por ora; exibimos o cpfGerente cru.
   const projetos = await cached(KEY_PROJETOS, () => squadra.gestao.relatorioProjetos(token));
   return projetos
     .map((pr): ProjetoComGestorView => ({
@@ -282,6 +282,7 @@ export async function listarProjetosComGestor(token: string): Promise<ProjetoCom
       cliente:  pr.cliente,
       situacao: pr.situacao,
       cpf:      pr.cpfGerente,
+      gestor:   pr.nomeGerente,
     }))
     .sort((a, b) => a.nome.localeCompare(b.nome));
 }

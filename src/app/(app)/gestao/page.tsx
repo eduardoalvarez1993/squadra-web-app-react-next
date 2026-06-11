@@ -56,19 +56,49 @@ function fmtData(s: string): string {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 
-// DD/MM/YYYY a partir de ISO em UTC (data chega como "...T00:00:00Z").
+// DD/MM/YYYY robusto: aceita ISO (yyyy-MM-dd[...]) E pt-BR (dd/MM/yyyy). Antes
+// usava new Date(s) cru, que interpreta "09/06/2026" como US (MM/DD) e invertia
+// dia↔mês (mostrava 06/09). parseDate (definido abaixo, hoisted) trata os dois.
 function fmtDataUTC(s: string): string {
   if (!s) return '—';
-  const d = new Date(s);
-  if (isNaN(d.getTime())) return s;
-  const dia = String(d.getUTCDate()).padStart(2, '0');
-  const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
-  return `${dia}/${mes}/${d.getUTCFullYear()}`;
+  const d = parseDate(s);
+  if (!d) return s;
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dia}/${mes}/${d.getFullYear()}`;
 }
 
 // 0.75 → "0,75" (decimal pt-BR, sem casas desnecessárias)
 function fmtHoras(n: number): string {
   return n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+}
+
+// 1234.5 → "R$ 1.234,50"
+function fmtMoeda(n: number): string {
+  return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+// Detalhamento do custo da hora extra paga em folha. Espelha o "Cálculo das horas"
+// do app-react: os valores (taxa, bruto) vêm prontos do backend; o front só exibe.
+function CustoHoraExtra({ item }: { item: HoraExtraItem }) {
+  return (
+    <div className="relative rounded-lg border border-border bg-muted/40 p-3">
+      <p className="text-sm font-bold">Cálculo das horas</p>
+      <p className="mt-2 text-sm font-semibold">+{fmtHoras(item.qtdadeHoras)}h extras:</p>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Taxa da hora extra (dia de semana): +{item.taxaHoraExtra || '—'}
+      </p>
+      {item.isNoturno && (
+        <p className="mt-1 text-sm text-muted-foreground">
+          Adicional noturno: +{item.taxaAdicionalNoturno || '—'}
+        </p>
+      )}
+      <p className="mt-2 text-base font-semibold">Valor bruto: {fmtMoeda(item.bruto)}</p>
+      <span className="absolute right-3 top-3 text-xs text-muted-foreground">
+        {fmtMoeda(item.valorHora * item.qtdadeHoras)}
+      </span>
+    </div>
+  );
 }
 
 // DD/MM/YYYY a partir de ISO (yyyy-MM-dd) ou pt-BR (dd/MM/yyyy).
@@ -274,6 +304,7 @@ export default function GestaoPage() {
   // chave composta `${tipo}-${id}` — evita colisão entre tipos com mesmo número de id
   const [aprovandoId, setAprovandoId] = useState<string | null>(null);
   const [heModal, setHeModal] = useState<{ open: boolean; item: HoraExtraItem | null }>({ open: false, item: null });
+  const [heReprovar, setHeReprovar] = useState<{ open: boolean; item: HoraExtraItem | null }>({ open: false, item: null });
 
   // Drawer de membro
   const [drawerMembro,    setDrawerMembro]    = useState<MembroEquipe | null>(null);
@@ -345,15 +376,10 @@ export default function GestaoPage() {
   ];
 
   if (!hydrated)         return <VerificandoCredenciais />;
-  if (!gerenteFuncional) return <AccessDenied description="A gestao fica disponivel apenas para gestores com equipe ativa." />;
+  if (!gerenteFuncional) return <AccessDenied description="A gestao fica disponivel apenas para gerentes funcionais." />;
 
-  if (isError) {
-    return (
-      <div className="p-4">
-        <ErrorSection message="Não foi possível carregar a equipe." onRetry={() => refetchEquipe()} />
-      </div>
-    );
-  }
+  // Nota: o erro de `equipe` (isError) NÃO bloqueia a tela toda — as demais abas têm
+  // queries independentes. O erro é tratado localmente dentro da aba Equipe.
 
   return (
     <div className="flex flex-col gap-4 p-4 max-w-2xl mx-auto pb-24">
@@ -385,7 +411,9 @@ export default function GestaoPage() {
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
           />
 
-          {isLoading
+          {isError
+            ? <ErrorSection message="Não foi possível carregar a equipe." onRetry={() => refetchEquipe()} />
+            : isLoading
             ? <EquipeSearchLoader />
             : equipeFiltrado.length === 0
             ? <EmptyState title={busca ? 'Nenhum resultado' : 'Nenhum membro na equipe'} />
@@ -466,14 +494,9 @@ export default function GestaoPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            disabled={aprovandoId === `he-${item.solicitacaoID}`}
-                            onClick={async () => {
-                              setAprovandoId(`he-${item.solicitacaoID}`);
-                              try { await aprovar({ id: item.solicitacaoID, tipo: 'hora_extra', acao: 'R' }); }
-                              finally { setAprovandoId(null); }
-                            }}
+                            onClick={() => setHeReprovar({ open: true, item })}
                           >
-                            {aprovandoId === `he-${item.solicitacaoID}` ? '…' : 'Reprovar'}
+                            Reprovar
                           </Button>
                         </div>
                       }
@@ -664,14 +687,18 @@ export default function GestaoPage() {
           onClose={() => setHeModal({ open: false, item: null })}
           titulo={`Aprovar Hora Extra — ${heModal.item.nomeColaborador}`}
           fields={[
-            { type: 'select', name: 'tipoAprovacao', label: 'Contabilizar como', defaultValue: 'B', options: [
+            { type: 'toggle', name: 'tipoAprovacao', label: 'Contabilizar como', defaultValue: 'B', options: [
               { value: 'B', label: 'Banco de Horas' },
-              { value: 'P', label: 'Folha de Pagamento' },
+              { value: 'P', label: 'Pagamento em Folha' },
             ]},
+            { type: 'custom', name: 'custoHE', render: (values) =>
+              values['tipoAprovacao'] === 'P' ? <CustoHoraExtra item={heModal.item!} /> : null
+            },
             { type: 'static',   name: 'projeto',          label: 'Projeto',               value: heModal.item.nomeProjeto || heModal.item.projetoDescricao },
             { type: 'textarea', name: 'observacaoGestor',  label: 'Observação (opcional)' },
           ]}
           confirmLabel="Confirmar"
+          asDrawer
           onConfirm={async (values) => {
             await aprovar({
               id:               heModal.item!.solicitacaoID,
@@ -682,6 +709,31 @@ export default function GestaoPage() {
               observacaoGestor: values['observacaoGestor'] ?? '',
             });
             setHeModal({ open: false, item: null });
+          }}
+        />
+      )}
+
+      {/* Confirmação de reprovação de hora extra */}
+      {heReprovar.item && (
+        <ApprovalModal
+          open={heReprovar.open}
+          onClose={() => setHeReprovar({ open: false, item: null })}
+          titulo={`Reprovar Hora Extra — ${heReprovar.item.nomeColaborador}`}
+          confirmLabel="Reprovar"
+          confirmVariant="destructive"
+          fields={[
+            { type: 'static',   name: 'aviso',  label: 'Tem certeza que deseja reprovar esta solicitação?',
+              value: `${fmtHoras(heReprovar.item.qtdadeHoras)}h em ${fmtDataUTC(heReprovar.item.dataSolicitacao)}` },
+            { type: 'textarea', name: 'observacaoGestor', label: 'Motivo da reprovação (opcional)' },
+          ]}
+          onConfirm={async (values) => {
+            await aprovar({
+              id:               heReprovar.item!.solicitacaoID,
+              tipo:             'hora_extra',
+              acao:             'R',
+              observacaoGestor: values['observacaoGestor'] ?? '',
+            });
+            setHeReprovar({ open: false, item: null });
           }}
         />
       )}

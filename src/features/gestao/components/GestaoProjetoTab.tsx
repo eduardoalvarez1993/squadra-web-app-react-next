@@ -102,7 +102,11 @@ export function GestaoProjetoTab() {
     const q = busca.trim().toLowerCase();
     if (!q) return lista;
     return lista.filter(
-      (p) => p.nome.toLowerCase().includes(q) || p.cliente.toLowerCase().includes(q) || p.cpf.includes(q),
+      (p) =>
+        p.nome.toLowerCase().includes(q) ||
+        p.cliente.toLowerCase().includes(q) ||
+        p.gestor.toLowerCase().includes(q) ||
+        p.cpf.includes(q),
     );
   }, [lista, busca]);
 
@@ -161,7 +165,7 @@ export function GestaoProjetoTab() {
           <div className="border-t border-border p-4 flex flex-col gap-3">
             <input
               type="search"
-              placeholder="Buscar por projeto, cliente ou CPF…"
+              placeholder="Buscar por projeto, cliente, gestor ou CPF…"
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
@@ -183,7 +187,7 @@ export function GestaoProjetoTab() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{p.nome}</p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {p.cliente ? `${p.cliente} · ` : ''}Gestor (CPF): {p.cpf || '—'} · #{p.id}
+                          {p.cliente ? `${p.cliente} · ` : ''}Gestor: {p.gestor ? cap(p.gestor) : (p.cpf || '—')} · #{p.id}
                         </p>
                         {atualizandoId === p.id && (
                           <span className="mt-1 inline-flex items-center gap-1 text-[0.65rem] font-semibold text-amber-700 bg-amber-100 rounded-full px-2 py-0.5">
