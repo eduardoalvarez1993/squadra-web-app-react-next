@@ -270,6 +270,19 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, gestorMo
     // aberto. Permite gerenciar inclusive dias completos (sem CTA próprio), como no app.
     const rowClickable = !gestorMode && !bloqueado;
 
+    // Barra proporcional (8h = 100%): jornada preenchida sólida, pendência em tom
+    // claro (track), hora extra num segmento mais escuro. Só p/ dias úteis com
+    // progresso (ok/pend); feriado/falta/futuro mantêm a barra chapada.
+    const prevMinB  = toMin(dia.horasPrevistas);
+    const realMinB  = toMin(dia.horasRealizadas);
+    const extraMinB = toMin(dia.horaExtra);
+    const barProporcional = prevMinB > 0 && (c.barKey === 'ok' || c.barKey === 'pend');
+    const barTotal  = prevMinB + extraMinB || 1;
+    const pctJornada = (Math.min(realMinB, prevMinB) / barTotal) * 100;
+    const pctExtra   = (extraMinB / barTotal) * 100;
+    const barFill   = c.barKey === 'ok' ? 'bg-green-400' : 'bg-amber-400';
+    const barTrack  = c.barKey === 'ok' ? 'bg-green-100' : 'bg-amber-100';
+
     rows.push(
       <div
         key={dia.data}
@@ -293,8 +306,15 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, gestorMo
           // Área de ações: cliques aqui (botões/barra) não abrem o drawer da linha.
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Barra horizontal */}
-          <div className={`flex-1 min-w-[40px] h-1.5 rounded-full ${BAR[c.barKey]}`} />
+          {/* Barra horizontal — proporcional (jornada/pendência/hora extra) ou chapada */}
+          {barProporcional ? (
+            <div className={`flex-1 min-w-[40px] h-1.5 rounded-full overflow-hidden flex ${barTrack}`} title={`${dia.horasRealizadas} de ${dia.horasPrevistas}${extraMinB > 0 ? ` + ${dia.horaExtra} extra` : ''}`}>
+              <div className={`h-full ${barFill}`} style={{ width: `${pctJornada}%` }} />
+              {pctExtra > 0 && <div className="h-full bg-emerald-600" style={{ width: `${pctExtra}%` }} />}
+            </div>
+          ) : (
+            <div className={`flex-1 min-w-[40px] h-1.5 rounded-full ${BAR[c.barKey]}`} />
+          )}
 
           {/* Botão verde "Liberado" (falta aprovada com horas) */}
           {c.liberadoBtn && (
