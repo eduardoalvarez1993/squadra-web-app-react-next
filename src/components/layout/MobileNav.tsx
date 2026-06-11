@@ -35,7 +35,7 @@ interface MobileNavProps {
 }
 
 export function MobileNav({ open, onClose }: MobileNavProps) {
-  const { permissoes, temEquipe, gestorId, setFluencia, clearUser } = useUserStore();
+  const { permissoes, gestorId, setFluencia, clearUser } = useUserStore();
   const pathname = usePathname();
   const router   = useRouter();
   const hydrated = gestorId !== 0;
@@ -56,11 +56,12 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
   }
 
   // Menus iguais ao vanilla (sem Feed/Rede e sem Perfil)
-  // Percentual: gestor com equipe que NÃO bate ponto. Ponto é o fallback universal
-  // (quem não cai em Percentual vê Ponto), espelhando o app-react.
-  const showPercentual = hydrated && permissoes.gerenteFuncional && !permissoes.bateRep && temEquipe;
-  const showPonto = hydrated && !showPercentual;
-  const showGestao = hydrated && permissoes.gerenteFuncional && temEquipe;
+  // Ponto vs Percentual é decidido SÓ pelo bateRep: quem bate ponto vê Ponto;
+  // quem não bate apropria horas por % (Percentual). Não depende de gerência nem de equipe.
+  const showPercentual = hydrated && !permissoes.bateRep;
+  const showPonto = hydrated && permissoes.bateRep;
+  // Gestão: qualquer gerente funcional (alinhado à página /gestao e rotas /api/gestao).
+  const showGestao = hydrated && permissoes.gerenteFuncional;
 
   // Home separado para inserir o bloco Gestão/Ponto/Percentual logo após
   const afterHome = [
@@ -75,7 +76,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
   const conditionalItems = [];
   if (hydrated) {
     if (temAcessoDP(permissoes.perfilDP)) {
-      conditionalItems.push({ href: '/rh',         label: 'RH',         icon: <BriefcaseIcon className="h-5 w-5 text-teal-500" /> });
+      conditionalItems.push({ href: '/rh',         label: 'DP',         icon: <BriefcaseIcon className="h-5 w-5 text-teal-500" /> });
     }
     if (temAcessoMarketing(permissoes.perfilMarketing)) {
       conditionalItems.push({ href: '/marketing',  label: 'Marketing',  icon: <MegaphoneIcon className="h-5 w-5 text-pink-500" /> });

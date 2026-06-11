@@ -33,7 +33,6 @@ interface MeResponse {
   bateRep:     boolean;
   simulando:   boolean;
   podeSimular: boolean;
-  temEquipe:   boolean;
 }
 
 function AppContent({
@@ -91,7 +90,6 @@ function AppContent({
         permissoes:  data.permissoes,
         simulando:   data.simulando,
         podeSimular: data.podeSimular,
-        temEquipe:   data.temEquipe,
       });
       // Revalida o cache de sessão para o pessoaId atual (cobre simulação:
       // a chave muda junto com o pessoaId do simulado).

@@ -22,7 +22,6 @@ export interface SessionUser {
   permissoes:  Permissoes;
   simulando:   boolean;
   podeSimular: boolean;
-  temEquipe:   boolean;
 }
 
 interface UserStore extends SessionUser {
@@ -59,7 +58,6 @@ const initialState: Omit<UserStore, 'setUser' | 'clearUser' | 'setDrawer' | 'set
   },
   simulando:   false,
   podeSimular: false,
-  temEquipe:   false,
   drawerOpen:       false,
   activeTab:        '',
   fluenciaOpen:     false,

@@ -43,7 +43,7 @@ const ALWAYS: NavItem[] = [
 
 export function Sidebar() {
   const {
-    permissoes, temEquipe, gestorId,
+    permissoes, gestorId,
     setFluencia, clearUser,
     sidebarCollapsed, toggleSidebar,
   } = useUserStore();
@@ -57,20 +57,19 @@ export function Sidebar() {
     router.push('/login');
   }
 
-  // Percentual: gestor com equipe que NÃO bate ponto (apropria horas por %)
-  const showPercentual = hydrated && permissoes.gerenteFuncional && !permissoes.bateRep && temEquipe;
-  // Ponto fica logo após Home. É o fallback universal: quem não cai em Percentual
-  // vê Ponto — espelha o app-react, onde quem não vai para apropriação por % cai em /horas.
-  // Garante que ninguém fique sem nenhum dos dois (ex.: bateRep desatualizado no cadastro).
-  const showPonto = hydrated && !showPercentual;
-  // Gestão: gestor com equipe. Junto de Ponto/Percentual forma o bloco logo após a Home.
-  const showGestao = hydrated && permissoes.gerenteFuncional && temEquipe;
+  // Ponto vs Percentual é decidido SÓ pelo bateRep: quem bate ponto vê Ponto;
+  // quem não bate apropria horas por % (Percentual). Não depende de gerência nem de equipe.
+  const showPercentual = hydrated && !permissoes.bateRep;
+  const showPonto = hydrated && permissoes.bateRep;
+  // Gestão: qualquer gerente funcional (espelha o guard da página /gestao e as rotas
+  // /api/gestao, que só exigem gerenteFuncional).
+  const showGestao = hydrated && permissoes.gerenteFuncional;
 
   // RH e Marketing seguem depois dos itens fixos (Gestão/Ponto/Percentual sobem para perto da Home)
   const conditional: NavItem[] = [];
   if (hydrated) {
     if (temAcessoDP(permissoes.perfilDP)) {
-      conditional.push({ href: '/rh',         label: 'RH',         icon: <BriefcaseIcon className="h-5 w-5 text-teal-500" /> });
+      conditional.push({ href: '/rh',         label: 'DP',         icon: <BriefcaseIcon className="h-5 w-5 text-teal-500" /> });
     }
     if (temAcessoMarketing(permissoes.perfilMarketing)) {
       conditional.push({ href: '/marketing',  label: 'Marketing',  icon: <MegaphoneIcon className="h-5 w-5 text-pink-500" /> });

@@ -13,7 +13,7 @@ const ROUTE_LABELS: [string, string][] = [
   ['/gestao',       'Gestão'],
   ['/ponto',        'Ponto'],
   ['/percentual',   'Percentual'],
-  ['/rh',           'RH'],
+  ['/rh',           'DP'],
   ['/feed',         'Squadra em Rede'],
   ['/holerite',     'Holerite'],
   ['/ferias',       'Férias'],
