@@ -271,10 +271,18 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
     const jaSolicitado = solicitados.has(dia.data);
     const podeSolicitarInline = !!onSolicitar && c.ctas.some((x) => x.tipo === 'solicitar') && dia.faltaId > 0;
 
+    // Linha clicável (abre o drawer de qualquer dia): só na visão colaborador e mês
+    // aberto. Permite gerenciar inclusive dias completos (sem CTA próprio), como no app.
+    const rowClickable = !gestorMode && !bloqueado;
+
     rows.push(
       <div
         key={dia.data}
-        className={`grid ${gridCols} items-center gap-x-1.5 px-3.5 py-2.5 border-b border-gray-100 last:border-0 text-[0.82rem] hover:bg-gray-50`}
+        role={rowClickable ? 'button' : undefined}
+        tabIndex={rowClickable ? 0 : undefined}
+        onClick={rowClickable ? () => onDiaClick(dia) : undefined}
+        onKeyDown={rowClickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDiaClick(dia); } } : undefined}
+        className={`grid ${gridCols} items-center gap-x-1.5 px-3.5 py-2.5 border-b border-gray-100 last:border-0 text-[0.82rem] hover:bg-gray-50 ${rowClickable ? 'cursor-pointer' : ''}`}
       >
         <span className="font-semibold text-gray-700 whitespace-nowrap">
           {dia.data.slice(0, 5)} <span className="text-[0.72rem] font-normal text-gray-400">{abrev}</span>
@@ -287,7 +295,11 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
           {c.horaExtra && <span className="block text-[0.82rem] font-bold text-red-600 leading-tight">+{c.horaExtra}</span>}
         </span>
 
-        <div className="flex flex-wrap items-center justify-end gap-1.5 min-w-[120px]">
+        <div
+          className="flex flex-wrap items-center justify-end gap-1.5 min-w-[120px]"
+          // Área de ações: cliques aqui (botões/barra) não abrem o drawer da linha.
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Barra horizontal */}
           <div className={`flex-1 min-w-[40px] h-1.5 rounded-full ${BAR[c.barKey]}`} />
 
