@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { AvatarGradient } from '@/components/shared/AvatarGradient';
 import { useUserStore } from '@/store/user';
+import { proximoDescontoBR } from '@/features/ponto/banco-horas';
 import { useSaldoProprio } from '../hooks/useSaldoProprio';
 
 function formatSaldo(horas: number): string {
@@ -36,34 +37,43 @@ export function GreetingCard() {
     : null;
 
   return (
-    <div className="bg-white border border-border rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm">
-      <AvatarGradient nome={nome || ''} foto={foto} size={52} />
+    <div className="bg-white border border-border rounded-xl px-4 py-3 flex flex-col gap-2 shadow-sm">
+      <div className="flex items-center gap-3">
+        <AvatarGradient nome={nome || ''} foto={foto} size={52} />
 
-      <div className="flex-1 min-w-0">
-        <p className="font-bold text-base text-foreground leading-tight">
-          Olá, {nome} 👋
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-base text-foreground leading-tight">
+            Olá, {nome} 👋
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">{dataHoje()}</p>
+        </div>
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isLoading ? (
+            <span className="text-xs text-muted-foreground animate-pulse">—</span>
+          ) : data ? (
+            <span className={`text-sm font-semibold ${data.saldoHoras >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+              {formatSaldo(data.saldoHoras)}
+            </span>
+          ) : null}
+
+          {atalho && (
+            <Link
+              href={atalho.href}
+              className="text-sm font-semibold bg-primary text-primary-foreground rounded-lg px-3 py-1.5 hover:opacity-90 transition-opacity whitespace-nowrap"
+            >
+              {atalho.label}
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {/* Banco de horas: data prevista de desconto (somente p/ quem bate ponto e tem saldo). */}
+      {bateRep && data && (
+        <p className="text-[0.7rem] text-muted-foreground leading-snug border-t border-border pt-2">
+          Saldo do banco será descontado em <strong>{proximoDescontoBR(data.saldoHoras < 0)}</strong>.
         </p>
-        <p className="text-xs text-muted-foreground mt-0.5">{dataHoje()}</p>
-      </div>
-
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {isLoading ? (
-          <span className="text-xs text-muted-foreground animate-pulse">—</span>
-        ) : data ? (
-          <span className={`text-sm font-semibold ${data.saldoHoras >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-            {formatSaldo(data.saldoHoras)}
-          </span>
-        ) : null}
-
-        {atalho && (
-          <Link
-            href={atalho.href}
-            className="text-sm font-semibold bg-primary text-primary-foreground rounded-lg px-3 py-1.5 hover:opacity-90 transition-opacity whitespace-nowrap"
-          >
-            {atalho.label}
-          </Link>
-        )}
-      </div>
+      )}
     </div>
   );
 }
