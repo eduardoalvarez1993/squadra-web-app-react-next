@@ -206,3 +206,16 @@ Trazer o fluxo rico do app-react para `/solicitacoes` **e** o drawer inline do p
 - **Liberação de falta livre** mantida (vale p/ gestor "Liberar" e p/ pedido do colaborador; ambos livres no web).
 - Modal "falta de ontem" → coberto pelo card "Dias pendentes".
 - Visão calendário (web) vs dia a dia (app-react) → estrutural, mantida.
+
+---
+
+# 2º ciclo de aproximação (2026-06-11)
+
+Após novo cruzamento, fechados mais 3 pontos (suíte: 310 testes / 26 suítes):
+
+1. **Dia de carga 0 (fim de semana/feriado)** — decisão: **mais restritivo que o app**. O web bloqueia a batida quando não há HE aprovada (o app marcava HORA_EXTRA livremente). Com HE aprovada, libera como HORA_EXTRA até o teto. Regra em `apontamento-rules.ts` (`cargaZeroBloqueio`).
+2. **"Sem hora prevista"** — o calendário deixa de ocultar fim de semana/feriado; esses dias aparecem com esse rótulo (e HE aprovada num sábado passa a aparecer).
+3. **Falha de sincronização APP × ERP** — o web passa a ler o `rm` do `/v2/RetornaApontamentosPorDia` e avisa quando `sqHoras`/`rm` divergem (`ApontamentosDiaResult.rmCount`).
+4. **Banco de horas** — card abaixo do resumo com a data prevista de desconto + regra de ciclo (`banco-horas.ts`). O histórico dia a dia do app permanece coberto pelo calendário.
+
+**Ainda fora do escopo (próxima rodada)**: aba **Banco de Horas** completa (histórico próprio), aba **Alocações**.
