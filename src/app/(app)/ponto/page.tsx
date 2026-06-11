@@ -431,11 +431,24 @@ function PontoPageContent() {
 // Apontamentos já lançados do dia. Editável (exclusão individual) em qualquer dia do
 // mês aberto; `readOnly` só exibe os períodos (mês fechado / ver outro colaborador).
 function ApontamentosRealizados({ dataISO, readOnly = false }: { dataISO: string; readOnly?: boolean }) {
-  const { apontamentos, isLoading, deletar, isDeletando, deletarError } = useApontamentosDia(dataISO, true);
+  const { apontamentos, temSyncError, isLoading, deletar, isDeletando, deletarError } = useApontamentosDia(dataISO, true);
 
   if (isLoading) {
     return <p className="text-xs text-muted-foreground border-t border-border pt-4 mt-2">Carregando apontamentos…</p>;
   }
+
+  // Falha de sincronização APP × ERP: o app e o ERP estão fora de sincronia para o dia.
+  if (temSyncError) {
+    return (
+      <div className="flex items-start gap-2 border-t border-border pt-4 mt-2 rounded-b-none">
+        <div className="flex items-start gap-2 rounded-lg border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/20 px-3 py-2 text-sm text-red-700 dark:text-red-300">
+          <span aria-hidden>⚠️</span>
+          <span>Falha de sincronização entre o app e o ERP. Por favor, refaça os apontamentos deste dia.</span>
+        </div>
+      </div>
+    );
+  }
+
   if (apontamentos.length === 0) return null;
 
   return (

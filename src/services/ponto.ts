@@ -5,12 +5,14 @@ import {
   type NovoApontamentoPayload,
   type DiasSemApontamentoItem,
   type ApontamentoSqHora,
+  type ApontamentosDiaResult,
 } from './squadra-client';
 
-export type { ApontamentoSqHora };
+export type { ApontamentoSqHora, ApontamentosDiaResult };
 
 // Apontamentos de um dia (YYYY-MM-DD) — o upstream espera DD/MM/YYYY no GET.
-export async function getApontamentosDia(usuarioId: number, dataISO: string, token: string): Promise<ApontamentoSqHora[]> {
+// Retorna sqHoras + a contagem do espelho RM (para detectar falha de sync).
+export async function getApontamentosDia(usuarioId: number, dataISO: string, token: string): Promise<ApontamentosDiaResult> {
   const [y, m, d] = dataISO.split('-');
   return squadra.ponto.getApontamentosDia(usuarioId, `${d}/${m}/${y}`, token);
 }

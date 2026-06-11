@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useUserStore } from '@/store/user';
-import type { MesPonto, PontoDia, ProjetoAlocado, DiasSemApontamentoItem, ApontamentoSqHora } from '@/services/squadra-client';
+import type { MesPonto, PontoDia, ProjetoAlocado, DiasSemApontamentoItem, ApontamentoSqHora, ApontamentosDiaResult } from '@/services/squadra-client';
 
 export type { DiasSemApontamentoItem, ApontamentoSqHora };
 
@@ -217,12 +217,17 @@ export type DeletarApontamentoInput = { id: number; tipo: string; data: string }
 export function useApontamentosDia(dataISO: string | null, enabled: boolean) {
   const qc = useQueryClient();
 
-  const query = useQuery<ApontamentoSqHora[]>({
+  const query = useQuery<ApontamentosDiaResult>({
     queryKey: ['ponto', 'apontamentos-dia', dataISO],
     queryFn:  () => fetchJson(`/api/ponto/apontamentos-dia?data=${dataISO}`),
     enabled:  enabled && !!dataISO,
     staleTime: 0,
   });
+
+  const sqHoras = query.data?.sqHoras ?? [];
+  const rmCount = query.data?.rmCount ?? 0;
+  // Falha de sincronização APP × ERP: um lado tem lançamentos e o outro não.
+  const temSyncError = (sqHoras.length > 0 && rmCount === 0) || (rmCount > 0 && sqHoras.length === 0);
 
   const deletarMutation = useMutation({
     mutationFn: async (input: DeletarApontamentoInput) => {
@@ -243,7 +248,8 @@ export function useApontamentosDia(dataISO: string | null, enabled: boolean) {
   });
 
   return {
-    apontamentos: query.data ?? [],
+    apontamentos: sqHoras,
+    temSyncError,
     isLoading:    query.isLoading,
     isError:      query.isError,
     deletar:      (input: DeletarApontamentoInput) => deletarMutation.mutateAsync(input),

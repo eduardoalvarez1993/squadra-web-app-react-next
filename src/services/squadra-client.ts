@@ -1185,11 +1185,19 @@ export type ApontamentoSqHora = {
   tipo:           string;
 };
 
-const ApontamentosDiaSchema = z.unknown().transform((raw): ApontamentoSqHora[] => {
+// Apontamentos do dia + contagem do espelho RM. Quando sqHoras e rm divergem
+// (um vazio e o outro não), há falha de sincronização APP × ERP.
+export type ApontamentosDiaResult = {
+  sqHoras: ApontamentoSqHora[];
+  rmCount: number;
+};
+
+const ApontamentosDiaSchema = z.unknown().transform((raw): ApontamentosDiaResult => {
   const d   = raw as Record<string, unknown>;
   const ret = (d['retorno'] ?? {}) as Record<string, unknown>;
   const lst = Array.isArray(ret['sqHoras']) ? (ret['sqHoras'] as unknown[]) : [];
-  return lst.map((x) => {
+  const rm  = Array.isArray(ret['rm']) ? (ret['rm'] as unknown[]) : [];
+  const sqHoras = lst.map((x) => {
     const r = x as Record<string, unknown>;
     return {
       apontamentoID:  Number(r['apontamentoID'] ?? 0),
@@ -1203,6 +1211,7 @@ const ApontamentosDiaSchema = z.unknown().transform((raw): ApontamentoSqHora[] =
       tipo:           String(r['tipo'] ?? 'A'),
     };
   });
+  return { sqHoras, rmCount: rm.length };
 });
 
 const DadosHoraExtraItemSchema = z.unknown().transform((raw): DadosHoraExtra => {
