@@ -170,8 +170,8 @@ const TECH_GROUPS: { title: string; subtitle: string; techs: Tech[] }[] = [
 // ---------------------------------------------------------------------------
 
 const QUALITY_STATS: { value: string; label: string }[] = [
-  { value: '265',     label: 'testes automatizados' },
-  { value: '20',      label: 'suítes de teste' },
+  { value: '301',     label: 'testes automatizados' },
+  { value: '24',      label: 'suítes de teste' },
   { value: '0',       label: 'falhas na suíte' },
   { value: '88–91%',  label: 'cobertura das rotas críticas' },
 ];
@@ -220,6 +220,19 @@ interface Release {
 
 // Mais recente primeiro.
 const RELEASES: Release[] = [
+  {
+    version: 'v1.7.0',
+    title:   'Ponto mais próximo do app: jornada, hora extra e abono',
+    date:    '11 Jun 2026',
+    changes: [
+      { type: 'novo',     text: 'Solicitar hora extra e abono direto no ponto: atalhos no dia abrem o formulário já com a data preenchida, sem sair da tela' },
+      { type: 'novo',     text: 'Abono completo: tipo, período (início/fim), grau de parentesco, dia inteiro ou horas definidas e anexo (atestado em PNG/JPG/PDF), com cálculo automático de dias e horas por tipo' },
+      { type: 'melhoria', text: 'Apontamento bloqueia jornada acima da carga do dia, com aviso em tela — o que passa do previsto só entra como hora extra aprovada' },
+      { type: 'melhoria', text: 'Cada período do apontamento limitado a 6 horas, espelhando a regra do app' },
+      { type: 'melhoria', text: 'Hora extra: quantidade com digitação livre (até 2h) e motivo limitado a 300 caracteres, no ponto e em Solicitações' },
+      { type: 'infra',    text: 'Suíte de testes: 301 testes em 24 suítes (Vitest), 0 falhas' },
+    ],
+  },
   {
     version: 'v1.6.0',
     title:   'Hora extra no ponto & correções de gestão',
