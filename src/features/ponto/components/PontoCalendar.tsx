@@ -206,9 +206,9 @@ interface PontoCalendarProps {
 export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProjetos, gestorMode, bloqueado }: PontoCalendarProps) {
   // Dia + dia-da-semana ficam numa só célula (1ª coluna), liberando espaço.
   // Sem a coluna do projeto, a coluna de ações vira 1fr para a barra preencher a linha.
-  const gridCols = hideProjetos
-    ? 'grid-cols-[64px_52px_1fr]'
-    : 'grid-cols-[64px_1fr_52px_auto]';
+  // data | horas (coluna fixa → alinhada em todas as linhas) | ações (flexível).
+  // Os horários do projeto vão numa 2ª linha, para não empurrar a coluna de horas.
+  const gridCols = 'grid-cols-[64px_56px_1fr]';
   const [solicitados, setSolicitados] = useState<Set<string>>(new Set());
   const [solicitando, setSolicitando] = useState<string | null>(null);
 
@@ -251,7 +251,6 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
           <span className="font-semibold text-gray-700 whitespace-nowrap">
             {dia.data.slice(0, 5)} <span className="text-[0.72rem] font-normal text-gray-400">{abrev}</span>
           </span>
-          {!hideProjetos && <span />}
           <span />
           <div className="flex items-center gap-1.5 min-w-[120px]">
             <div className={`flex-1 min-w-[40px] h-1.5 rounded-full ${BAR.future}`} />
@@ -282,14 +281,12 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
         tabIndex={rowClickable ? 0 : undefined}
         onClick={rowClickable ? () => onDiaClick(dia) : undefined}
         onKeyDown={rowClickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDiaClick(dia); } } : undefined}
-        className={`grid ${gridCols} items-center gap-x-1.5 px-3.5 py-2.5 border-b border-gray-100 last:border-0 text-[0.82rem] hover:bg-gray-50 ${rowClickable ? 'cursor-pointer' : ''}`}
+        className={`flex flex-col px-3.5 py-2.5 border-b border-gray-100 last:border-0 text-[0.82rem] hover:bg-gray-50 ${rowClickable ? 'cursor-pointer' : ''}`}
       >
+        <div className={`grid ${gridCols} items-center gap-x-1.5`}>
         <span className="font-semibold text-gray-700 whitespace-nowrap">
           {dia.data.slice(0, 5)} <span className="text-[0.72rem] font-normal text-gray-400">{abrev}</span>
         </span>
-        {!hideProjetos && (
-          <span className="text-[0.72rem] text-gray-500 leading-snug break-words">{projetoTimes}</span>
-        )}
         <span className={`text-[0.82rem] font-bold text-right leading-tight tabular-nums ${c.horasDisplay === '00:00' ? 'text-gray-300' : 'text-gray-700'}`}>
           {c.horasDisplay}
           {c.horaExtra && <span className="block text-[0.82rem] font-bold text-red-600 leading-tight">+{c.horaExtra}</span>}
@@ -375,6 +372,14 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
             );
           })}
         </div>
+        </div>
+
+        {/* 2ª linha: horários do projeto (não empurra a coluna de horas). */}
+        {!hideProjetos && projetoTimes && (
+          <div className="text-[0.72rem] text-gray-500 leading-snug break-words pl-[68px] pt-1">
+            {projetoTimes}
+          </div>
+        )}
       </div>,
     );
   }
