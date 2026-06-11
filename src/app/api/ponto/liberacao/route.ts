@@ -4,8 +4,13 @@ import { getSession } from '@/lib/session';
 import { checkOrigin } from '@/lib/check-origin';
 import { solicitarLiberacaoFalta } from '@/services/ponto';
 import { SquadraAuthError, SquadraClientError } from '@/services/squadra-client';
+import { isPeriodoFechado } from '@/lib/periodo-fechado';
 
-const LiberacaoSchema = z.object({ idFalta: z.number() });
+const LiberacaoSchema = z.object({
+  idFalta: z.number(),
+  // Opcional: enviado pelo front p/ reforçar o bloqueio de mês fechado no servidor.
+  data:    z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
 
 export async function POST(req: NextRequest) {
   const forbidden = checkOrigin(req);
@@ -20,6 +25,11 @@ export async function POST(req: NextRequest) {
 
   const parsed = LiberacaoSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'idFalta obrigatório' }, { status: 400 });
+
+  // Mês fechado (12:00 BRT do dia 1º do mês seguinte): solicitação bloqueada.
+  if (parsed.data.data && isPeriodoFechado(parsed.data.data)) {
+    return NextResponse.json({ error: 'Período fechado — mês já computado.' }, { status: 422 });
+  }
 
   try {
     await solicitarLiberacaoFalta(parsed.data.idFalta, session.sqhorasId, session.token);

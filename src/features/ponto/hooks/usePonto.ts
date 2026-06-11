@@ -34,6 +34,14 @@ export function horaExtraAprovadaMin(dia: PontoDia): number {
     .reduce((acc, he) => acc + Math.round(he.qtdadeHoras * 60), 0);
 }
 
+// Abono REAL do dia. O backend às vezes manda `isAbono: true` sem dados de abono
+// (horasAbono "00:00" e sem descrição) — flag espúria que não deve bloquear o
+// apontamento. Discrimina pelos DADOS do abono (horas + descrição), não pelas flags
+// `isAbono`/`isFalta`, que se mostraram não-confiáveis.
+export function isAbonoReal(dia: PontoDia): boolean {
+  return !!dia.horasAbono && dia.horasAbono !== '00:00' && !!dia.descricaoTipoAbono;
+}
+
 export function toMin(t: string): number {
   const [h = 0, m = 0] = (t ?? '').split(':').map(Number);
   return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
@@ -85,7 +93,7 @@ export function computePendentes(dias: PontoDia[]): PontoDiaPendente[] {
     const realMin = toMin(dia.horasRealizadas);
 
     if (prevMin === 0) continue;
-    if (dia.isAbono)   continue;
+    if (isAbonoReal(dia)) continue;
 
     // Dia incompleto (sem batida OU com menos horas que o previsto) → permite registrar/corrigir.
     if (!dia.isFalta && realMin < prevMin) {
@@ -167,11 +175,11 @@ export function usePonto(inicio: string, fim: string, sqhorasId?: number) {
   });
 
   const liberacaoMutation = useMutation({
-    mutationFn: async (idFalta: number) => {
+    mutationFn: async ({ idFalta, data }: { idFalta: number; data?: string }) => {
       const res = await fetch('/api/ponto/liberacao', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ idFalta }),
+        body:    JSON.stringify({ idFalta, data }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({})) as { error?: string };
@@ -196,7 +204,7 @@ export function usePonto(inicio: string, fim: string, sqhorasId?: number) {
     registrar:         (input: NovoApontamentoClientInput) => registrarMutation.mutateAsync(input),
     isRegistrando:     registrarMutation.isPending,
     registrarError:    registrarMutation.error?.message ?? null,
-    liberacao:         (idFalta: number) => liberacaoMutation.mutateAsync(idFalta),
+    liberacao:         (idFalta: number, data?: string) => liberacaoMutation.mutateAsync({ idFalta, data }),
     isLiberando:       liberacaoMutation.isPending,
     liberacaoError:    liberacaoMutation.error?.message ?? null,
   };

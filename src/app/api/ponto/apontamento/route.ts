@@ -5,6 +5,7 @@ import { checkOrigin } from '@/lib/check-origin';
 import { deletarApontamento } from '@/services/ponto';
 import { SquadraAuthError, SquadraClientError } from '@/services/squadra-client';
 import { extractUpstreamMsg } from '@/lib/upstream-error';
+import { isPeriodoFechado } from '@/lib/periodo-fechado';
 
 const Schema = z.object({
   id:   z.number(),
@@ -25,6 +26,11 @@ export async function DELETE(req: NextRequest) {
 
   const parsed = Schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
+
+  // Mês fechado (12:00 BRT do dia 1º do mês seguinte): exclusão bloqueada.
+  if (isPeriodoFechado(parsed.data.data)) {
+    return NextResponse.json({ error: 'Período fechado — mês já computado.' }, { status: 422 });
+  }
 
   try {
     await deletarApontamento(parsed.data.id, parsed.data.tipo, session.pessoaId, parsed.data.data, session.token);

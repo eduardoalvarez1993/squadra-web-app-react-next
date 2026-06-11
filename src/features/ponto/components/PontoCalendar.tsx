@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { PontoDia } from '@/services/squadra-client';
 import { ASSETS } from '@/lib/assets';
-import { computeFaltaStatus, parseDMY, toMin, horaExtraAprovadaMin, SEM_ABREV } from '../hooks/usePonto';
+import { computeFaltaStatus, parseDMY, toMin, horaExtraAprovadaMin, isAbonoReal, SEM_ABREV } from '../hooks/usePonto';
 
 export function PontoLoading({ label = 'Carregando seu ponto...' }: { label?: string }) {
   return (
@@ -75,7 +75,7 @@ function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed 
   const realMin  = toMin(dia.horasRealizadas);
   const st       = dia.statusLiberacaoFalta || '';
   const isFeriado = dia.fimDeSemana;
-  const isAbono   = dia.isFalta && !!dia.horasAbono && dia.horasAbono !== '00:00' && !!dia.descricaoTipoAbono;
+  const isAbono   = isAbonoReal(dia);
   const isToday   = diaDate.getTime() === hoje.getTime();
   const isFaltaDia = dia.isFalta || (dia.falta && Number(dia.faltaId) > 0);
   // Dia que já tem apontamento lançado (JORNADA ou HORA_EXTRA). `realMin` só conta
@@ -186,12 +186,13 @@ interface PontoCalendarProps {
   dias:          PontoDia[];
   loading?:      boolean;
   onDiaClick:    (dia: PontoDia, tipo?: CtaTipo) => void;
-  onSolicitar?:  (idFalta: number) => Promise<void>;
+  onSolicitar?:  (idFalta: number, dataISO?: string) => Promise<void>;
   hideProjetos?: boolean;   // oculta a coluna de horários do projeto (uso em espaços estreitos, ex.: drawer)
   gestorMode?:   boolean;   // CTAs do gestor ("Liberar"/"Confirmar falta") em vez dos do colaborador
+  bloqueado?:    boolean;   // mês fechado: somente leitura — sem nenhum botão de ação
 }
 
-export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProjetos, gestorMode }: PontoCalendarProps) {
+export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProjetos, gestorMode, bloqueado }: PontoCalendarProps) {
   // Dia + dia-da-semana ficam numa só célula (1ª coluna), liberando espaço.
   // Sem a coluna do projeto, a coluna de ações vira 1fr para a barra preencher a linha.
   const gridCols = hideProjetos
@@ -294,7 +295,7 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
           )}
 
           {/* Botão "Aguardar" (disabled) */}
-          {c.aguardarBtn && (
+          {!bloqueado && c.aguardarBtn && (
             <button
               type="button"
               disabled
@@ -305,7 +306,7 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
           )}
 
           {/* CTAs: pode ter mais de um (ex.: gestor com Liberar + Confirmar falta) */}
-          {c.ctas.map((cta) => {
+          {!bloqueado && c.ctas.map((cta) => {
             // Solicitar (colaborador): inline quando possível, senão abre o drawer.
             if (cta.tipo === 'solicitar') {
               if (jaSolicitado) {
@@ -324,8 +325,9 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
                     onClick={async () => {
                       if (!onSolicitar || solicitando) return;
                       setSolicitando(dia.data);
+                      const [dd, mm, yy] = dia.data.split('/');
                       try {
-                        await onSolicitar(dia.faltaId);
+                        await onSolicitar(dia.faltaId, `${yy}-${mm}-${dd}`);
                         setSolicitados((prev) => new Set(prev).add(dia.data));
                       } finally {
                         setSolicitando(null);
