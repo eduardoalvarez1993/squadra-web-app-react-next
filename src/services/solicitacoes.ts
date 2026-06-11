@@ -16,15 +16,29 @@ export async function getTiposAbono(token: string): Promise<TipoAbono[]> {
 }
 
 export async function solicitarAbono(
-  input: { tipoAbonoId: number; data: string; qtdadeHoras: number; justificativa: string; pessoaId: number },
+  input: {
+    tipoAbonoId:   number;
+    dataInicio:    string;   // ISO yyyy-MM-dd
+    dataFim:       string;   // ISO yyyy-MM-dd
+    qtdadeHoras:   number;
+    justificativa: string;
+    anexo?:        string;   // base64 (sem o prefixo data:)
+    nomeAnexo?:    string;
+    pessoaId:      number;
+  },
   token: string,
 ): Promise<{ ok: true }> {
+  // Payload espelha o app-react (/v1/abono/cadastraSolicitacao): faixa de datas
+  // dd/MM/yyyy, `tipo` (id), `recId`, `descricao` e anexo opcional em base64.
   return squadra.solicitacoes.solicitarAbono({
-    tipoAbonoId:   input.tipoAbonoId,
-    recId:         input.pessoaId,
-    data:          toUpstreamDate(input.data),
-    qtdadeHoras:   input.qtdadeHoras,
-    justificativa: input.justificativa,
+    tipo:                  input.tipoAbonoId,
+    recId:                 input.pessoaId,
+    dataInicioSolicitacao: toUpstreamDate(input.dataInicio),
+    dataFimSolicitacao:    toUpstreamDate(input.dataFim),
+    qtdadeHoras:           input.qtdadeHoras,
+    descricao:             input.justificativa,
+    ...(input.anexo     ? { anexo: input.anexo }         : {}),
+    ...(input.nomeAnexo ? { nomeAnexo: input.nomeAnexo } : {}),
   }, token);
 }
 

@@ -23,9 +23,12 @@ function isDayoff(item: AbonoItem): boolean {
 
 export type SolicitarAbonoInput = {
   tipoAbonoId:   number;
-  data:          string;
+  dataInicio:    string;   // ISO yyyy-MM-dd
+  dataFim:       string;   // ISO yyyy-MM-dd
   qtdadeHoras:   number;
   justificativa: string;
+  anexo?:        string;   // base64 (sem prefixo data:)
+  nomeAnexo?:    string;
 };
 
 export type SolicitarDayOffInput = {

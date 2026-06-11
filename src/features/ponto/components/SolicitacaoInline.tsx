@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormFeedback } from '@/components/shared/FormFeedback';
 import { useSolicitacoes } from '@/features/solicitacoes/hooks/useSolicitacoes';
+import { AbonoForm } from '@/features/solicitacoes/components/AbonoForm';
 
 // Formatação amigável do dia (YYYY-MM-DD → DD/MM/YYYY) para o cabeçalho dos forms.
 function fmtBR(iso: string): string {
@@ -98,71 +99,8 @@ export function HoraExtraInlineForm({ dataISO, onDone }: { dataISO: string; onDo
 }
 
 // ── Abono ─────────────────────────────────────────────────────────────────────
-// Reusa o fluxo de /solicitacoes (rota POST /api/solicitacoes/abono). Versão
-// simplificada (tipo, data, horas, justificativa) — sem grau de parentesco/anexo.
+// Reusa o AbonoForm completo (tipo, faixa de datas, parentesco, dia inteiro vs
+// definir horas, anexo) — o mesmo de /solicitacoes — com o dia pré-preenchido.
 export function AbonoInlineForm({ dataISO, onDone }: { dataISO: string; onDone: () => void }) {
-  const { tiposAbono, solicitarAbono, isSolicitando, abonoError } = useSolicitacoes();
-  const [tipoId, setTipoId] = useState('');
-  const [horas,  setHoras]  = useState('');
-  const [just,   setJust]   = useState('');
-  const [ok,     setOk]     = useState(false);
-
-  // Filtra tipos que NÃO são day-off (espelha a aba Abono de /solicitacoes).
-  const tiposFiltrados = tiposAbono.filter((t) => {
-    const n = t.tipoAbono.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
-    return !n.includes('DAY OFF') && !n.includes('FOLGA');
-  });
-
-  return (
-    <form
-      className="flex flex-col gap-4 pt-2"
-      onSubmit={async (e) => {
-        e.preventDefault();
-        if (!tipoId || !horas || !just) return;
-        try {
-          await solicitarAbono({ tipoAbonoId: Number(tipoId), data: dataISO, qtdadeHoras: Number(horas), justificativa: just });
-        } catch {
-          return; // erro exibido via abonoError
-        }
-        setOk(true);
-        setTipoId(''); setHoras(''); setJust('');
-      }}
-    >
-      <p className="text-sm text-muted-foreground">
-        Solicitação de abono para <strong>{fmtBR(dataISO)}</strong>.
-      </p>
-
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium">Tipo</label>
-        <Select value={tipoId} onValueChange={(v) => { setTipoId(v ?? ''); setOk(false); }}>
-          <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
-          <SelectContent>
-            {tiposFiltrados.map((t) => (
-              <SelectItem key={t.id} value={String(t.id)}>{t.tipoAbono}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium">Horas</label>
-        <Input type="number" min="0.5" step="0.5" value={horas} onChange={(e) => { setHoras(e.target.value); setOk(false); }} required />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium">Justificativa</label>
-        <Input value={just} onChange={(e) => { setJust(e.target.value); setOk(false); }} required />
-      </div>
-
-      {ok         && <FormFeedback type="ok"    message="Abono solicitado com sucesso!" />}
-      {abonoError && <FormFeedback type="error" message={abonoError} />}
-
-      <div className="flex gap-2">
-        <Button type="submit" disabled={isSolicitando} className="flex-1">
-          {isSolicitando ? 'Enviando…' : 'Solicitar'}
-        </Button>
-        <Button type="button" variant="outline" onClick={onDone}>Voltar</Button>
-      </div>
-    </form>
-  );
+  return <AbonoForm dataInicialISO={dataISO} onDone={onDone} />;
 }

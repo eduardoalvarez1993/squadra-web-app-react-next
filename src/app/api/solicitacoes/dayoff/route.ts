@@ -40,7 +40,9 @@ export async function POST(req: NextRequest) {
 
     await solicitarAbono({
       tipoAbonoId:   tipoDayoff.id,
-      data:          parsed.data.data,
+      // Day-off é dia único: início = fim.
+      dataInicio:    parsed.data.data,
+      dataFim:       parsed.data.data,
       qtdadeHoras:   parsed.data.qtdadeHoras,
       justificativa: parsed.data.justificativa,
       pessoaId:      session.pessoaId,

@@ -11,11 +11,11 @@ import { FormFeedback } from '@/components/shared/FormFeedback';
 import { ASSETS }       from '@/lib/assets';
 import { Button }       from '@/components/ui/button';
 import { Input }        from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   useSolicitacoes,
   type AbonoItem,
 } from '@/features/solicitacoes/hooks/useSolicitacoes';
+import { AbonoForm } from '@/features/solicitacoes/components/AbonoForm';
 import { AbonoLoader } from '@/features/gestao/components/GestaoLoaders';
 
 const TABS = [
@@ -92,25 +92,13 @@ function HistoricoList({ items, isLoading, emptyLabel, emptyImage, loadingFallba
 // ── Abono ─────────────────────────────────────────────────────────────────────
 
 function TabAbono() {
-  const [open, setOpen]     = useState(false);
-  const [tipoId, setTipoId] = useState('');
-  const [data,   setData]   = useState('');
-  const [horas,  setHoras]  = useState('');
-  const [just,   setJust]   = useState('');
-  const [ok,     setOk]     = useState(false);
-
-  const { abonos, tiposAbono, isLoading, solicitarAbono, isSolicitando, abonoError } = useSolicitacoes();
-
-  // Filtra tipos que NÃO são dayoff para o select
-  const tiposFiltrados = tiposAbono.filter((t) => {
-    const n = t.tipoAbono.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
-    return !n.includes('DAY OFF') && !n.includes('FOLGA');
-  });
+  const [open, setOpen] = useState(false);
+  const { abonos, isLoading } = useSolicitacoes();
 
   return (
     <>
       <div className="flex flex-col gap-3">
-        <Button onClick={() => { setOk(false); setOpen(true); }} className="w-full flex gap-2">
+        <Button onClick={() => setOpen(true)} className="w-full flex gap-2">
           <Plus className="w-4 h-4" /> Solicitar abono
         </Button>
         <HistoricoList
@@ -123,50 +111,7 @@ function TabAbono() {
       </div>
 
       <DrawerForm open={open} onClose={() => setOpen(false)} title="Solicitar abono" side="right">
-        <form
-          className="flex flex-col gap-4 pt-2"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (!tipoId || !data || !horas || !just) return;
-            try {
-              await solicitarAbono({ tipoAbonoId: Number(tipoId), data, qtdadeHoras: Number(horas), justificativa: just });
-            } catch {
-              // Erro de negócio do upstream — exibido via abonoError abaixo. Não limpa o form.
-              return;
-            }
-            setOk(true);
-            setTipoId(''); setData(''); setHoras(''); setJust('');
-          }}
-        >
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Tipo</label>
-            <Select value={tipoId} onValueChange={(v) => setTipoId(v ?? '')}>
-              <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
-              <SelectContent>
-                {tiposFiltrados.map((t) => (
-                  <SelectItem key={t.id} value={String(t.id)}>{t.tipoAbono}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Data</label>
-            <Input type="date" value={data} onChange={(e) => setData(e.target.value)} required />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Horas</label>
-            <Input type="number" min="0.5" step="0.5" value={horas} onChange={(e) => setHoras(e.target.value)} required />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Justificativa</label>
-            <Input value={just} onChange={(e) => setJust(e.target.value)} required />
-          </div>
-          {ok         && <FormFeedback type="ok"    message="Abono solicitado com sucesso!" />}
-          {abonoError && <FormFeedback type="error" message={abonoError} />}
-          <Button type="submit" disabled={isSolicitando} className="w-full">
-            {isSolicitando ? 'Enviando…' : 'Solicitar'}
-          </Button>
-        </form>
+        <AbonoForm onDone={() => setOpen(false)} />
       </DrawerForm>
     </>
   );

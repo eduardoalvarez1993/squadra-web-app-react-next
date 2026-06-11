@@ -7,10 +7,14 @@ import { SquadraAuthError, SquadraClientError } from '@/services/squadra-client'
 
 const Schema = z.object({
   tipoAbonoId:   z.number(),
-  data:          z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  dataInicio:    z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  dataFim:       z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   qtdadeHoras:   z.number().positive(),
-  justificativa: z.string().min(1),
-});
+  justificativa: z.string().min(1).max(300),
+  // Anexo opcional em base64 (sem o prefixo data:...) + nome do arquivo.
+  anexo:         z.string().optional(),
+  nomeAnexo:     z.string().optional(),
+}).refine((v) => v.dataFim >= v.dataInicio, { message: 'Data fim deve ser ≥ início', path: ['dataFim'] });
 
 export async function POST(req: NextRequest) {
   const forbidden = checkOrigin(req);
