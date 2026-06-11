@@ -277,8 +277,12 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, gestorMo
     const realMinB  = toMin(dia.horasRealizadas);
     const extraMinB = toMin(dia.horaExtra);
     const barProporcional = prevMinB > 0 && (c.barKey === 'ok' || c.barKey === 'pend');
-    const barTotal  = prevMinB + extraMinB || 1;
-    const pctJornada = (Math.min(realMinB, prevMinB) / barTotal) * 100;
+    // 'ok' (completo / 100% hora extra / falta liberada) preenche a barra inteira
+    // (jornada + extra), sem vão claro. 'pend' (incompleto) escala pela carga e
+    // deixa o restante em tom claro.
+    const barBase   = c.barKey === 'ok' ? realMinB : prevMinB;
+    const barTotal  = barBase + extraMinB || 1;
+    const pctJornada = (Math.min(realMinB, barBase) / barTotal) * 100;
     const pctExtra   = (extraMinB / barTotal) * 100;
     const barFill   = c.barKey === 'ok' ? 'bg-green-400' : 'bg-amber-400';
     const barTrack  = c.barKey === 'ok' ? 'bg-green-100' : 'bg-amber-100';
@@ -398,6 +402,9 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, gestorMo
       <div className="px-3.5 pt-3 pb-1">
         <h2 className="text-[0.78rem] font-bold text-gray-400 uppercase tracking-wide">
           Registro do mês
+          {!gestorMode && !bloqueado && (
+            <span className="normal-case font-normal text-gray-400"> (clique no dia para ver mais detalhes)</span>
+          )}
         </h2>
       </div>
 
