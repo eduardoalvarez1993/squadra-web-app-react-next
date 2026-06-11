@@ -52,7 +52,7 @@ type StatusKey = keyof typeof STATUS;
 type CtaTipo   = 'registrar' | 'solicitar' | 'apontar' | 'liberar' | 'confirmar';
 type Cta       = { tipo: CtaTipo; label: string };
 
-interface DiaComputed {
+export interface DiaComputed {
   barKey:      BarKey;
   statusKey:   StatusKey | null;
   statusText:  string;
@@ -69,7 +69,7 @@ interface DiaComputed {
 //   confirmaFalta → "Confirmar falta" (marcaFalta/cadastrar)
 //   permissaoLiberacao OU falta passada → "Liberar" (removeFaltaColab — liberação livre,
 //   mantida mesmo sem permissaoLiberacao e mesmo em dia que já passou).
-function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed {
+export function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed {
   const diaDate  = parseDMY(dia.data);
   const prevMin  = toMin(dia.horasPrevistas);
   const realMin  = toMin(dia.horasRealizadas);
@@ -107,13 +107,19 @@ function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed 
   } else if (prevMin === 0 && !isToday) {
     // Dia útil sem carga prevista → feriado.
     r = { ...r, barKey: 'info', statusKey: 'info', statusText: 'Feriado' };
-  } else if (dia.isFalta && st === 'A') {
+  } else if (isFaltaDia && (st === 'A' || dia.liberacaoGestor === 'S')) {
+    // Falta liberada — por aprovação da solicitação (statusLiberacaoFalta 'A') OU
+    // liberação direta do gestor (liberacaoGestor 'S', que às vezes vem sem status).
+    // Vale como dia normal: pode bater/completar.
     r = { ...r, barKey: 'ok', statusKey: 'ok' };
     if (realMin === 0 && !temApontamento) {
-      // Falta liberada e nada lançado ainda → oferece bater ponto.
+      // Liberada e nada lançado ainda → oferece bater ponto.
       r = { ...r, statusText: 'Liberado', ctas: [{ tipo: 'apontar', label: 'Apontar' }] };
+    } else if (realMin > 0 && realMin < prevMin) {
+      // Liberada mas jornada incompleta → permite completar o dia.
+      r = { ...r, statusText: 'Liberado', ctas: [{ tipo: 'registrar', label: 'Registrar' }] };
     } else {
-      // Já liberada e com horas lançadas (jornada ou hora extra) → só o selo "Liberado".
+      // Liberada e com a jornada coberta (ou só hora extra) → selo "Liberado".
       r = { ...r, liberadoBtn: true };
     }
   } else if (dia.isFalta && st === 'R') {
