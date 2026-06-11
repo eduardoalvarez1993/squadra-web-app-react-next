@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Paperclip, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -216,14 +217,31 @@ export function AbonoForm({ dataInicialISO, onDone }: { dataInicialISO?: string;
         <Input value={motivo} maxLength={300} onChange={(e) => { setMotivo(e.target.value); setOk(false); }} placeholder="Descreva o motivo" required />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-muted-foreground">Anexo (opcional — PNG, JPG ou PDF)</label>
-        <input type="file" accept=".png,.jpg,.jpeg,.pdf" onChange={onFile} className="text-sm" />
-        {nomeAnexo && (
-          <span className="text-xs text-muted-foreground flex items-center gap-2">
-            {nomeAnexo}
-            <button type="button" onClick={() => { setAnexo(null); setNomeAnexo(null); }} className="text-destructive">remover</button>
-          </span>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium">Anexo <span className="text-muted-foreground font-normal">(opcional)</span></label>
+        {!nomeAnexo ? (
+          <label className="flex flex-col items-center justify-center gap-1 cursor-pointer rounded-lg border border-dashed border-input bg-muted/30 px-3 py-5 text-center hover:bg-muted/50 hover:border-ring transition-colors">
+            <Paperclip className="w-5 h-5 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">Anexar arquivo</span>
+            <span className="text-[0.7rem] text-muted-foreground">PNG, JPG ou PDF</span>
+            <input type="file" accept=".png,.jpg,.jpeg,.pdf" onChange={onFile} className="sr-only" />
+          </label>
+        ) : (
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2">
+            <span className="flex items-center gap-2 min-w-0 text-sm">
+              <Paperclip className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+              <span className="truncate">{nomeAnexo}</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => { setAnexo(null); setNomeAnexo(null); }}
+              className="text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+              aria-label="Remover anexo"
+              title="Remover anexo"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         )}
       </div>
 
