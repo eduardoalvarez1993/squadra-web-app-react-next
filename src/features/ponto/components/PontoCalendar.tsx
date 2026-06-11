@@ -198,12 +198,12 @@ interface PontoCalendarProps {
   loading?:      boolean;
   onDiaClick:    (dia: PontoDia, tipo?: CtaTipo) => void;
   onSolicitar?:  (idFalta: number, dataISO?: string) => Promise<void>;
-  hideProjetos?: boolean;   // oculta a coluna de horários do projeto (uso em espaços estreitos, ex.: drawer)
+  hideProjetos?: boolean;   // mantido p/ compatibilidade; sem efeito (horários do projeto não são exibidos na linha)
   gestorMode?:   boolean;   // CTAs do gestor ("Liberar"/"Confirmar falta") em vez dos do colaborador
   bloqueado?:    boolean;   // mês fechado: somente leitura — sem nenhum botão de ação
 }
 
-export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProjetos, gestorMode, bloqueado }: PontoCalendarProps) {
+export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, gestorMode, bloqueado }: PontoCalendarProps) {
   // Dia + dia-da-semana ficam numa só célula (1ª coluna), liberando espaço.
   // Sem a coluna do projeto, a coluna de ações vira 1fr para a barra preencher a linha.
   // data | horas (coluna fixa → alinhada em todas as linhas) | ações (flexível).
@@ -261,10 +261,6 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
     }
 
     const c = computeDia(dia, hoje, gestorMode);
-
-    const projetoTimes = Array.isArray(dia.projeto) && dia.projeto.length > 0
-      ? dia.projeto.map((p) => `${p.horaInicio}–${p.horaTermino}`).join(' — ')
-      : '';
 
     // Botão "Solicitar" inline já clicado nesta sessão
     const jaSolicitado = solicitados.has(dia.data);
@@ -373,13 +369,6 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
           })}
         </div>
         </div>
-
-        {/* 2ª linha: horários do projeto (não empurra a coluna de horas). */}
-        {!hideProjetos && projetoTimes && (
-          <div className="text-[0.72rem] text-gray-500 leading-snug break-words pl-[68px] pt-1">
-            {projetoTimes}
-          </div>
-        )}
       </div>,
     );
   }
