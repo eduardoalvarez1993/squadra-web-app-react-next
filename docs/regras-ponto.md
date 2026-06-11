@@ -173,6 +173,11 @@ Ao abrir **hoje**, chama `GET /v1/falta/VerificaFaltaOntem/{usuarioId}`. Se `tru
 
 Objetivo: aproximar o ponto do web-app-next ao app-react, reaproveitando `/solicitacoes`.
 
+> ✅ **Entregue na release v1.7.0 (2026-06-11)** — branch `feat/ponto-aproximacao-appreact`.
+> Fases 1, 2 e 3 implementadas com testes (suíte: 301 testes / 24 suítes, 0 falhas).
+> Pendente de validação com a TI: o contrato real do `/v1/abono/cadastraSolicitacao`
+> (nomes de campo) e os IDs de tipo de abono hardcoded (9,10,11,12,13,21).
+
 ## Já feito (base)
 - **Limite de 6h por período** — cliente (`ApontamentoForm`) + servidor (`PeriodoSchema`), msg "O período não pode exceder 6 horas".
 - **Atalhos inline** de Hora Extra e Abono no drawer do dia em `/ponto` (modos `hora-extra`/`abono`), reusando `useSolicitacoes()`, com o dia pré-preenchido (`SolicitacaoInline.tsx`).
