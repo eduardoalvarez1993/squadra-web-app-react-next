@@ -221,23 +221,11 @@ interface Release {
 // Mais recente primeiro.
 const RELEASES: Release[] = [
   {
-    version: 'v1.7.0',
-    title:   'Ponto mais próximo do app: jornada, hora extra e abono',
-    date:    '11 Jun 2026',
-    changes: [
-      { type: 'novo',     text: 'Solicitar hora extra e abono direto no ponto: atalhos no dia abrem o formulário já com a data preenchida, sem sair da tela' },
-      { type: 'novo',     text: 'Abono completo: tipo, período (início/fim), grau de parentesco, dia inteiro ou horas definidas e anexo (atestado em PNG/JPG/PDF), com cálculo automático de dias e horas por tipo' },
-      { type: 'melhoria', text: 'Apontamento bloqueia jornada acima da carga do dia, com aviso em tela — o que passa do previsto só entra como hora extra aprovada' },
-      { type: 'melhoria', text: 'Cada período do apontamento limitado a 6 horas, espelhando a regra do app' },
-      { type: 'melhoria', text: 'Hora extra: quantidade com digitação livre (até 2h) e motivo limitado a 300 caracteres, no ponto e em Solicitações' },
-      { type: 'infra',    text: 'Suíte de testes: 301 testes em 24 suítes (Vitest), 0 falhas' },
-    ],
-  },
-  {
     version: 'v1.6.0',
     title:   'Hora extra no ponto & correções de gestão',
     date:    '11 Jun 2026',
     changes: [
+      { type: 'melhoria', text: 'Melhorias no fluxo de ponto: jornada não passa da carga do dia (aviso em tela; excedente vira hora extra), limite de 6h por período, hora extra com digitação livre (até 2h) e abono completo (período, grau de parentesco, dia inteiro ou horas, anexo) com atalhos no próprio dia' },
       { type: 'novo',     text: 'Registrar hora extra aprovada direto no ponto: o que passa da carga do dia vira hora extra automaticamente, respeitando o limite aprovado' },
       { type: 'novo',     text: 'Dia com hora extra liberada exibe o selo "H.Extra liberada" e o botão Registrar (some após o lançamento) — na lista de pendentes e no calendário' },
       { type: 'melhoria', text: 'Aprovação de hora extra em painel lateral com escolha Banco de Horas ou Pagamento em Folha; reprovar agora pede confirmação' },
@@ -245,7 +233,7 @@ const RELEASES: Release[] = [
       { type: 'fix',      text: 'Hora extra gravava a data trocada (dia/mês); agora envia no formato correto e o dia solicitado é respeitado' },
       { type: 'fix',      text: 'Gestão: aba Equipe voltou a carregar (mesmo endpoint do app) e uma falha nela não derruba mais as outras abas' },
       { type: 'fix',      text: 'Percentual: leitura correta das horas por mês; menu Ponto × Percentual estável (sem oscilação)' },
-      { type: 'infra',    text: 'Suíte de testes: 265 testes em 20 suítes (Vitest), 0 falhas' },
+      { type: 'infra',    text: 'Suíte de testes: 301 testes em 24 suítes (Vitest), 0 falhas' },
     ],
   },
   {
