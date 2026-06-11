@@ -98,11 +98,11 @@ function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed 
   let r: DiaComputed = { ...base, horaExtra, horasDisplay };
 
   if (isFeriado) {
-    r = { ...r, barKey: 'info', statusKey: 'info', statusText: 'Feriado' };
+    r = { ...r, barKey: 'info', statusKey: 'info', statusText: 'Sem hora prevista' };
   } else if (isAbono) {
     r = { ...r, barKey: 'info', statusKey: 'info', statusText: dia.descricaoTipoAbono };
   } else if (prevMin === 0 && !isToday) {
-    r = { ...r, barKey: 'info', statusKey: 'info', statusText: 'Feriado' };
+    r = { ...r, barKey: 'info', statusKey: 'info', statusText: 'Sem hora prevista' };
   } else if (dia.isFalta && st === 'A') {
     r = { ...r, barKey: 'ok', statusKey: 'ok' };
     if (realMin === 0 && !temApontamento) {
@@ -206,9 +206,9 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
-  // Ordena por data; remove apenas sábados/domingos reais (feriado no meio da semana fica)
+  // Ordena por data. Mantém todos os dias (inclusive fim de semana / carga 0): eles
+  // aparecem como "Sem hora prevista" e podem receber hora extra aprovada.
   const sorted = [...dias]
-    .filter((d) => !(d.fimDeSemana && (d.diaSemana === 'Sabado' || d.diaSemana === 'Domingo')))
     .sort((a, b) => parseDMY(a.data).getTime() - parseDMY(b.data).getTime());
 
   let hojeInserido   = false;
@@ -371,7 +371,7 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
           { color: BAR.ok,     label: 'OK' },
           { color: BAR.pend,   label: 'Pendente' },
           { color: BAR.err,    label: 'Falta / Recusado' },
-          { color: BAR.info,   label: 'Feriado / Abono' },
+          { color: BAR.info,   label: 'Sem previsão / Abono' },
           { color: BAR.future, label: 'Futuro' },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1.5">

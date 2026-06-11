@@ -3,6 +3,16 @@
 
 export type TipoApropriacao = 'JORNADA' | 'HORA_EXTRA';
 
+export const MSG_CARGA_ZERO = 'Dia sem hora prevista. Para registrar, solicite hora extra.';
+
+// Dia de carga 0 (fim de semana/feriado): só permite registrar se houver HORA
+// EXTRA aprovada (vira HORA_EXTRA até o teto). Sem aprovação, bloqueia — não há
+// jornada a cumprir nesse dia. Retorna a mensagem de bloqueio ou null.
+export function cargaZeroBloqueio(cargaMin: number, heAprovadaMin: number): string | null {
+  if (cargaMin === 0 && heAprovadaMin <= 0) return MSG_CARGA_ZERO;
+  return null;
+}
+
 // Excedente da jornada sobre a carga do dia, em minutos (0 quando não excede).
 export function jornadaExcedeMin(jaApontadoMin: number, novoMin: number, cargaMin: number): number {
   return Math.max(0, jaApontadoMin + novoMin - cargaMin);

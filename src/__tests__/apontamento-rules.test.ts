@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest';
-import { jornadaExcedeMin, tetoJornadaError } from '@/features/ponto/apontamento-rules';
+import { jornadaExcedeMin, tetoJornadaError, cargaZeroBloqueio } from '@/features/ponto/apontamento-rules';
+
+describe('cargaZeroBloqueio', () => {
+  it('bloqueia dia de carga 0 sem HE aprovada', () => {
+    expect(cargaZeroBloqueio(0, 0)).toMatch(/solicite hora extra/i);
+  });
+  it('libera carga 0 quando há HE aprovada', () => {
+    expect(cargaZeroBloqueio(0, 120)).toBeNull();
+  });
+  it('não interfere em dia com carga prevista', () => {
+    expect(cargaZeroBloqueio(480, 0)).toBeNull();
+  });
+});
 
 describe('jornadaExcedeMin', () => {
   it('0 quando dentro da carga', () => {
