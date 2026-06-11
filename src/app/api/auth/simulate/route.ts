@@ -87,7 +87,6 @@ export async function POST(req: NextRequest) {
     session.permissoes = { ...permissoes, bateRep }; // garante consistência
     session.simulando   = true;
     session.podeSimular = false;
-    session.temEquipe   = undefined; // força recálculo no próximo /api/auth/me
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (session as any)._simOrig = orig;
 

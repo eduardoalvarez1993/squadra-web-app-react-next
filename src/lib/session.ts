@@ -23,7 +23,6 @@ declare module 'iron-session' {
     };
     simulando?: boolean;
     podeSimular?: boolean;
-    temEquipe?: boolean;
   }
 }
 

@@ -60,7 +60,6 @@ export async function POST(req: NextRequest) {
     session.permissoes  = permissoes;
     session.simulando   = false;
     session.podeSimular = upstream.id === 995;
-    session.temEquipe   = undefined;
 
     await session.save();
 

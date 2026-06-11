@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { squadra } from '@/services/squadra-client';
-import { getEquipe } from '@/services/gestao';
 
 export async function GET() {
   const session = await getSession();
@@ -24,19 +23,6 @@ export async function GET() {
     }
   } catch { /* foto fica null — AvatarGradient usa iniciais */ }
 
-  // temEquipe: cached in session — populated lazily on first call when gerenteFuncional
-  let temEquipe = session.temEquipe ?? false;
-  if (session.temEquipe === undefined && session.permissoes?.gerenteFuncional) {
-    try {
-      const equipe = await getEquipe(session.gestorId!, session.token);
-      temEquipe = equipe.length > 0;
-      session.temEquipe = temEquipe;
-      await session.save();
-    } catch {
-      temEquipe = false;
-    }
-  }
-
   return NextResponse.json({
     ok:         true,
     id:         session.gestorId,
@@ -57,6 +43,5 @@ export async function GET() {
     bateRep:     session.bateRep     ?? false,
     simulando:   session.simulando   ?? false,
     podeSimular: session.podeSimular ?? false,
-    temEquipe,
   });
 }
