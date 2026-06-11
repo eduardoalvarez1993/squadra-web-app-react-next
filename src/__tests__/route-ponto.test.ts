@@ -160,6 +160,13 @@ describe('POST /api/solicitacoes/hora-extra — guardas e regras de negócio', (
     expect(res.status).toBe(400);
   });
 
+  it('400 quando o motivo excede 300 caracteres (limite da API)', async () => {
+    const res = await POSTHoraExtra(makeRequest('http://localhost/api/solicitacoes/hora-extra', {
+      method: 'POST', body: payloadHEOk({ motivo: 'x'.repeat(301) }),
+    }));
+    expect(res.status).toBe(400);
+  });
+
   it('200 ok no caso noturno (2h, isNoturno=S)', async () => {
     let chamouHE = false;
     // calcTipo busca dados do dia (getDadosColab) — devolvemos lista vazia → assume 'C'.

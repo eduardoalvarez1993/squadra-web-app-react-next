@@ -60,21 +60,23 @@ export function HoraExtraInlineForm({ dataISO, onDone }: { dataISO: string; onDo
 
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium">Quantidade de horas</label>
+        {/* step="any": permite digitar livremente (ex.: 1,5 = 1h30) sem travar em
+            múltiplos de 30 min. Máx 2h (limite da API). */}
         <Input
           type="number"
-          step="0.5"
+          step="any"
           min="0.5"
           max="2"
           value={horas}
           onChange={(e) => { setHoras(e.target.value); setOk(false); }}
-          placeholder="Ex.: 1,5"
+          placeholder="Ex.: 1,5 (1h30)"
           required
         />
       </div>
 
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium">Justificativa</label>
-        <Input value={motivo} onChange={(e) => { setMotivo(e.target.value); setOk(false); }} placeholder="Descreva a necessidade" required />
+        <Input value={motivo} maxLength={300} onChange={(e) => { setMotivo(e.target.value); setOk(false); }} placeholder="Descreva a necessidade" required />
       </div>
 
       <label className="flex items-center gap-2 text-sm cursor-pointer">

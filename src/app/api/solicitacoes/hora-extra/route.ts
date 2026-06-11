@@ -12,7 +12,7 @@ const Schema = z.object({
   projetoId:   z.number(),
   data:        z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   qtdadeHoras: z.number().positive(),
-  motivo:      z.string().min(1),
+  motivo:      z.string().min(1).max(300),
   isNoturno:   z.enum(['S', 'N']).default('N'),
 });
 

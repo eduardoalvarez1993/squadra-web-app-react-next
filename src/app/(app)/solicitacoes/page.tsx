@@ -297,20 +297,21 @@ function TabHoraExtra() {
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Quantidade de horas</label>
+            {/* step="any": digitação livre (ex.: 1,5 = 1h30) sem travar em múltiplos. Máx 2h. */}
             <Input
               type="number"
-              step="0.5"
+              step="any"
               min="0.5"
               max="2"
               value={horas}
               onChange={(e) => setHoras(e.target.value)}
-              placeholder="Ex.: 1,5"
+              placeholder="Ex.: 1,5 (1h30)"
               required
             />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Justificativa</label>
-            <Input value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Descreva a necessidade" required />
+            <Input value={motivo} maxLength={300} onChange={(e) => setMotivo(e.target.value)} placeholder="Descreva a necessidade" required />
           </div>
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <input type="checkbox" checked={noturno} onChange={(e) => setNoturno(e.target.checked)} className="rounded" />
