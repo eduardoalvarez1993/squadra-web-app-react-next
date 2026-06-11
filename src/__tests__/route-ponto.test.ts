@@ -19,15 +19,18 @@ const dataFutura = () => {
   const [y, m, d] = hojeBRT().split('-');
   return `${Number(y) + 1}-${m}-${d}`;
 };
-// Uma data claramente passada (ano -1) — evita a regra de horário futuro do próprio dia.
+// Uma data passada mas DENTRO do mês aberto: o 1º do mês corrente. Evita a regra de
+// horário futuro do próprio dia (≠ hoje, salvo no próprio dia 1º) e a trava de
+// período fechado — que rejeitaria uma data de meses/anos anteriores.
 const dataPassada = () => {
-  const [y, m, d] = hojeBRT().split('-');
-  return `${Number(y) - 1}-${m}-${d}`;
+  const [y, m] = hojeBRT().split('-');
+  return `${y}-${m}-01`;
 };
 
 const payloadPontoOk = (over: Record<string, unknown> = {}) => ({
   data:            hojeBRT(),
-  periodos:        [{ horaInicio: '08:00', horaFinal: '17:00' }],
+  // Período de 4h — dentro do limite de 6h por período.
+  periodos:        [{ horaInicio: '08:00', horaFinal: '12:00' }],
   projetoId:       1,
   tipoApropriacao: 'JORNADA' as const,
   ...over,
@@ -77,6 +80,14 @@ describe('POST /api/ponto — guardas e validação', () => {
     expect(res.status).toBe(400);
     // A msg específica de data futura agora chega ao cliente (antes era genérica).
     expect(await res.json()).toMatchObject({ error: 'Data futura não permitida' });
+  });
+
+  it('400 quando um período excede 6 horas (limite por período)', async () => {
+    const res = await POSTPonto(makeRequest('http://localhost/api/ponto', {
+      method: 'POST', body: payloadPontoOk({ periodos: [{ horaInicio: '08:00', horaFinal: '15:00' }] }),
+    }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: 'O período não pode exceder 6 horas' });
   });
 
   it('400 quando o payload é inválido (Zod — tipoApropriacao errado)', async () => {

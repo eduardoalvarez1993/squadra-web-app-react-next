@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormFeedback } from '@/components/shared/FormFeedback';
 import type { ProjetoAlocado } from '@/services/squadra-client';
+import { isPeriodoFechado } from '@/lib/periodo-fechado';
 import { toMin, type NovoApontamentoClientInput, type Periodo } from '../hooks/usePonto';
 
 interface ApontamentoFormProps {
@@ -26,13 +27,17 @@ function fmtMin(min: number): string {
   return `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
 }
 
+type TipoApropriacao = NovoApontamentoClientInput['tipoApropriacao'];
+
 export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting, cargaMin = 0, jaApontadoMin = 0, heAprovadaMin = 0 }: ApontamentoFormProps) {
   const [projetoId,    setProjetoId]    = useState<string>('');
   const [subprojetoId, setSubprojetoId] = useState<string>('');
-  const [periodos,     setPeriodos]     = useState<Periodo[]>([{ horaInicio: '08:00', horaFinal: '17:00' }]);
+  const [periodos,     setPeriodos]     = useState<Periodo[]>([{ horaInicio: '', horaFinal: '' }]);
   const [justificativa,setJustificativa] = useState<string>('');
   const [error,        setError]         = useState<string | null>(null);
   const [ok,           setOk]            = useState(false);
+  // Escolha explícita do usuário (toggle). `null` = ainda não tocou → segue o default automático.
+  const [tipoManual,   setTipoManual]    = useState<TipoApropriacao | null>(null);
 
   function setPeriodo(i: number, campo: keyof Periodo, val: string) {
     setPeriodos((ps) => ps.map((p, idx) => idx === i ? { ...p, [campo]: val } : p));
@@ -46,6 +51,9 @@ export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting, cargaM
   const horaAgora  = new Date().toLocaleTimeString('en-GB', { timeZone: 'America/Sao_Paulo', hour12: false }).slice(0, 5); // "HH:MM"
   const dataFutura = Boolean(data && data > hojeIso);
   const ehHoje     = data === hojeIso;
+  // Mês fechado (12:00 BRT do dia 1º do mês seguinte): defesa — o drawer não deveria
+  // abrir nesse caso, mas o submit fica bloqueado de qualquer forma.
+  const bloqueado  = Boolean(data) && isPeriodoFechado(data);
 
   // Auto-seleção (derivada, sem effect): 1 projeto → já vem selecionado; idem subprojeto único.
   const projetoIdSel = projetoId || (projetos.length === 1 ? String(projetos[0].id) : '');
@@ -58,21 +66,28 @@ export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting, cargaM
   const projetoItems = projetos.map((p) => ({ value: String(p.id), label: p.nome }));
   const subprojetoItems = (projeto?.subProjetos ?? []).map((s) => ({ value: String(s.id), label: s.nome }));
 
-  // Classificação automática JORNADA × HORA_EXTRA (sem toggle): o que ultrapassar a
-  // carga do dia vira HORA_EXTRA quando há hora extra aprovada, limitado ao teto.
+  // Classificação JORNADA × HORA_EXTRA. O default é automático (o que ultrapassa a carga
+  // do dia vira HORA_EXTRA), mas o usuário pode sobrepor pelo toggle quando ele aparece.
   const novoMin     = periodos.reduce((acc, p) => acc + Math.max(0, toMin(p.horaFinal) - toMin(p.horaInicio)), 0);
   const excedeMin    = Math.max(0, jaApontadoMin + novoMin - cargaMin);
-  const ehHoraExtra  = excedeMin > 0 && heAprovadaMin > 0;
-  const tipoApropriacao: NovoApontamentoClientInput['tipoApropriacao'] = ehHoraExtra ? 'HORA_EXTRA' : 'JORNADA';
+  // Toggle só aparece quando o dia tem H.Extra LIBERADA (mesmo sinal do chip do calendário).
+  // Sem HE aprovada não faz sentido marcar hora extra — o backend recusa o excedente de
+  // qualquer forma. Default: HORA_EXTRA quando há HE aprovada e o dia excede a carga.
+  const mostrarToggle = heAprovadaMin > 0;
+  const tipoAuto: TipoApropriacao = (heAprovadaMin > 0 && excedeMin > 0) ? 'HORA_EXTRA' : 'JORNADA';
+  const tipoApropriacao: TipoApropriacao = mostrarToggle ? (tipoManual ?? tipoAuto) : tipoAuto;
 
   function validate(): string | null {
     if (!projetoIdSel) return 'Selecione um projeto';
     if (temSubProj && !subprojetoIdSel) return 'Selecione um subprojeto';
     if (dataFutura) return 'Não é possível registrar apontamento em data futura';
+    if (bloqueado)  return 'Período fechado — mês já computado.';
     if (periodos.length === 0) return 'Adicione pelo menos 1 período';
     for (const p of periodos) {
       if (!p.horaInicio || !p.horaFinal) return 'Informe início e fim de cada período';
       if (p.horaFinal <= p.horaInicio)   return 'Em cada período, o fim deve ser após o início';
+      // Espelha o app-react: nenhum período pode exceder 6 horas (360 min).
+      if (toMin(p.horaFinal) - toMin(p.horaInicio) > 360) return 'O período não pode exceder 6 horas';
       // No próprio dia, não dá para apontar horário que ainda não aconteceu.
       if (ehHoje && p.horaFinal > horaAgora) return `Não é possível registrar horário futuro — agora são ${horaAgora}.`;
     }
@@ -81,8 +96,9 @@ export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting, cargaM
     for (let i = 1; i < ord.length; i++) {
       if (ord[i].horaInicio < ord[i - 1].horaFinal) return 'Os períodos não podem se sobrepor';
     }
-    // Teto da hora extra aprovada: o excedente da carga não pode passar do aprovado.
-    if (excedeMin > 0 && heAprovadaMin > 0 && excedeMin > heAprovadaMin) {
+    // Teto da hora extra aprovada: ao marcar HORA EXTRA, o excedente da carga não pode
+    // passar do aprovado (só checamos quando a aprovação foi detectada no payload do dia).
+    if (tipoApropriacao === 'HORA_EXTRA' && heAprovadaMin > 0 && excedeMin > heAprovadaMin) {
       return `O excedente (${fmtMin(excedeMin)}) ultrapassa sua hora extra aprovada (${fmtMin(heAprovadaMin)}).`;
     }
     return null;
@@ -104,6 +120,7 @@ export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting, cargaM
         justificativa:   justificativa || undefined,
       });
       setOk(true);
+      setTipoManual(null);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -123,13 +140,33 @@ export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting, cargaM
         />
       </div>
 
-      {heAprovadaMin > 0 && (
-        <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
-          <span aria-hidden>⚡</span>
-          <span>
-            Você tem <strong>{fmtMin(heAprovadaMin)}</strong> de hora extra aprovada. O que exceder a
-            carga do dia será registrado como hora extra.
-          </span>
+      {mostrarToggle && (
+        <div className="flex flex-col gap-2 rounded-lg border border-border bg-muted/40 p-3">
+          <p className="text-sm text-emerald-800 dark:text-emerald-300">
+            <span aria-hidden>⚡</span> Você tem <strong>{fmtMin(heAprovadaMin)}</strong> de hora extra aprovada neste dia.
+          </p>
+          <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+            {(['JORNADA', 'HORA_EXTRA'] as const).map((t) => {
+              const ativo = tipoApropriacao === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => { setTipoManual(t); setOk(false); }}
+                  className={[
+                    'rounded-md py-2 text-sm font-medium transition-colors',
+                    ativo
+                      ? t === 'HORA_EXTRA'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'bg-blue-600 text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground',
+                  ].join(' ')}
+                >
+                  {t === 'JORNADA' ? 'Jornada' : 'Hora Extra'}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -211,8 +248,9 @@ export function ApontamentoForm({ data, projetos, onSubmit, isSubmitting, cargaM
       {ok    && <FormFeedback type="ok"    message="Apontamento registrado com sucesso!" />}
       {error && <FormFeedback type="error" message={error} />}
       {dataFutura && <FormFeedback type="error" message="Não é possível registrar apontamento em data futura." />}
+      {bloqueado && <FormFeedback type="error" message="Período fechado — mês já computado." />}
 
-      <Button type="submit" disabled={isSubmitting || dataFutura} className="w-full">
+      <Button type="submit" disabled={isSubmitting || dataFutura || bloqueado} className="w-full">
         {isSubmitting ? 'Registrando…' : 'Registrar apontamento'}
       </Button>
     </form>

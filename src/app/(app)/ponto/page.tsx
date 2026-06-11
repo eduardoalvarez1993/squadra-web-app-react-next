@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ChevronLeft, ChevronRight, Plus, Trash2, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Trash2, Loader2, Zap, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DrawerForm } from '@/components/shared/DrawerForm';
 import { ErrorSection } from '@/components/shared/ErrorSection';
@@ -14,6 +14,8 @@ import { usePonto, useApontamentosDia, toMin, horaExtraAprovadaMin, type PontoDi
 import { PontoCalendar } from '@/features/ponto/components/PontoCalendar';
 import { PontosPendentes } from '@/features/ponto/components/PontosPendentes';
 import { ApontamentoForm } from '@/features/ponto/components/ApontamentoForm';
+import { HoraExtraInlineForm, AbonoInlineForm } from '@/features/ponto/components/SolicitacaoInline';
+import { isMesFechado } from '@/lib/periodo-fechado';
 import type { PontoDia } from '@/services/squadra-client';
 
 const MESES = [
@@ -26,7 +28,7 @@ function sumHoras(horas: string[]): string {
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
-type DrawerMode = 'registrar' | 'solicitar' | 'aguardar' | 'apontar' | null;
+type DrawerMode = 'registrar' | 'solicitar' | 'aguardar' | 'apontar' | 'hora-extra' | 'abono' | null;
 
 function PontoPageContent() {
   const bateRep      = useUserStore((s) => s.permissoes.bateRep);
@@ -49,6 +51,10 @@ function PontoPageContent() {
   const lastDay = new Date(year, month, 0).getDate();
   const fim     = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
+  // Mês fechado (computado): às 12:00 BRT do dia 1º do mês seguinte ele trava e nenhum
+  // dia aceita ação — sem botões, faixa de aviso e card de pendências oculto.
+  const mesFechado = isMesFechado(year, month);
+
   const {
     meses,
     dias,
@@ -67,6 +73,14 @@ function PontoPageContent() {
 
   const [drawerDia,  setDrawerDia]  = useState<PontoDia | null>(null);
   const [drawerMode, setDrawerMode] = useState<DrawerMode>(null);
+  // Modo do apontamento de onde os atalhos de HE/abono foram abertos — usado pelo
+  // botão "Voltar" para retornar à mesma visão.
+  const [solReturn,  setSolReturn]  = useState<DrawerMode>('registrar');
+
+  function openSolicitacao(modo: 'hora-extra' | 'abono') {
+    setSolReturn(drawerMode);
+    setDrawerMode(modo);
+  }
 
   function openFromPendente(item: PontoDiaPendente) {
     if (outraSqhorasId) return; // somente-leitura ao ver outro colaborador
@@ -207,13 +221,15 @@ function PontoPageContent() {
   const drawerDataIso = drawerDia
     ? (() => { const [d, m, y] = drawerDia.data.split('/'); return `${y}-${m}-${d}`; })()
     : '';
-  // Edição/remoção de apontamentos só no dia atual (BRT).
-  const hojeIso       = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
-  const drawerEhHoje  = !!drawerDataIso && drawerDataIso === hojeIso && !outraSqhorasId;
+  // Edição/remoção de apontamentos: liberada em qualquer dia do mês ABERTO (o backend
+  // só barra mês fechado). Em mês fechado ou ao ver outro colaborador, fica readonly.
+  const drawerEditavel = !outraSqhorasId && !mesFechado;
 
   const drawerTitle = (() => {
     if (!drawerDia) return '';
     if (drawerMode === 'registrar' || drawerMode === 'apontar') return `Apontamento — ${drawerDia.data}`;
+    if (drawerMode === 'hora-extra') return `Hora extra — ${drawerDia.data}`;
+    if (drawerMode === 'abono')      return `Abono — ${drawerDia.data}`;
     if (drawerMode === 'solicitar') return `Solicitar liberação — ${drawerDia.data}`;
     return `Status — ${drawerDia.data}`;
   })();
@@ -255,8 +271,8 @@ function PontoPageContent() {
         ))}
       </div>
 
-      {/* Botão realizar apontamento — oculto ao ver ponto de outro */}
-      {!outraSqhorasId && (
+      {/* Botão realizar apontamento — oculto ao ver ponto de outro ou em mês fechado */}
+      {!outraSqhorasId && !mesFechado && (
         <button
           type="button"
           onClick={openNovoApontamento}
@@ -268,13 +284,13 @@ function PontoPageContent() {
         </button>
       )}
 
-      {/* Dias pendentes — oculto ao ver outro (ações gravariam no usuário logado) */}
-      {!isLoading && !outraSqhorasId && (
+      {/* Dias pendentes — oculto ao ver outro (ações gravariam no usuário logado) ou em mês fechado */}
+      {!isLoading && !outraSqhorasId && !mesFechado && (
         <PontosPendentes pendentes={pendentes} onItemClick={openFromPendente} />
       )}
 
-      {/* Dias sem apontamento — apenas para o próprio usuário */}
-      {!outraSqhorasId && diasSemApontamento.length > 0 && (
+      {/* Dias sem apontamento — apenas para o próprio usuário e mês ainda aberto */}
+      {!outraSqhorasId && !mesFechado && diasSemApontamento.length > 0 && (
         <div className="flex flex-col gap-2">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
             Dias sem apontamento
@@ -311,12 +327,20 @@ function PontoPageContent() {
         </div>
       )}
 
+      {/* Faixa de mês fechado — período já computado, somente leitura */}
+      {mesFechado && !outraSqhorasId && (
+        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-card px-3 py-2 text-sm text-amber-800 dark:text-amber-300 text-center font-medium">
+          Mês fechado, nenhuma mudança autorizada.
+        </div>
+      )}
+
       {/* Calendário */}
       <PontoCalendar
         dias={dias}
         loading={isLoading}
-        onDiaClick={openFromCalendar}
-        onSolicitar={!outraSqhorasId ? liberacao : undefined}
+        bloqueado={mesFechado}
+        onDiaClick={mesFechado ? () => {} : openFromCalendar}
+        onSolicitar={!outraSqhorasId && !mesFechado ? liberacao : undefined}
       />
 
       {/* Drawer */}
@@ -340,8 +364,35 @@ function PontoPageContent() {
                 closeDrawer();
               }}
             />
-            {drawerEhHoje && <ApontamentosRealizados dataISO={drawerDataIso} />}
+            <ApontamentosRealizados dataISO={drawerDataIso} readOnly={!drawerEditavel} />
+
+            {/* Atalhos para solicitação (reusam /solicitacoes) com o dia já preenchido. */}
+            {drawerEditavel && (
+              <div className="flex flex-col gap-2 border-t border-border pt-4 mt-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Solicitações</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openSolicitacao('hora-extra')}
+                    className="flex items-center justify-center gap-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300 text-sm font-medium py-2.5 hover:opacity-80 transition-opacity"
+                  >
+                    <Zap className="w-4 h-4" /> Hora extra
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openSolicitacao('abono')}
+                    className="flex items-center justify-center gap-1.5 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 text-sm font-medium py-2.5 hover:opacity-80 transition-opacity"
+                  >
+                    <FileText className="w-4 h-4" /> Abono
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
+        ) : drawerMode === 'hora-extra' ? (
+          <HoraExtraInlineForm dataISO={drawerDataIso} onDone={() => setDrawerMode(solReturn)} />
+        ) : drawerMode === 'abono' ? (
+          <AbonoInlineForm dataISO={drawerDataIso} onDone={() => setDrawerMode(solReturn)} />
         ) : drawerMode === 'solicitar' && drawerDia ? (
           <div className="flex flex-col gap-4 pt-2">
             <p className="text-sm text-muted-foreground">
@@ -352,7 +403,7 @@ function PontoPageContent() {
             <Button
               onClick={async () => {
                 if (!drawerDia.faltaId) return;
-                await liberacao(drawerDia.faltaId);
+                await liberacao(drawerDia.faltaId, drawerDataIso);
                 closeDrawer();
               }}
               disabled={isLiberando || !drawerDia.faltaId}
@@ -377,8 +428,9 @@ function PontoPageContent() {
   );
 }
 
-// Apontamentos já lançados do dia, com exclusão individual. Só no dia atual.
-function ApontamentosRealizados({ dataISO }: { dataISO: string }) {
+// Apontamentos já lançados do dia. Editável (exclusão individual) em qualquer dia do
+// mês aberto; `readOnly` só exibe os períodos (mês fechado / ver outro colaborador).
+function ApontamentosRealizados({ dataISO, readOnly = false }: { dataISO: string; readOnly?: boolean }) {
   const { apontamentos, isLoading, deletar, isDeletando, deletarError } = useApontamentosDia(dataISO, true);
 
   if (isLoading) {
@@ -389,7 +441,7 @@ function ApontamentosRealizados({ dataISO }: { dataISO: string }) {
   return (
     <div className="flex flex-col gap-2 border-t border-border pt-4 mt-2">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Apontamentos realizados</p>
-      {deletarError && <FormFeedback type="error" message={deletarError} />}
+      {!readOnly && deletarError && <FormFeedback type="error" message={deletarError} />}
       {apontamentos.map((a) => (
         <div key={a.apontamentoID} className="flex items-center justify-between bg-card border border-border rounded-card px-3 py-2 gap-2">
           <div className="min-w-0">
@@ -398,16 +450,18 @@ function ApontamentosRealizados({ dataISO }: { dataISO: string }) {
               {a.nomeCliente ? `${a.nomeCliente} · ` : ''}{a.nomeProjeto}{a.nomeSubProjeto ? ` / ${a.nomeSubProjeto}` : ''}
             </p>
           </div>
-          <button
-            type="button"
-            disabled={isDeletando}
-            onClick={() => deletar({ id: a.apontamentoID, tipo: a.tipo, data: dataISO })}
-            className="text-muted-foreground hover:text-destructive transition-colors flex-shrink-0 disabled:opacity-40"
-            aria-label="Excluir apontamento"
-            title="Excluir"
-          >
-            {isDeletando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              disabled={isDeletando}
+              onClick={() => deletar({ id: a.apontamentoID, tipo: a.tipo, data: dataISO })}
+              className="text-muted-foreground hover:text-destructive transition-colors flex-shrink-0 disabled:opacity-40"
+              aria-label="Excluir apontamento"
+              title="Excluir"
+            >
+              {isDeletando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+            </button>
+          )}
         </div>
       ))}
     </div>
