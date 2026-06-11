@@ -1,7 +1,24 @@
-// Banco de horas — data prevista de desconto (espelha getNextDiscountDate do app-react).
+// Banco de horas — data e tipo do próximo ciclo (espelha getNextDiscountDate do app-react).
 //
-// Regra de ciclos: saldo NEGATIVO é descontado no 1º do mês seguinte; saldo
-// POSITIVO zera no início do próximo trimestre (1º de mar/jun/set/dez).
+// Regra de ciclos:
+// - saldo NEGATIVO → desconto no pagamento, no 1º dia do mês seguinte;
+// - saldo POSITIVO → pagamento das horas, no início do próximo trimestre (1º de mar/jun/set/dez).
+
+export type CicloBanco = {
+  tipo:   'desconto' | 'pagamento';
+  verbo:  string;   // "descontado" | "pago"
+  rotulo: string;   // "negativo" | "positivo"
+  dataBR: string;   // DD/MM/YYYY
+};
+
+export function cicloBancoHoras(saldoNegativo: boolean, now: Date = new Date()): CicloBanco {
+  return {
+    tipo:   saldoNegativo ? 'desconto'   : 'pagamento',
+    verbo:  saldoNegativo ? 'descontado' : 'pago',
+    rotulo: saldoNegativo ? 'negativo'   : 'positivo',
+    dataBR: proximoDescontoBR(saldoNegativo, now),
+  };
+}
 
 export function proximoDescontoBR(saldoNegativo: boolean, now: Date = new Date()): string {
   const y = now.getFullYear();

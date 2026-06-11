@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { AvatarGradient } from '@/components/shared/AvatarGradient';
 import { useUserStore } from '@/store/user';
-import { proximoDescontoBR } from '@/features/ponto/banco-horas';
+import { cicloBancoHoras } from '@/features/ponto/banco-horas';
 import { useSaldoProprio } from '../hooks/useSaldoProprio';
 
 function formatSaldo(horas: number): string {
@@ -68,12 +68,15 @@ export function GreetingCard() {
         </div>
       </div>
 
-      {/* Banco de horas: data prevista de desconto (somente p/ quem bate ponto e tem saldo). */}
-      {bateRep && data && (
-        <p className="text-[0.7rem] text-muted-foreground leading-snug border-t border-border pt-2">
-          Saldo do banco será descontado em <strong>{proximoDescontoBR(data.saldoHoras < 0)}</strong>.
-        </p>
-      )}
+      {/* Banco de horas: desconto (negativo) ou pagamento (positivo), p/ quem bate ponto. */}
+      {bateRep && data && data.saldoHoras !== 0 && (() => {
+        const ciclo = cicloBancoHoras(data.saldoHoras < 0);
+        return (
+          <p className="text-[0.7rem] text-muted-foreground leading-snug border-t border-border pt-2">
+            Saldo <strong>{ciclo.rotulo}</strong> será <strong>{ciclo.verbo}</strong> em <strong>{ciclo.dataBR}</strong>.
+          </p>
+        );
+      })()}
     </div>
   );
 }

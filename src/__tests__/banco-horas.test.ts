@@ -1,5 +1,22 @@
 import { describe, it, expect } from 'vitest';
-import { proximoDescontoBR } from '@/features/ponto/banco-horas';
+import { proximoDescontoBR, cicloBancoHoras } from '@/features/ponto/banco-horas';
+
+describe('cicloBancoHoras', () => {
+  it('saldo negativo → desconto no 1º do mês seguinte', () => {
+    const c = cicloBancoHoras(true, new Date(2026, 5, 11));
+    expect(c.tipo).toBe('desconto');
+    expect(c.verbo).toBe('descontado');
+    expect(c.rotulo).toBe('negativo');
+    expect(c.dataBR).toBe('01/07/2026');
+  });
+  it('saldo positivo → pagamento no próximo trimestre', () => {
+    const c = cicloBancoHoras(false, new Date(2026, 5, 11));
+    expect(c.tipo).toBe('pagamento');
+    expect(c.verbo).toBe('pago');
+    expect(c.rotulo).toBe('positivo');
+    expect(c.dataBR).toBe('01/09/2026');
+  });
+});
 
 describe('proximoDescontoBR', () => {
   it('saldo negativo → 1º do mês seguinte', () => {

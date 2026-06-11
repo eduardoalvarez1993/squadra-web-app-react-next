@@ -75,6 +75,9 @@ function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed 
   const realMin  = toMin(dia.horasRealizadas);
   const st       = dia.statusLiberacaoFalta || '';
   const isFeriado = dia.fimDeSemana;
+  // Sáb/Dom de verdade ("sem hora prevista") × feriado em dia útil (backend manda
+  // fimDeSemana:true ou carga 0 num dia de semana) → "Feriado" prevalece.
+  const ehFimDeSemanaReal = dia.diaSemana === 'Sabado' || dia.diaSemana === 'Domingo';
   const isAbono   = isAbonoReal(dia);
   const isToday   = diaDate.getTime() === hoje.getTime();
   const isFaltaDia = dia.isFalta || (dia.falta && Number(dia.faltaId) > 0);
@@ -98,11 +101,12 @@ function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed 
   let r: DiaComputed = { ...base, horaExtra, horasDisplay };
 
   if (isFeriado) {
-    r = { ...r, barKey: 'info', statusKey: 'info', statusText: 'Sem hora prevista' };
+    r = { ...r, barKey: 'info', statusKey: 'info', statusText: ehFimDeSemanaReal ? 'Sem hora prevista' : 'Feriado' };
   } else if (isAbono) {
     r = { ...r, barKey: 'info', statusKey: 'info', statusText: dia.descricaoTipoAbono };
   } else if (prevMin === 0 && !isToday) {
-    r = { ...r, barKey: 'info', statusKey: 'info', statusText: 'Sem hora prevista' };
+    // Dia útil sem carga prevista → feriado.
+    r = { ...r, barKey: 'info', statusKey: 'info', statusText: 'Feriado' };
   } else if (dia.isFalta && st === 'A') {
     r = { ...r, barKey: 'ok', statusKey: 'ok' };
     if (realMin === 0 && !temApontamento) {
@@ -131,8 +135,9 @@ function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed 
   } else if (realMin >= prevMin) {
     r = { ...r, barKey: 'ok' };
   } else {
-    // Jornada incompleta — as horas já aparecem na coluna numérica; não repetir num chip.
-    r = { ...r, barKey: 'pend' };
+    // Jornada incompleta (bateu parte do dia): oferece "Registrar" para completar.
+    // As horas já aparecem na coluna numérica; o botão dá o caminho de ação.
+    r = { ...r, barKey: 'pend', ctas: [{ tipo: 'registrar', label: 'Registrar' }] };
   }
 
   // Hora extra APROVADA e ainda não apontada → chip "H.Extra liberada" + botão Registrar
@@ -371,7 +376,7 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
           { color: BAR.ok,     label: 'OK' },
           { color: BAR.pend,   label: 'Pendente' },
           { color: BAR.err,    label: 'Falta / Recusado' },
-          { color: BAR.info,   label: 'Sem previsão / Abono' },
+          { color: BAR.info,   label: 'Feriado / Sem previsão / Abono' },
           { color: BAR.future, label: 'Futuro' },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1.5">
