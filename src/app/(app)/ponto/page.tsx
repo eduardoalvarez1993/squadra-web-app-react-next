@@ -16,6 +16,7 @@ import { PontosPendentes } from '@/features/ponto/components/PontosPendentes';
 import { ApontamentoForm } from '@/features/ponto/components/ApontamentoForm';
 import { HoraExtraInlineForm, AbonoInlineForm } from '@/features/ponto/components/SolicitacaoInline';
 import { isMesFechado } from '@/lib/periodo-fechado';
+import { proximoDescontoBR } from '@/features/ponto/banco-horas';
 import type { PontoDia } from '@/services/squadra-client';
 
 const MESES = [
@@ -270,6 +271,19 @@ function PontoPageContent() {
           </div>
         ))}
       </div>
+
+      {/* Banco de horas — data prevista de desconto + regra de ciclo (logo abaixo do resumo) */}
+      {!isLoading && saldo && (
+        <div className="bg-white rounded-xl shadow-sm px-4 py-3 flex flex-col gap-1">
+          <p className="text-xs text-gray-600">
+            Saldo do banco será descontado em <strong>{proximoDescontoBR(saldoNeg)}</strong>.
+          </p>
+          <p className="text-[0.7rem] text-gray-400 leading-snug">
+            Saldo positivo zera a cada 3 meses; saldo negativo no fim de cada mês.
+            Fique atento ao cumprimento mínimo das horas para evitar descontos no pagamento.
+          </p>
+        </div>
+      )}
 
       {/* Botão realizar apontamento — oculto ao ver ponto de outro ou em mês fechado */}
       {!outraSqhorasId && !mesFechado && (
