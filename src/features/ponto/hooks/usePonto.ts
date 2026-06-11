@@ -2,9 +2,9 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useUserStore } from '@/store/user';
-import type { MesPonto, PontoDia, ProjetoAlocado, DiasSemApontamentoItem } from '@/services/squadra-client';
+import type { MesPonto, PontoDia, ProjetoAlocado, DiasSemApontamentoItem, ApontamentoSqHora } from '@/services/squadra-client';
 
-export type { DiasSemApontamentoItem };
+export type { DiasSemApontamentoItem, ApontamentoSqHora };
 
 export type FaltaStatus = 'aprovado' | 'recusado' | 'pendente' | 'nao_solicitado';
 
@@ -12,17 +12,27 @@ export type PontoDiaPendente = {
   dia:   PontoDia;
   tipo:  'registrar' | 'solicitar' | 'aguardar' | 'apontar';
   label: string;
+  heExtra?: boolean;  // pendência específica de registrar hora extra aprovada
 };
+
+export type Periodo = { horaInicio: string; horaFinal: string };
 
 export type NovoApontamentoClientInput = {
   data:            string;
-  horaInicio:      string;
-  horaFinal:       string;
+  periodos:        Periodo[];
   projetoId:       number;
   subprojetoId?:   number;
-  tipoApropriacao: 'JORNADA';
+  tipoApropriacao: 'JORNADA' | 'HORA_EXTRA';
   justificativa?:  string;
 };
+
+// Minutos de hora extra APROVADA (statusSolicitacao === 3) pendentes de registro no dia.
+// O dadosHoraExtra usa códigos próprios: 3 = aprovada, 5 = pendente do gestor.
+export function horaExtraAprovadaMin(dia: PontoDia): number {
+  return (dia.dadosHoraExtra ?? [])
+    .filter((he) => he.statusSolicitacao === 3)
+    .reduce((acc, he) => acc + Math.round(he.qtdadeHoras * 60), 0);
+}
 
 export function toMin(t: string): number {
   const [h = 0, m = 0] = (t ?? '').split(':').map(Number);
@@ -56,10 +66,20 @@ export function computePendentes(dias: PontoDia[]): PontoDiaPendente[] {
   const result: PontoDiaPendente[] = [];
 
   for (const dia of dias) {
-    if (dia.fimDeSemana) continue;
-
     const dataDate = parseDMY(dia.data);
     if (dataDate > hoje) continue;
+
+    // Hora extra APROVADA e ainda não registrada tem prioridade — vale inclusive em
+    // fim de semana ou dia com abono. `dia.horaExtra` reflete o que já foi lançado
+    // como extra; enquanto for menor que o aprovado, o dia fica registrável e some
+    // assim que a HE for batida.
+    const heAprovMin = horaExtraAprovadaMin(dia);
+    if (heAprovMin > toMin(dia.horaExtra)) {
+      result.push({ dia, tipo: 'registrar', label: 'H.Extra liberada', heExtra: true });
+      continue;
+    }
+
+    if (dia.fimDeSemana) continue;
 
     const prevMin = toMin(dia.horasPrevistas);
     const realMin = toMin(dia.horasRealizadas);
@@ -67,8 +87,9 @@ export function computePendentes(dias: PontoDia[]): PontoDiaPendente[] {
     if (prevMin === 0) continue;
     if (dia.isAbono)   continue;
 
-    if (!dia.isFalta && realMin === 0) {
-      result.push({ dia, tipo: 'registrar', label: 'Sem apontamento' });
+    // Dia incompleto (sem batida OU com menos horas que o previsto) → permite registrar/corrigir.
+    if (!dia.isFalta && realMin < prevMin) {
+      result.push({ dia, tipo: 'registrar', label: realMin === 0 ? 'Sem apontamento' : 'Apontamento incompleto' });
       continue;
     }
 
@@ -178,5 +199,47 @@ export function usePonto(inicio: string, fim: string, sqhorasId?: number) {
     liberacao:         (idFalta: number) => liberacaoMutation.mutateAsync(idFalta),
     isLiberando:       liberacaoMutation.isPending,
     liberacaoError:    liberacaoMutation.error?.message ?? null,
+  };
+}
+
+export type DeletarApontamentoInput = { id: number; tipo: string; data: string };
+
+// Apontamentos já lançados de um dia (YYYY-MM-DD) + exclusão individual.
+// Usado para editar/remover no próprio dia.
+export function useApontamentosDia(dataISO: string | null, enabled: boolean) {
+  const qc = useQueryClient();
+
+  const query = useQuery<ApontamentoSqHora[]>({
+    queryKey: ['ponto', 'apontamentos-dia', dataISO],
+    queryFn:  () => fetchJson(`/api/ponto/apontamentos-dia?data=${dataISO}`),
+    enabled:  enabled && !!dataISO,
+    staleTime: 0,
+  });
+
+  const deletarMutation = useMutation({
+    mutationFn: async (input: DeletarApontamentoInput) => {
+      const res = await fetch('/api/ponto/apontamento', {
+        method:  'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(input),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(err.error ?? 'Erro ao excluir apontamento');
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['ponto', 'apontamentos-dia', dataISO] });
+      qc.invalidateQueries({ queryKey: ['ponto'] }); // atualiza calendário/pendências
+    },
+  });
+
+  return {
+    apontamentos: query.data ?? [],
+    isLoading:    query.isLoading,
+    isError:      query.isError,
+    deletar:      (input: DeletarApontamentoInput) => deletarMutation.mutateAsync(input),
+    isDeletando:  deletarMutation.isPending,
+    deletarError: deletarMutation.error?.message ?? null,
   };
 }

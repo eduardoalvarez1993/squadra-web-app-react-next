@@ -4,7 +4,9 @@ import {
   parseDMY,
   computeFaltaStatus,
   computePendentes,
+  horaExtraAprovadaMin,
 } from '@/features/ponto/hooks/usePonto';
+import type { DadosHoraExtra } from '@/services/squadra-client';
 import { pontoDias, casosToMin } from '@/__tests__/fixtures';
 
 describe('toMin', () => {
@@ -79,6 +81,23 @@ describe('computeFaltaStatus', () => {
         solicitacaoLiberacaoFaltaId: 0,
       }),
     ).toBe('nao_solicitado');
+  });
+});
+
+describe('horaExtraAprovadaMin', () => {
+  const base = pontoDias.pontoDiaOk;
+  const he = (statusSolicitacao: number, qtdadeHoras: number): DadosHoraExtra => ({
+    solicitacaoID: 1, dataSolicitacao: '2026-06-02T00:00:00Z', qtdadeHoras,
+    projetoId: 1, projetoDescricao: 'P', solicitacaoTipo: 'C', statusSolicitacao, isNoturno: null,
+  });
+
+  it('soma só as aprovadas (status 3), em minutos', () => {
+    const dia = { ...base, dadosHoraExtra: [he(3, 1), he(5, 2), he(3, 0.5)] };
+    expect(horaExtraAprovadaMin(dia)).toBe(90); // 60 + 30 (ignora a pendente status 5)
+  });
+
+  it('sem dadosHoraExtra → 0', () => {
+    expect(horaExtraAprovadaMin({ ...base, dadosHoraExtra: null })).toBe(0);
   });
 });
 
@@ -159,6 +178,33 @@ describe('computePendentes', () => {
 
   it('dia ok (trabalhado) não entra em pendentes', () => {
     const r = computePendentes([pontoDiaOk]);
+    expect(r).toHaveLength(0);
+  });
+
+  const heAprovada: DadosHoraExtra = {
+    solicitacaoID: 1, dataSolicitacao: '2026-06-02T00:00:00Z', qtdadeHoras: 1,
+    projetoId: 1, projetoDescricao: 'P', solicitacaoTipo: 'C', statusSolicitacao: 3, isNoturno: null,
+  };
+
+  it("HE aprovada e não registrada → 'H.Extra liberada' (mesmo com jornada completa)", () => {
+    const dia = { ...pontoDiaOk, horaExtra: '00:00', dadosHoraExtra: [heAprovada] };
+    const r = computePendentes([dia]);
+    expect(r).toHaveLength(1);
+    expect(r[0].tipo).toBe('registrar');
+    expect(r[0].heExtra).toBe(true);
+    expect(r[0].label).toBe('H.Extra liberada');
+  });
+
+  it('HE aprovada já registrada (horaExtra cobre o aprovado) → some dos pendentes', () => {
+    const dia = { ...pontoDiaOk, horaExtra: '01:00', dadosHoraExtra: [heAprovada] };
+    const r = computePendentes([dia]);
+    expect(r).toHaveLength(0);
+  });
+
+  it('HE pendente do gestor (status 5) não libera registro', () => {
+    const pendenteGestor = { ...heAprovada, statusSolicitacao: 5 };
+    const dia = { ...pontoDiaOk, horaExtra: '00:00', dadosHoraExtra: [pendenteGestor] };
+    const r = computePendentes([dia]);
     expect(r).toHaveLength(0);
   });
 

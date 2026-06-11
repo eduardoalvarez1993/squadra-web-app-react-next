@@ -4,22 +4,35 @@ import { getSession } from '@/lib/session';
 import { checkOrigin } from '@/lib/check-origin';
 import { getDadosColab, novoApontamento } from '@/services/ponto';
 import { SquadraAuthError, SquadraClientError } from '@/services/squadra-client';
+import { extractUpstreamMsg } from '@/lib/upstream-error';
 
 const DateRangeSchema = z.object({
   inicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   fim:    z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
+const PeriodoSchema = z.object({
+  horaInicio: z.string().regex(/^\d{2}:\d{2}$/),
+  horaFinal:  z.string().regex(/^\d{2}:\d{2}$/),
+}).refine((p) => p.horaFinal > p.horaInicio, 'Horário fim deve ser após o início');
+
 const NovoApontamentoClientSchema = z.object({
   // data não pode ser futura (compara YYYY-MM-DD lexicograficamente, fuso BRT)
   data:            z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
                      .refine((d) => d <= new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }), 'Data futura não permitida'),
-  horaInicio:      z.string().regex(/^\d{2}:\d{2}$/),
-  horaFinal:       z.string().regex(/^\d{2}:\d{2}$/),
+  periodos:        z.array(PeriodoSchema).min(1, 'Pelo menos 1 período é obrigatório'),
   projetoId:       z.number(),
   subprojetoId:    z.number().optional(),
-  tipoApropriacao: z.literal('JORNADA'),
+  tipoApropriacao: z.enum(['JORNADA', 'HORA_EXTRA']),
   justificativa:   z.string().optional(),
+}).superRefine((v, ctx) => {
+  // No próprio dia, nenhum período pode terminar depois da hora atual (BRT).
+  const hojeIso   = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  if (v.data !== hojeIso) return;
+  const horaAgora = new Date().toLocaleTimeString('en-GB', { timeZone: 'America/Sao_Paulo', hour12: false }).slice(0, 5);
+  if (v.periodos.some((p) => p.horaFinal > horaAgora)) {
+    ctx.addIssue({ code: 'custom', message: 'Horário futuro não permitido', path: ['periodos'] });
+  }
 });
 
 export async function GET(req: NextRequest) {
@@ -84,7 +97,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     if (err instanceof SquadraAuthError) return NextResponse.json({ error: 'Sessão expirada' }, { status: 401 });
-    if (err instanceof SquadraClientError) return NextResponse.json({ error: 'Apontamento rejeitado pela API' }, { status: 422 });
+    if (err instanceof SquadraClientError) {
+      console.error('[POST /api/ponto] rejeitado', err.status, err.message);
+      // O upstream manda { sucesso:false, erros:[...] } — repassamos a mensagem real
+      // (são validações de negócio voltadas ao usuário: almoço, futuro, sobreposição…).
+      return NextResponse.json({ error: extractUpstreamMsg(err.message, 'Apontamento rejeitado pela API') }, { status: 422 });
+    }
     console.error('[POST /api/ponto]', err);
     return NextResponse.json({ error: 'Erro ao registrar apontamento' }, { status: 500 });
   }

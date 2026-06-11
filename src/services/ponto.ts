@@ -4,7 +4,20 @@ import {
   type ProjetoAlocado,
   type NovoApontamentoPayload,
   type DiasSemApontamentoItem,
+  type ApontamentoSqHora,
 } from './squadra-client';
+
+export type { ApontamentoSqHora };
+
+// Apontamentos de um dia (YYYY-MM-DD) — o upstream espera DD/MM/YYYY no GET.
+export async function getApontamentosDia(usuarioId: number, dataISO: string, token: string): Promise<ApontamentoSqHora[]> {
+  const [y, m, d] = dataISO.split('-');
+  return squadra.ponto.getApontamentosDia(usuarioId, `${d}/${m}/${y}`, token);
+}
+
+export async function deletarApontamento(id: number, tipo: string, usuarioId: number, dataISO: string, token: string): Promise<{ ok: true }> {
+  return squadra.ponto.deletarApontamento(id, tipo, usuarioId, dataISO, token);
+}
 
 export async function getDadosColab(
   sqhorasId: number,
@@ -19,13 +32,16 @@ export async function getProjetosAlocados(gestorId: number, token: string): Prom
   return squadra.ponto.getProjetosAlocados(gestorId, token);
 }
 
+export type Periodo = { horaInicio: string; horaFinal: string };
+
+export type TipoApropriacao = 'JORNADA' | 'HORA_EXTRA';
+
 export type NovoApontamentoInput = {
   data:            string;  // YYYY-MM-DD
-  horaInicio:      string;
-  horaFinal:       string;
+  periodos:        Periodo[];   // ≥1 período (início/fim) → vira N apontamentos
   projetoId:       number;
   subprojetoId?:   number;
-  tipoApropriacao: 'JORNADA';
+  tipoApropriacao: TipoApropriacao;
   justificativa?:  string;
   usuarioId:       number;
   login:           string;
@@ -34,21 +50,26 @@ export type NovoApontamentoInput = {
 /**
  * Monta o payload aninhado esperado pelo upstream a partir do input do cliente.
  * Função pura, exportada para teste de regressão (subprojetoId default 0,
- * data no formato YYYY-MM-DD propagada nos 3 blocos).
+ * cada período vira um item em `apontamentos`, data YYYY-MM-DD nos 3 blocos).
  */
 export function buildNovoApontamentoPayload(input: NovoApontamentoInput): NovoApontamentoPayload {
+  const ehHoraExtra = input.tipoApropriacao === 'HORA_EXTRA';
+  // Upstream exige descrição com ≥1 caractere; batida normal vem sem justificativa → '.'
+  // Para hora extra, espelha o app-react ("hora extra aprovada").
+  const descricao = input.justificativa?.trim() || (ehHoraExtra ? 'hora extra aprovada' : '.');
+  const textoJustificativa = ehHoraExtra ? 'Hora Extra Aprovada Via APP' : 'Apontamento Realizado Via APP';
   return {
     dadosGeraisApontamento: { usuarioId: input.usuarioId, login: input.login },
-    apontamentos: [{
+    apontamentos: input.periodos.map((p) => ({
       projetoId:       input.projetoId,
       subProjetoId:    input.subprojetoId ?? 0,
-      descricao:       input.justificativa ?? '',
+      descricao,
       data:            input.data,
-      horaInicio:      input.horaInicio,
-      horaFinal:       input.horaFinal,
-      tipoApropriacao: 'JORNADA',
-    }],
-    justificativas: [{ data: input.data, textoJustificativa: 'Apontamento Realizado Via APP' }],
+      horaInicio:      p.horaInicio,
+      horaFinal:       p.horaFinal,
+      tipoApropriacao: input.tipoApropriacao,
+    })),
+    justificativas: [{ data: input.data, textoJustificativa }],
     aceites:        [{ data: input.data }],
   };
 }

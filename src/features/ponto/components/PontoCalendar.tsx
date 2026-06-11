@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { PontoDia } from '@/services/squadra-client';
 import { ASSETS } from '@/lib/assets';
-import { computeFaltaStatus, parseDMY, toMin, SEM_ABREV } from '../hooks/usePonto';
+import { computeFaltaStatus, parseDMY, toMin, horaExtraAprovadaMin, SEM_ABREV } from '../hooks/usePonto';
 
 export function PontoLoading({ label = 'Carregando seu ponto...' }: { label?: string }) {
   return (
@@ -78,6 +78,11 @@ function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed 
   const isAbono   = dia.isFalta && !!dia.horasAbono && dia.horasAbono !== '00:00' && !!dia.descricaoTipoAbono;
   const isToday   = diaDate.getTime() === hoje.getTime();
   const isFaltaDia = dia.isFalta || (dia.falta && Number(dia.faltaId) > 0);
+  // Dia que já tem apontamento lançado (JORNADA ou HORA_EXTRA). `realMin` só conta
+  // jornada, então um dia 100% hora extra tem realMin=0 mas NÃO está "sem apontamento".
+  const temApontamento = (Array.isArray(dia.projeto) && dia.projeto.length > 0) || toMin(dia.horaExtra) > 0;
+  // Hora extra aprovada (status 3) ainda não apontada nesse dia.
+  const heLiberada = horaExtraAprovadaMin(dia) - toMin(dia.horaExtra) > 0;
 
   const base: DiaComputed = {
     barKey: 'pend', statusKey: null, statusText: '', showBadge: false,
@@ -100,9 +105,11 @@ function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed 
     r = { ...r, barKey: 'info', statusKey: 'info', statusText: 'Feriado' };
   } else if (dia.isFalta && st === 'A') {
     r = { ...r, barKey: 'ok', statusKey: 'ok' };
-    if (realMin === 0) {
+    if (realMin === 0 && !temApontamento) {
+      // Falta liberada e nada lançado ainda → oferece bater ponto.
       r = { ...r, statusText: 'Liberado', ctas: [{ tipo: 'apontar', label: 'Apontar' }] };
     } else {
+      // Já liberada e com horas lançadas (jornada ou hora extra) → só o selo "Liberado".
       r = { ...r, liberadoBtn: true };
     }
   } else if (dia.isFalta && st === 'R') {
@@ -116,12 +123,29 @@ function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed 
     } else {
       r = { ...r, barKey: 'pend', aguardarBtn: true };
     }
-  } else if (realMin === 0 && prevMin > 0) {
+  } else if (realMin === 0 && prevMin > 0 && !temApontamento) {
     r = { ...r, barKey: 'pend', statusKey: 'pend', statusText: 'Sem apontamento', ctas: [{ tipo: 'registrar', label: 'Registrar' }] };
+  } else if (realMin === 0 && temApontamento) {
+    // Dia sem jornada mas com hora extra lançada → nada pendente; mostra a HE (+hh:mm).
+    r = { ...r, barKey: 'ok' };
   } else if (realMin >= prevMin) {
     r = { ...r, barKey: 'ok' };
   } else {
-    r = { ...r, barKey: 'pend', statusKey: 'pend', statusText: dia.horasRealizadas || '—' };
+    // Jornada incompleta — as horas já aparecem na coluna numérica; não repetir num chip.
+    r = { ...r, barKey: 'pend' };
+  }
+
+  // Hora extra APROVADA e ainda não apontada → chip "H.Extra liberada" + botão Registrar
+  // (visão colaborador). Some sozinho quando a HE é apontada. Não aplica no modo gestor.
+  if (heLiberada && !gestorMode) {
+    r = {
+      ...r,
+      statusKey: 'ok',
+      statusText: 'H.Extra liberada',
+      ctas: [{ tipo: 'registrar', label: 'Registrar' }],
+      liberadoBtn: false,
+      aguardarBtn: false,
+    };
   }
 
   // ── Modo gestor (regra do squadra-app-react) ────────────────────────────────
@@ -154,7 +178,7 @@ function computeDia(dia: PontoDia, hoje: Date, gestorMode = false): DiaComputed 
   // showBadge: oculta badge quando barra ok e não é falta (visão colaborador).
   // No modo gestor, os status próprios (chips readonly) sempre aparecem.
   const statusGestor = gestorMode && ['Apropriado', 'Falta confirmada', 'Falta liberada'].includes(r.statusText);
-  r.showBadge = statusGestor || (!!r.statusText && !(r.barKey === 'ok' && !dia.isFalta));
+  r.showBadge = statusGestor || (heLiberada && !gestorMode) || (!!r.statusText && !(r.barKey === 'ok' && !dia.isFalta));
   return r;
 }
 
@@ -248,7 +272,7 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, hideProj
         )}
         <span className="text-[0.82rem] font-bold text-gray-700 text-right leading-tight">
           {c.horasDisplay}
-          {c.horaExtra && <span className="block text-[0.66rem] font-bold text-red-600 leading-tight">+{c.horaExtra}</span>}
+          {c.horaExtra && <span className="block text-[0.82rem] font-bold text-red-600 leading-tight">+{c.horaExtra}</span>}
         </span>
 
         <div className="flex flex-wrap items-center justify-end gap-1.5 min-w-[120px]">

@@ -4,8 +4,7 @@ import { buildNovoApontamentoPayload } from '@/services/ponto';
 describe('buildNovoApontamentoPayload', () => {
   const baseInput = {
     data:            '2026-06-02',
-    horaInicio:      '08:00',
-    horaFinal:       '17:00',
+    periodos:        [{ horaInicio: '08:00', horaFinal: '17:00' }],
     projetoId:       1,
     subprojetoId:    10,
     tipoApropriacao: 'JORNADA' as const,
@@ -49,11 +48,16 @@ describe('buildNovoApontamentoPayload', () => {
     expect(payload.apontamentos[0].subProjetoId).toBe(0);
   });
 
-  it('descricao vazia quando justificativa ausente', () => {
+  it('descricao default "." quando justificativa ausente (upstream exige ≥1 char)', () => {
     const { justificativa: _omit, ...semJust } = baseInput;
     void _omit;
     const payload = buildNovoApontamentoPayload(semJust);
-    expect(payload.apontamentos[0].descricao).toBe('');
+    expect(payload.apontamentos[0].descricao).toBe('.');
+  });
+
+  it('descricao default "." quando justificativa é só espaços', () => {
+    const payload = buildNovoApontamentoPayload({ ...baseInput, justificativa: '   ' });
+    expect(payload.apontamentos[0].descricao).toBe('.');
   });
 
   it('REGRESSÃO: data propagada no formato YYYY-MM-DD nos 3 blocos', () => {
@@ -65,8 +69,32 @@ describe('buildNovoApontamentoPayload', () => {
     expect(payload.apontamentos[0].data).not.toContain('/');
   });
 
-  it('tipoApropriacao sempre JORNADA', () => {
+  it('tipoApropriacao JORNADA propaga e usa justificativa padrão de jornada', () => {
     const payload = buildNovoApontamentoPayload(baseInput);
     expect(payload.apontamentos[0].tipoApropriacao).toBe('JORNADA');
+    expect(payload.justificativas[0].textoJustificativa).toBe('Apontamento Realizado Via APP');
+  });
+
+  it('tipoApropriacao HORA_EXTRA propaga e usa textos de hora extra', () => {
+    const { justificativa: _omit, ...semJust } = baseInput;
+    void _omit;
+    const payload = buildNovoApontamentoPayload({ ...semJust, tipoApropriacao: 'HORA_EXTRA' });
+    expect(payload.apontamentos[0].tipoApropriacao).toBe('HORA_EXTRA');
+    // descrição default específica de hora extra (sem justificativa do usuário)
+    expect(payload.apontamentos[0].descricao).toBe('hora extra aprovada');
+    expect(payload.justificativas[0].textoJustificativa).toBe('Hora Extra Aprovada Via APP');
+  });
+
+  it('vários períodos viram vários apontamentos (mesmo projeto/sub/descrição)', () => {
+    const payload = buildNovoApontamentoPayload({
+      ...baseInput,
+      periodos: [
+        { horaInicio: '08:00', horaFinal: '12:00' },
+        { horaInicio: '13:00', horaFinal: '17:00' },
+      ],
+    });
+    expect(payload.apontamentos).toHaveLength(2);
+    expect(payload.apontamentos[0]).toMatchObject({ horaInicio: '08:00', horaFinal: '12:00', subProjetoId: 10, descricao: 'Reunião' });
+    expect(payload.apontamentos[1]).toMatchObject({ horaInicio: '13:00', horaFinal: '17:00', subProjetoId: 10, descricao: 'Reunião' });
   });
 });

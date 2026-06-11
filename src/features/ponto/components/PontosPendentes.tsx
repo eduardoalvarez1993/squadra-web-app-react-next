@@ -46,7 +46,7 @@ export function PontosPendentes({ pendentes, onItemClick }: PontosPendentesProps
                   <span className="text-[0.72rem] text-gray-400">{abrev}</span>
                 </span>
                 <span
-                  className={`ml-auto text-[0.7rem] font-bold rounded-full px-2.5 py-0.5 whitespace-nowrap ${CHIP[item.tipo]}`}
+                  className={`ml-auto text-[0.7rem] font-bold rounded-full px-2.5 py-0.5 whitespace-nowrap ${item.heExtra ? 'bg-emerald-100 text-emerald-700' : CHIP[item.tipo]}`}
                 >
                   {item.label}
                 </span>

@@ -25,7 +25,6 @@ export const ME_COLABORADOR = {
   },
   simulando: false,
   podeSimular: false,
-  temEquipe: false,
 };
 
 export const ME_GESTOR = {
@@ -33,7 +32,6 @@ export const ME_GESTOR = {
   id: 995,
   permissoes: { ...ME_COLABORADOR.permissoes, gerenteFuncional: true },
   podeSimular: true,
-  temEquipe: true,
 };
 
 export const ME_SIMULANDO = {
@@ -66,7 +64,6 @@ export async function injectSession(
     permissoes:  ME_COLABORADOR.permissoes,
     simulando:   false,
     podeSimular: false,
-    temEquipe:   false,
     ...overrides,
   };
 

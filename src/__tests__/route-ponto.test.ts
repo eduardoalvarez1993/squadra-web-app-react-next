@@ -19,23 +19,26 @@ const dataFutura = () => {
   const [y, m, d] = hojeBRT().split('-');
   return `${Number(y) + 1}-${m}-${d}`;
 };
+// Uma data claramente passada (ano -1) — evita a regra de horário futuro do próprio dia.
+const dataPassada = () => {
+  const [y, m, d] = hojeBRT().split('-');
+  return `${Number(y) - 1}-${m}-${d}`;
+};
 
 const payloadPontoOk = (over: Record<string, unknown> = {}) => ({
   data:            hojeBRT(),
-  horaInicio:      '08:00',
-  horaFinal:       '17:00',
+  periodos:        [{ horaInicio: '08:00', horaFinal: '17:00' }],
   projetoId:       1,
   tipoApropriacao: 'JORNADA' as const,
   ...over,
 });
 
 const payloadHEOk = (over: Record<string, unknown> = {}) => ({
-  projetoId:  1,
-  data:       hojeBRT(),
-  horaInicio: '18:00',
-  horaFim:    '19:00',
-  motivo:     'Demanda urgente',
-  isNoturno:  'N' as const,
+  projetoId:   1,
+  data:        hojeBRT(),
+  qtdadeHoras: 1,
+  motivo:      'Demanda urgente',
+  isNoturno:   'N' as const,
   ...over,
 });
 
@@ -90,14 +93,14 @@ describe('POST /api/ponto — guardas e validação', () => {
     expect(res.status).toBe(400);
   });
 
-  it('200 ok quando payload válido (data de hoje) — chama upstream', async () => {
+  it('200 ok quando payload válido (data passada) — chama upstream', async () => {
     let chamou = false;
     server.use(http.post(`${UPSTREAM}/v3/apontamentos/novo/v3`, () => {
       chamou = true;
       return HttpResponse.json({ sucesso: true });
     }));
     const res = await POSTPonto(makeRequest('http://localhost/api/ponto', {
-      method: 'POST', body: payloadPontoOk(),
+      method: 'POST', body: payloadPontoOk({ data: dataPassada() }),
     }));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
@@ -124,17 +127,16 @@ describe('POST /api/solicitacoes/hora-extra — guardas e regras de negócio', (
     expect(res.status).toBe(403);
   });
 
-  it('400 "término após o início" quando fim <= início (não-noturno)', async () => {
+  it('400 quando qtdadeHoras não é positiva (Zod)', async () => {
     const res = await POSTHoraExtra(makeRequest('http://localhost/api/solicitacoes/hora-extra', {
-      method: 'POST', body: payloadHEOk({ horaInicio: '18:00', horaFim: '18:00' }),
+      method: 'POST', body: payloadHEOk({ qtdadeHoras: 0 }),
     }));
     expect(res.status).toBe(400);
-    expect(await res.json()).toMatchObject({ error: expect.stringContaining('término') });
   });
 
-  it('400 "máximo de 2h" quando a duração excede 2 horas', async () => {
+  it('400 "máximo de 2h" quando a quantidade excede 2 horas', async () => {
     const res = await POSTHoraExtra(makeRequest('http://localhost/api/solicitacoes/hora-extra', {
-      method: 'POST', body: payloadHEOk({ horaInicio: '18:00', horaFim: '21:00' }), // 3h
+      method: 'POST', body: payloadHEOk({ qtdadeHoras: 3 }),
     }));
     expect(res.status).toBe(400);
     expect(await res.json()).toMatchObject({ error: expect.stringContaining('2h') });
@@ -147,8 +149,7 @@ describe('POST /api/solicitacoes/hora-extra — guardas e regras de negócio', (
     expect(res.status).toBe(400);
   });
 
-  it('200 ok no caso noturno cruzando meia-noite (23:00→01:00, isNoturno=S)', async () => {
-    // calcHoras com isNoturno=S soma 24h → 2h (limite), portanto válido.
+  it('200 ok no caso noturno (2h, isNoturno=S)', async () => {
     let chamouHE = false;
     // calcTipo busca dados do dia (getDadosColab) — devolvemos lista vazia → assume 'C'.
     server.use(
@@ -159,7 +160,7 @@ describe('POST /api/solicitacoes/hora-extra — guardas e regras de negócio', (
       }),
     );
     const res = await POSTHoraExtra(makeRequest('http://localhost/api/solicitacoes/hora-extra', {
-      method: 'POST', body: payloadHEOk({ horaInicio: '23:00', horaFim: '01:00', isNoturno: 'S' }),
+      method: 'POST', body: payloadHEOk({ qtdadeHoras: 2, isNoturno: 'S' }),
     }));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });

@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DrawerForm } from '@/components/shared/DrawerForm';
 import { ErrorSection } from '@/components/shared/ErrorSection';
@@ -10,7 +10,7 @@ import { FormFeedback } from '@/components/shared/FormFeedback';
 import { AccessDenied } from '@/components/shared/AccessDenied';
 import { VerificandoCredenciais } from '@/components/shared/VerificandoCredenciais';
 import { useUserStore } from '@/store/user';
-import { usePonto, toMin, type PontoDiaPendente } from '@/features/ponto/hooks/usePonto';
+import { usePonto, useApontamentosDia, toMin, horaExtraAprovadaMin, type PontoDiaPendente } from '@/features/ponto/hooks/usePonto';
 import { PontoCalendar } from '@/features/ponto/components/PontoCalendar';
 import { PontosPendentes } from '@/features/ponto/components/PontosPendentes';
 import { ApontamentoForm } from '@/features/ponto/components/ApontamentoForm';
@@ -30,14 +30,11 @@ type DrawerMode = 'registrar' | 'solicitar' | 'aguardar' | 'apontar' | null;
 
 function PontoPageContent() {
   const bateRep      = useUserStore((s) => s.permissoes.bateRep);
-  const gerente      = useUserStore((s) => s.permissoes.gerenteFuncional);
-  const temEquipe    = useUserStore((s) => s.temEquipe);
   const gestorId     = useUserStore((s) => s.gestorId);
   const hydrated     = gestorId !== 0;
-  // Percentual: gestor com equipe que NÃO bate ponto. Esses apropriam horas por %,
-  // não por ponto — só eles ficam fora desta tela. Todo o resto (inclusive cadastros
-  // com bateRep desatualizado) cai aqui como fallback, igual ao app-react.
-  const ehPercentual = gerente && !bateRep && temEquipe;
+  // Ponto vs Percentual é decidido SÓ pelo bateRep: quem não bate ponto apropria
+  // horas por % e fica fora desta tela. Não depende de gerência nem de equipe.
+  const ehPercentual = !bateRep;
   const searchParams = useSearchParams();
 
   // Ver ponto de outro usuário via search params ?sqhorasId=X&nome=Y
@@ -210,6 +207,9 @@ function PontoPageContent() {
   const drawerDataIso = drawerDia
     ? (() => { const [d, m, y] = drawerDia.data.split('/'); return `${y}-${m}-${d}`; })()
     : '';
+  // Edição/remoção de apontamentos só no dia atual (BRT).
+  const hojeIso       = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  const drawerEhHoje  = !!drawerDataIso && drawerDataIso === hojeIso && !outraSqhorasId;
 
   const drawerTitle = (() => {
     if (!drawerDia) return '';
@@ -327,15 +327,21 @@ function PontoPageContent() {
         side="right"
       >
         {drawerMode === 'registrar' || drawerMode === 'apontar' ? (
-          <ApontamentoForm
-            data={drawerDataIso}
-            projetos={projetos}
-            isSubmitting={isRegistrando}
-            onSubmit={async (input) => {
-              await registrar(input);
-              closeDrawer();
-            }}
-          />
+          <div className="flex flex-col">
+            <ApontamentoForm
+              data={drawerDataIso}
+              projetos={projetos}
+              isSubmitting={isRegistrando}
+              cargaMin={drawerDia ? toMin(drawerDia.horasPrevistas) : 0}
+              jaApontadoMin={drawerDia ? toMin(drawerDia.horasRealizadas) : 0}
+              heAprovadaMin={drawerDia ? horaExtraAprovadaMin(drawerDia) : 0}
+              onSubmit={async (input) => {
+                await registrar(input);
+                closeDrawer();
+              }}
+            />
+            {drawerEhHoje && <ApontamentosRealizados dataISO={drawerDataIso} />}
+          </div>
         ) : drawerMode === 'solicitar' && drawerDia ? (
           <div className="flex flex-col gap-4 pt-2">
             <p className="text-sm text-muted-foreground">
@@ -367,6 +373,43 @@ function PontoPageContent() {
           </div>
         ) : null}
       </DrawerForm>
+    </div>
+  );
+}
+
+// Apontamentos já lançados do dia, com exclusão individual. Só no dia atual.
+function ApontamentosRealizados({ dataISO }: { dataISO: string }) {
+  const { apontamentos, isLoading, deletar, isDeletando, deletarError } = useApontamentosDia(dataISO, true);
+
+  if (isLoading) {
+    return <p className="text-xs text-muted-foreground border-t border-border pt-4 mt-2">Carregando apontamentos…</p>;
+  }
+  if (apontamentos.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-2 border-t border-border pt-4 mt-2">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Apontamentos realizados</p>
+      {deletarError && <FormFeedback type="error" message={deletarError} />}
+      {apontamentos.map((a) => (
+        <div key={a.apontamentoID} className="flex items-center justify-between bg-card border border-border rounded-card px-3 py-2 gap-2">
+          <div className="min-w-0">
+            <p className="text-sm font-medium tabular-nums">{a.horaInicio} às {a.horaFim}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {a.nomeCliente ? `${a.nomeCliente} · ` : ''}{a.nomeProjeto}{a.nomeSubProjeto ? ` / ${a.nomeSubProjeto}` : ''}
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={isDeletando}
+            onClick={() => deletar({ id: a.apontamentoID, tipo: a.tipo, data: dataISO })}
+            className="text-muted-foreground hover:text-destructive transition-colors flex-shrink-0 disabled:opacity-40"
+            aria-label="Excluir apontamento"
+            title="Excluir"
+          >
+            {isDeletando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+          </button>
+        </div>
+      ))}
     </div>
   );
 }

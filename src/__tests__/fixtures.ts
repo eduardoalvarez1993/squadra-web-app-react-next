@@ -45,7 +45,6 @@ export const sessionColaborador = {
   },
   simulando:   false,
   podeSimular: false,
-  temEquipe:   false,
 };
 
 export const sessionGestor = {
@@ -56,7 +55,6 @@ export const sessionGestor = {
   cargo:       'Gerente de Projetos',
   permissoes:  { ...sessionColaborador.permissoes, gerenteFuncional: true },
   podeSimular: true,
-  temEquipe:   true,
 };
 
 /** DP via flag oficial perfilDP. */
@@ -388,8 +386,9 @@ export const rawEquipe = {
 
 export const rawHorasExtras = {
   retorno: [
-    { solicitacaoID: 800, nomeColaborador: 'João', dataSolicitacao: '2026-06-02', qtdadeHoras: 2, projetoId: 1, projetoDescricao: 'Alpha', solicitacaoTipo: 'B', statusSolicitacao: 0, isNoturno: true },
-    { id: 801, colaborador: 'Maria', data: '2026-06-03', horas: 1, projeto: 'Beta', isNoturno: null }, // aliases + isNoturno null
+    { solicitacaoID: 800, nomeColaborador: 'João', dataSolicitacao: '2026-06-02', qtdadeHoras: 2, projetoId: 1, projetoDescricao: 'Alpha', solicitacaoTipo: 'B', statusSolicitacao: 0, isNoturno: true,
+      valorHora: 25, taxaHoraExtra: '50%', taxaAdicionalNoturno: '20%', valorHoraExtra: 37.5, valorHoraExtraAdicionalNoturno: 45, bruto: 90, diaSemana: 'Terça' },
+    { id: 801, colaborador: 'Maria', data: '2026-06-03', horas: 1, projeto: 'Beta', isNoturno: null }, // aliases + isNoturno null (campos de custo ausentes → defaults)
   ],
 };
 
