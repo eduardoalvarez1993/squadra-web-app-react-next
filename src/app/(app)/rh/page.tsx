@@ -22,6 +22,15 @@ const TABS = [
   { id: 'ferias', label: 'Férias' },
 ];
 
+// Converte data ISO (yyyy-mm-dd[...]) para dd/mm/yyyy. Se já vier em BR ou em
+// outro formato, devolve como está (só apara a parte de data).
+function fmtDataBR(s: string): string {
+  if (!s) return '';
+  if (/^\d{2}\/\d{2}\/\d{4}/.test(s)) return s.slice(0, 10);
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : s;
+}
+
 // ── Viewer de anexo ───────────────────────────────────────────────────────────
 // Usa o Dialog do projeto (foco, aria-modal, Esc e retorno de foco gerenciados)
 // e renderiza o arquivo via Blob URL (evita data: URI gigante travar a UI).
@@ -144,7 +153,12 @@ function AbonoList({
               foto={a.foto}
               tipo="abono"
               status={statusLabel(a.status)}
-              detalhes={<span>{a.tipo}{a.data ? ` — ${a.data}` : ''}{a.horas ? ` (${a.horas})` : ''}{a.motivo ? ` — ${a.motivo}` : ''}</span>}
+              detalhes={
+                <div className="flex flex-col gap-0.5">
+                  <span>{a.tipo || a.motivo}</span>
+                  <span>Dia do Abono: {fmtDataBR(a.data)}{a.horas ? ` - Horário: ${a.horas}` : ' - Horário:'}</span>
+                </div>
+              }
               actions={
                 <div className="flex items-center gap-2 flex-wrap">
                   {a.temAnexo && (
@@ -251,7 +265,7 @@ export default function RHPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 max-w-2xl mx-auto pb-24">
-      <h1 className="sr-only">RH — Departamento Pessoal</h1>
+      <h1 className="sr-only">DP — Departamento Pessoal</h1>
       <div className="bg-white border border-border rounded-xl overflow-hidden">
         <div className="px-4 pt-3">
           <TabNav tabs={TABS} active={tab} onChange={setTab} />
