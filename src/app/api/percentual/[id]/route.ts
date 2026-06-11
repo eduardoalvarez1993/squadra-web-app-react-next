@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { checkOrigin } from '@/lib/check-origin';
 import { deletar } from '@/services/percentual';
+import { podeAlterarMes } from '@/features/percentual/regras';
 import { SquadraAuthError, SquadraClientError } from '@/services/squadra-client';
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -15,11 +16,13 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params;
   if (!id) return NextResponse.json({ error: 'id obrigatório' }, { status: 400 });
 
-  // Validar janela de deleção: dia 1-6 do mês seguinte
-  const hoje = new Date();
-  const diaAtual = hoje.getDate();
-  if (diaAtual > 6) {
-    return NextResponse.json({ error: 'Deleção permitida apenas nos primeiros 6 dias do mês seguinte' }, { status: 403 });
+  // Janela de alteração baseada no mês da alocação (mês corrente, ou até o dia 6 do
+  // mês seguinte). Sem mes/ano não dá pra validar → segue (o front já bloqueia).
+  const { searchParams } = new URL(req.url);
+  const mes = Number(searchParams.get('mes'));
+  const ano = Number(searchParams.get('ano'));
+  if (mes && ano && !podeAlterarMes(mes, ano)) {
+    return NextResponse.json({ error: 'Prazo encerrado para alteração por percentual' }, { status: 403 });
   }
 
   try {
