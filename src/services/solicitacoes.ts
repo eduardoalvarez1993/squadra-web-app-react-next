@@ -42,7 +42,10 @@ export async function solicitarHoraExtra(
 ): Promise<{ ok: true }> {
   return squadra.solicitacoes.solicitarHoraExtra({
     id:                input.gestorId,
-    dataSolicitacao:   toUpstreamDate(input.data),
+    // O endpoint horaExtra/cadastraSolicitacao espera ISO yyyy-MM-dd (igual ao
+    // app-react: dayjs().format("YYYY-MM-DD")). Enviar dd/MM/yyyy fazia o backend
+    // (.NET, cultura US) ler como MM/dd → trocava dia↔mês (09/06 virava 6 set).
+    dataSolicitacao:   input.data,
     qtdadeHoras:       input.qtdadeHoras,
     motivoSolicitacao: input.motivo,
     tipo:              input.tipo,

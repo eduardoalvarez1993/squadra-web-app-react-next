@@ -5,15 +5,15 @@ import { checkOrigin } from '@/lib/check-origin';
 import { solicitarHoraExtra } from '@/services/solicitacoes';
 import { getDadosColab } from '@/services/ponto';
 import { SquadraAuthError, SquadraClientError } from '@/services/squadra-client';
-import { toMinutes, calcHoras } from '@/lib/horas';
+import { toMinutes } from '@/lib/horas';
+import { extractUpstreamMsg } from '@/lib/upstream-error';
 
 const Schema = z.object({
-  projetoId:  z.number(),
-  data:       z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  horaInicio: z.string().regex(/^\d{2}:\d{2}$/),
-  horaFim:    z.string().regex(/^\d{2}:\d{2}$/),
-  motivo:     z.string().min(1),
-  isNoturno:  z.enum(['S', 'N']).default('N'),
+  projetoId:   z.number(),
+  data:        z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  qtdadeHoras: z.number().positive(),
+  motivo:      z.string().min(1),
+  isNoturno:   z.enum(['S', 'N']).default('N'),
 });
 
 async function calcTipo(sqhorasId: number, isoDate: string, token: string): Promise<'C' | 'E'> {
@@ -49,11 +49,7 @@ export async function POST(req: NextRequest) {
   const parsed = Schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
 
-  const { projetoId, data, horaInicio, horaFim, motivo, isNoturno } = parsed.data;
-  const qtdadeHoras = calcHoras(horaInicio, horaFim, isNoturno);
-  if (qtdadeHoras <= 0) {
-    return NextResponse.json({ error: 'O horário de término deve ser após o início.' }, { status: 400 });
-  }
+  const { projetoId, data, qtdadeHoras, motivo, isNoturno } = parsed.data;
   if (qtdadeHoras > 2) {
     return NextResponse.json({ error: 'Máximo de 2h por solicitação de hora extra.' }, { status: 400 });
   }
@@ -65,7 +61,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     if (err instanceof SquadraAuthError) return NextResponse.json({ error: 'Sessão expirada' }, { status: 401 });
-    if (err instanceof SquadraClientError) return NextResponse.json({ error: 'Solicitação rejeitada pela API' }, { status: 422 });
+    if (err instanceof SquadraClientError) {
+      console.error('[POST /api/solicitacoes/hora-extra] rejeitado', err.status, err.message);
+      return NextResponse.json({ error: extractUpstreamMsg(err.message, 'Solicitação rejeitada pela API') }, { status: 422 });
+    }
     console.error('[POST /api/solicitacoes/hora-extra]', err);
     return NextResponse.json({ error: 'Erro ao solicitar hora extra' }, { status: 500 });
   }

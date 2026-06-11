@@ -35,12 +35,11 @@ export type SolicitarDayOffInput = {
 };
 
 export type SolicitarHoraExtraInput = {
-  projetoId:  number;
-  data:       string;
-  horaInicio: string;
-  horaFim:    string;
-  motivo:     string;
-  isNoturno?: 'S' | 'N';
+  projetoId:   number;
+  data:        string;
+  qtdadeHoras: number;
+  motivo:      string;
+  isNoturno?:  'S' | 'N';
 };
 
 export function useSolicitacoes() {

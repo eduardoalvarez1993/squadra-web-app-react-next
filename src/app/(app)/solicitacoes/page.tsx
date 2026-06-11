@@ -128,7 +128,12 @@ function TabAbono() {
           onSubmit={async (e) => {
             e.preventDefault();
             if (!tipoId || !data || !horas || !just) return;
-            await solicitarAbono({ tipoAbonoId: Number(tipoId), data, qtdadeHoras: Number(horas), justificativa: just });
+            try {
+              await solicitarAbono({ tipoAbonoId: Number(tipoId), data, qtdadeHoras: Number(horas), justificativa: just });
+            } catch {
+              // Erro de negócio do upstream — exibido via abonoError abaixo. Não limpa o form.
+              return;
+            }
             setOk(true);
             setTipoId(''); setData(''); setHoras(''); setJust('');
           }}
@@ -198,7 +203,12 @@ function TabDayoff() {
           onSubmit={async (e) => {
             e.preventDefault();
             if (!data || !just) return;
-            await solicitarDayoff({ data, qtdadeHoras: Number(horas) || 8, justificativa: just });
+            try {
+              await solicitarDayoff({ data, qtdadeHoras: Number(horas) || 8, justificativa: just });
+            } catch {
+              // Erro de negócio do upstream — exibido via dayoffError abaixo. Não limpa o form.
+              return;
+            }
             setOk(true);
             setData(''); setHoras('8'); setJust('');
           }}
@@ -232,8 +242,7 @@ function TabHoraExtra() {
   const [open,      setOpen]      = useState(false);
   const [projetoId, setProjetoId] = useState('');
   const [data,      setData]      = useState('');
-  const [inicio,    setInicio]    = useState('');
-  const [fim,       setFim]       = useState('');
+  const [horas,     setHoras]     = useState('');
   const [motivo,    setMotivo]    = useState('');
   const [noturno,   setNoturno]   = useState(false);
   const [ok,        setOk]        = useState(false);
@@ -256,10 +265,16 @@ function TabHoraExtra() {
           className="flex flex-col gap-4 pt-2"
           onSubmit={async (e) => {
             e.preventDefault();
-            if (!projetoId || !data || !inicio || !fim) return;
-            await solicitarHoraExtra({ projetoId: Number(projetoId), data, horaInicio: inicio, horaFim: fim, motivo, isNoturno: noturno ? 'S' : 'N' });
+            const qtd = Number(horas);
+            if (!projetoId || !data || !qtd) return;
+            try {
+              await solicitarHoraExtra({ projetoId: Number(projetoId), data, qtdadeHoras: qtd, motivo, isNoturno: noturno ? 'S' : 'N' });
+            } catch {
+              // Erro de negócio do upstream — exibido via heError abaixo. Não limpa o form.
+              return;
+            }
             setOk(true);
-            setProjetoId(''); setData(''); setInicio(''); setFim(''); setMotivo(''); setNoturno(false);
+            setProjetoId(''); setData(''); setHoras(''); setMotivo(''); setNoturno(false);
           }}
         >
           <div className="flex flex-col gap-1">
@@ -280,15 +295,18 @@ function TabHoraExtra() {
             <label className="text-sm font-medium">Data</label>
             <Input type="date" value={data} onChange={(e) => setData(e.target.value)} required />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium">Início</label>
-              <Input type="time" value={inicio} onChange={(e) => setInicio(e.target.value)} required />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium">Fim</label>
-              <Input type="time" value={fim} onChange={(e) => setFim(e.target.value)} required />
-            </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Quantidade de horas</label>
+            <Input
+              type="number"
+              step="0.5"
+              min="0.5"
+              max="2"
+              value={horas}
+              onChange={(e) => setHoras(e.target.value)}
+              placeholder="Ex.: 1,5"
+              required
+            />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Justificativa</label>
