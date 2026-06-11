@@ -93,6 +93,38 @@ async function sq<T>(
   }
 }
 
+// Variante de sq para endpoints que respondem texto puro/vazio no sucesso
+// (ex.: DELETE de apontamento devolve "Apontamento Deletado com sucesso!").
+async function sqVoid(
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  path: string,
+  token: string,
+  retry = true,
+  baseUrl = SQUADRA_API_URL,
+  timeoutMs = TIMEOUT_MS,
+): Promise<{ ok: true }> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const execute = async (): Promise<{ ok: true }> => {
+    const res = await fetch(`${baseUrl}${path}`, {
+      method,
+      headers: { Accept: '*/*', 'User-Agent': 'okhttp/4.9.2', ...(token && { Authorization: `Bearer ${token}` }) },
+      signal: controller.signal,
+    });
+    if (res.status === 401) throw new SquadraAuthError();
+    if (res.status >= 400 && res.status < 500) { throw new SquadraClientError(res.status, await res.text().catch(() => '')); }
+    if (res.status >= 500) { throw new SquadraServerError(res.status, await res.text().catch(() => '')); }
+    await res.text().catch(() => '');
+    return { ok: true };
+  };
+  try { return await execute(); }
+  catch (err) {
+    if (err instanceof SquadraServerError && retry) return sqVoid(method, path, token, false, baseUrl, timeoutMs);
+    if (err instanceof Error && err.name === 'AbortError') throw new SquadraTimeoutError();
+    throw err;
+  } finally { clearTimeout(timer); }
+}
+
 // ─── Common helpers ──────────────────────────────────────────────────────────
 
 const OkSchema = z.unknown().transform(() => ({ ok: true as const }));
@@ -465,21 +497,24 @@ const ColaboradorComGestorListSchema = z.unknown().transform((raw): ColaboradorC
 );
 
 export type ProjetoComGestor = {
-  id:         number;
-  nome:       string;
-  cliente:    string;
-  situacao:   string;
-  cpfGerente: string;
+  id:          number;
+  nome:        string;
+  cliente:     string;
+  situacao:    string;
+  cpfGerente:  string;
+  nomeGerente: string;
 };
 
 const ProjetoComGestorSchema = z.unknown().transform((raw): ProjetoComGestor => {
   const d = raw as Record<string, unknown>;
   return {
-    id:         Number(d['projetoID'] ?? d['projetoId'] ?? d['id'] ?? 0),
-    nome:       String(d['projetoNome'] ?? d['nome'] ?? ''),
-    cliente:    String(d['nomeCliente'] ?? d['cliente'] ?? ''),
-    situacao:   String(d['situacao'] ?? ''),
-    cpfGerente: String(d['cpfGerente'] ?? ''),
+    id:          Number(d['projetoID'] ?? d['projetoId'] ?? d['id'] ?? 0),
+    nome:        String(d['projetoNome'] ?? d['nome'] ?? ''),
+    cliente:     String(d['nomeCliente'] ?? d['cliente'] ?? ''),
+    situacao:    String(d['situacao'] ?? ''),
+    cpfGerente:  String(d['cpfGerente'] ?? ''),
+    // O backend passou a devolver o nome do gestor; aceitamos as variações de chave.
+    nomeGerente: String(d['nomeGerente'] ?? d['nomeGestor'] ?? d['gerente'] ?? d['gestor'] ?? ''),
   };
 });
 
@@ -846,6 +881,14 @@ export type HoraExtraItem = {
   solicitacaoTipo:   string;
   statusSolicitacao: number;
   isNoturno:         boolean | null;
+  // Campos de custo (calculados pelo backend; usados quando o pagamento é em folha).
+  valorHora:                      number;  // valor da hora normal do colaborador
+  taxaHoraExtra:                  string;  // taxa de HE em dia de semana (ex.: "50%")
+  taxaAdicionalNoturno:           string;  // adicional noturno (ex.: "20%")
+  valorHoraExtra:                 number;  // valor da hora já com a taxa de HE
+  valorHoraExtraAdicionalNoturno: number;  // idem com adicional noturno
+  bruto:                          number;  // valor bruto final a pagar
+  diaSemana:                      string;
 };
 
 export type ApropriacaoItem = {
@@ -889,16 +932,19 @@ export type AlocarPayload = {
 
 const MembroEquipeItemSchema = z.unknown().transform((raw): MembroEquipe => {
   const d = raw as Record<string, unknown>;
+  // O endpoint alocacoesativas não traz "ultimoProjeto"; o projeto corrente vem
+  // na primeira alocação ativa.
+  const aloc = Array.isArray(d['alocacoesAtivas']) ? (d['alocacoesAtivas'] as Record<string, unknown>[]) : [];
   return {
     nome:          String(d['nome'] ?? d['nomeColaborador'] ?? ''),
     saldoHoras:    String(d['saldoHoras'] ?? '0'),
     saldoFerias:   String(d['saldoFerias'] ?? '0'),
-    feriasInicio:  String(d['feriasInicio'] ?? d['dataFeriasInicio'] ?? ''),
-    feriasFim:     String(d['feriasFim']    ?? d['dataFeriasFinal'] ?? ''),
-    ultimoProjeto: String(d['ultimoProjeto'] ?? d['projeto'] ?? ''),
+    feriasInicio:  String(d['feriasInicio'] ?? d['dataFeriasInicio'] ?? d['dataInicialFerias'] ?? ''),
+    feriasFim:     String(d['feriasFim']    ?? d['dataFeriasFinal']  ?? d['dataFinalFerias']   ?? ''),
+    ultimoProjeto: String(d['ultimoProjeto'] ?? d['projeto'] ?? aloc[0]?.['nomeProjeto'] ?? ''),
     foto:          normalizeFoto(d['foto'] ?? d['fotoColaborador'] ?? null),
     login:         d['login'] ? String(d['login']) : undefined,
-    id:            d['id']   ? Number(d['id'])    : undefined,
+    id:            (d['id'] ?? d['idColaborador']) ? Number(d['id'] ?? d['idColaborador']) : undefined,
   };
 });
 
@@ -932,6 +978,13 @@ const HoraExtraItemSchema = z.unknown().transform((raw): HoraExtraItem => {
     solicitacaoTipo:   String(d['solicitacaoTipo'] ?? d['tipo'] ?? ''),
     statusSolicitacao: Number(d['statusSolicitacao'] ?? 0),
     isNoturno:         parseNoturno(d['isNoturno']),
+    valorHora:                      Number(d['valorHora'] ?? 0),
+    taxaHoraExtra:                  String(d['taxaHoraExtra'] ?? ''),
+    taxaAdicionalNoturno:           String(d['taxaAdicionalNoturno'] ?? ''),
+    valorHoraExtra:                 Number(d['valorHoraExtra'] ?? 0),
+    valorHoraExtraAdicionalNoturno: Number(d['valorHoraExtraAdicionalNoturno'] ?? 0),
+    bruto:                          Number(d['bruto'] ?? 0),
+    diaSemana:                      String(d['diaSemana'] ?? ''),
   };
 });
 
@@ -1086,10 +1139,12 @@ export type DiasSemApontamentoItem = {
 export type SubProjeto     = { id: number; nome: string };
 
 export type ProjetoAlocado = {
-  id:          number;
-  nome:        string;
-  cliente:     string;
-  subProjetos: SubProjeto[];
+  id:           number;
+  nome:         string;
+  cliente:      string;
+  dataAlocacao: string | null;   // início da alocação (ISO) — usado p/ filtrar ativas
+  dataTermino:  string | null;   // fim da alocação (ISO)
+  subProjetos:  SubProjeto[];
 };
 
 export type NovoApontamentoPayload = {
@@ -1101,7 +1156,7 @@ export type NovoApontamentoPayload = {
     data:            string;  // YYYY-MM-DD
     horaInicio:      string;
     horaFinal:       string;
-    tipoApropriacao: 'JORNADA';
+    tipoApropriacao: 'JORNADA' | 'HORA_EXTRA';
   }>;
   justificativas: Array<{ data: string; textoJustificativa: string }>;
   aceites:        Array<{ data: string }>;
@@ -1115,6 +1170,39 @@ const ApontamentoDiaItemSchema = z.unknown().transform((raw): ApontamentoDia => 
     projeto:         String(d['projeto'] ?? ''),
     tipoApontamento: String(d['tipoApontamento'] ?? ''),
   };
+});
+
+// /v2/RetornaApontamentosPorDia → retorno.sqHoras[] (com apontamentoID + tipo p/ deletar).
+export type ApontamentoSqHora = {
+  apontamentoID:  number;
+  projetoID:      number;
+  subProjetoID:   number;
+  nomeProjeto:    string;
+  nomeSubProjeto: string;
+  nomeCliente:    string;
+  horaInicio:     string;
+  horaFim:        string;
+  tipo:           string;
+};
+
+const ApontamentosDiaSchema = z.unknown().transform((raw): ApontamentoSqHora[] => {
+  const d   = raw as Record<string, unknown>;
+  const ret = (d['retorno'] ?? {}) as Record<string, unknown>;
+  const lst = Array.isArray(ret['sqHoras']) ? (ret['sqHoras'] as unknown[]) : [];
+  return lst.map((x) => {
+    const r = x as Record<string, unknown>;
+    return {
+      apontamentoID:  Number(r['apontamentoID'] ?? 0),
+      projetoID:      Number(r['projetoID'] ?? 0),
+      subProjetoID:   Number(r['subProjetoID'] ?? 0),
+      nomeProjeto:    String(r['nomeProjeto'] ?? ''),
+      nomeSubProjeto: String(r['nomeSubProjeto'] ?? ''),
+      nomeCliente:    String(r['nomeCliente'] ?? ''),
+      horaInicio:     String(r['horaInicio'] ?? ''),
+      horaFim:        String(r['horaFim'] ?? ''),
+      tipo:           String(r['tipo'] ?? 'A'),
+    };
+  });
 });
 
 const DadosHoraExtraItemSchema = z.unknown().transform((raw): DadosHoraExtra => {
@@ -1191,9 +1279,11 @@ const ProjetosAlocadosSchema = z.unknown().transform((raw): ProjetoAlocado[] => 
     if (!map.has(id)) {
       map.set(id, {
         id,
-        nome:        String(r['Nome'] ?? ''),
-        cliente:     String(r['NomeCliente'] ?? ''),
-        subProjetos: [],
+        nome:         String(r['Nome'] ?? ''),
+        cliente:      String(r['NomeCliente'] ?? ''),
+        dataAlocacao: r['dataAlocacao'] != null ? String(r['dataAlocacao']) : null,
+        dataTermino:  r['dataTermino']  != null ? String(r['dataTermino'])  : null,
+        subProjetos:  [],
       });
     }
     const proj = map.get(id)!;
@@ -1407,10 +1497,26 @@ export const squadra = {
 
   percentual: {
     async getDados(gestorId: number, mes: number, ano: number, token: string) {
-      return sq('GET', `/v1/gestor/listarHorasPercentuais/${gestorId}/${mes}/${ano}`, null, token, PercentualDataSchema2);
+      // Mês com zero à esquerda (05, não 5): formato comprovadamente aceito pela API;
+      // o unpadded já voltou placeholder vazio em testes anteriores.
+      const mm = String(mes).padStart(2, '0');
+      return sq('GET', `/v1/gestor/listarHorasPercentuais/${gestorId}/${mm}/${ano}`, null, token, PercentualDataSchema2);
     },
-    async lancar(body: Record<string, unknown>, token: string) {
-      return sq('POST', '/v1/gestor/horasPercentuais', body, token, OkSchema);
+    async lancar(
+      p: { usuarioId: number; subProjetoId: number; mes: number; ano: number; horas: number; percentual: number },
+      token: string,
+    ) {
+      // Formato exigido pelo backend (espelha o app-react cadastrarHorasPercentuais):
+      // chaves usuarioID/subProjetoID, valores em ARRAY, mes "MM" e content-type json-patch.
+      const body = {
+        usuarioID:    p.usuarioId,
+        subProjetoID: [p.subProjetoId],
+        mes:          String(p.mes).padStart(2, '0'),
+        ano:          p.ano,
+        horas:        [p.horas],
+        percentual:   [p.percentual],
+      };
+      return sq('POST', '/v1/gestor/horasPercentuais', body, token, OkSchema, true, 'application/json-patch+json');
     },
     async fechar(usuarioID: number, mes: number, ano: number, token: string) {
       return sq('POST', '/v1/gestor/fecharPercentual', { usuarioID, mes, ano }, token, OkSchema);
@@ -1428,7 +1534,11 @@ export const squadra = {
 
   gestao: {
     async getEquipe(gestorId: number, token: string) {
-      return sq('GET', `/v1/retornaDadosEquipe/${gestorId}`, null, token, EquipeSchema);
+      // Espelha o app-react (MinhaEquipe → alocacoesAtivasService): a equipe vem
+      // de `alocacoesativas`, NÃO de `retornaDadosEquipe`. Este último estava
+      // estourando HttpRequestException (cód 17 / HTTP 400) no backend e derrubava
+      // a aba. `alocacoesativas` traz idColaborador direto (dispensa resolver login).
+      return sq('GET', `/v1/gestor/alocacoesativas/${gestorId}`, null, token, EquipeSchema);
     },
     async getPendencias(gestorId: number, token: string) {
       return sq('GET', `/v2/gestor/pendenciasv2/${gestorId}`, null, token, z.unknown());
@@ -1503,7 +1613,16 @@ export const squadra = {
       return sq('GET', `/v1/projetos/alocados/${gestorId}`, null, token, ProjetosAlocadosSchema);
     },
     async novoApontamento(body: NovoApontamentoPayload, token: string) {
-      return sq('POST', '/v3/apontamentos/novo/v3', body, token, OkSchema);
+      // app-react usa application/json-patch+json nesse POST (igual horasPercentuais).
+      return sq('POST', '/v3/apontamentos/novo/v3', body, token, OkSchema, true, 'application/json-patch+json');
+    },
+    // Apontamentos de um dia (com apontamentoID/tipo). dataBR = DD/MM/YYYY (como o app-react).
+    async getApontamentosDia(usuarioId: number, dataBR: string, token: string) {
+      return sq('GET', `/v2/RetornaApontamentosPorDia?id=${usuarioId}&data=${encodeURIComponent(dataBR)}`, null, token, ApontamentosDiaSchema);
+    },
+    // Deleta um apontamento. dataISO = YYYY-MM-DD; resposta é texto puro → sqVoid.
+    async deletarApontamento(id: number, tipo: string, usuarioId: number, dataISO: string, token: string) {
+      return sqVoid('DELETE', `/v3/apontamentos/deletar/v3?id=${id}&tipo=${encodeURIComponent(tipo)}&usuarioId=${usuarioId}&data=${dataISO}`, token);
     },
     async solicitarLiberacao(idFalta: number, idUsuario: number, token: string) {
       return sq('POST', '/v1/falta/solicitarLiberacaoFalta', { idFalta, idUsuario }, token, OkSchema);
