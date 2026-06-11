@@ -110,8 +110,8 @@ Fase 8 → Paridade visual + funcional                                          
 
 **Pendente para deploy / validação com TI (ver `docs/known-issues.md` e `docs/platform-review.md`):**
 - **TI-AUTHZ-001** (Alta) — IDOR de escopo de equipe (ponto/gestão agem por flag global sem checar a equipe); confirmar se a API valida cross-equipe
-- **TI-DP-001** — `perfilDP` nunca vem `true` na API; acesso ao RH usa fallback por cargo
-- Testes — Fases 0–4 do plano concluídas (234 testes; ver `docs/testing.md`). Pendente: Fase 5 (componentes) e CI (ligar o gate de cobertura). Regra de regressão obrigatória: ver **Definition of Done — Testes** abaixo
+- **TI-DP-001** — `/v1/pessoa/permissoes` agora honra `pessoaId` e `perfilDP` popula; o fallback de acesso ao RH por cargo foi **removido** (só `perfilDP`). Pendente apenas: TI marcar a flag para quem ainda não tem (ex.: Vera)
+- Testes — Fases 0–4 do plano concluídas (265 testes, 20 suítes; ver `docs/testing.md`). Pendente: Fase 5 (componentes) e CI (ligar o gate de cobertura). Regra de regressão obrigatória: ver **Definition of Done — Testes** abaixo
 - Testes Playwright (8 fluxos críticos) — INCONC-001
 - `PercentualItemRawSchema` — itens não verificáveis sem dados reais — INCONC-002
 - **DEBT-002** — refactors planejados (fetchJson único, withSession, z.object)

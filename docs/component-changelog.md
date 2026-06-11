@@ -4,6 +4,27 @@ Changelog cronológico de todos os componentes e módulos. Do mais recente para 
 
 ---
 
+## 2026-06-11 — Hora extra no ponto, aprovação em drawer e correções de gestão (v1.6.0)
+
+### Ponto — registrar hora extra aprovada
+- **services/ponto.ts**: `tipoApropriacao` agora é `'JORNADA' | 'HORA_EXTRA'`; `buildNovoApontamentoPayload` usa descrição/justificativa específicas ("hora extra aprovada" / "Hora Extra Aprovada Via APP") quando HORA_EXTRA
+- **api/ponto/route.ts**: schema aceita `z.enum(['JORNADA','HORA_EXTRA'])`
+- **ApontamentoForm.tsx**: classificação **automática** (sem toggle) — o que exceder a carga do dia vira HORA_EXTRA quando há HE aprovada; valida o teto (excedente ≤ aprovado); banner informativo de HE aprovada
+- **usePonto.ts**: helper `horaExtraAprovadaMin(dia)` (soma `statusSolicitacao===3`); `computePendentes` gera pendência "H.Extra liberada" enquanto a HE não é apontada (some depois)
+- **PontoCalendar.tsx**: dia com HE liberada mostra chip "H.Extra liberada" + botão Registrar; `temApontamento` impede "Sem apontamento"/"Apontar" em dia que já tem horas lançadas; tamanho do `+hh:mm` padronizado; removido chip duplicado de horas no dia incompleto
+- **PontosPendentes.tsx**: chip da pendência de HE
+
+### Hora extra — solicitação e aprovação
+- **services/solicitacoes.ts**: `dataSolicitacao` enviada em **ISO `yyyy-MM-dd`** (corrige troca dia↔mês que o backend .NET fazia ao receber `dd/MM/yyyy`)
+- **ApprovalModal.tsx**: prop `asDrawer` (renderiza em painel lateral via Sheet) — usado na aprovação de HE (Banco × Folha + detalhamento de custo)
+- **gestao/page.tsx**: aprovação de HE em drawer; **reprovar** agora abre confirmação ("Tem certeza…") com motivo opcional
+
+### Gestão — aba Equipe
+- **services/gestao.ts + squadra-client.ts**: `getEquipe` passou a usar `GET /v1/gestor/alocacoesativas/{gestorId}` (mesmo endpoint do app-react) — o antigo `retornaDadosEquipe` estava quebrado no backend (HTTP 400, cód 17). `idColaborador` vem direto (dispensa resolver login)
+- **gestao/page.tsx**: erro da aba Equipe é tratado localmente (não derruba mais as outras abas)
+
+---
+
 ## 2026-06-04 — Hardening pós-review (QA + review amplo da plataforma)
 
 ### Correções de bugs (QA funcional)

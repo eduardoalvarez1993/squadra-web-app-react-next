@@ -1,6 +1,6 @@
 # Testes — Referência Técnica (web-app-next)
 
-Estado: **234 testes, 18 suítes, 0 falhas** · atualizado 2026-06-04
+Estado: **265 testes, 20 suítes, 0 falhas** · atualizado 2026-06-11
 Plano de evolução e raciocínio por trás das fases: [test-plan.md](./test-plan.md).
 
 Este documento descreve a suíte **como ela está implementada** — arquitetura, convenções e como rodar.
@@ -113,7 +113,7 @@ Regras de borda:
 ### Princípios
 - Testar **contrato e comportamento** (status codes, transformações), não implementação.
 - Mockar só a **fronteira** (sessão, HTTP upstream) — nunca a lógica sob teste.
-- Cada bug de QA/review vira **teste de regressão** (hora extra noturna, idUnico, dp-access, data futura, anexo por status, exposição de CPF).
+- Cada bug de QA/review vira **teste de regressão** (hora extra noturna, idUnico, dp-access, data futura, anexo por status, exposição de CPF, data da hora extra em ISO, hora extra liberada no ponto `statusSolicitacao===3`, `tipoApropriacao` JORNADA/HORA_EXTRA).
 
 > Isso **não é opcional**: é parte da Definition of Done. Regra completa em `CONTRIBUTING.md` e `CLAUDE.md` → "Definition of Done — Testes". AGENTS.md replica para agentes de contexto-zero.
 

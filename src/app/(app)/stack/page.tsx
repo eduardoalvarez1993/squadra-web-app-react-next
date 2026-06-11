@@ -170,8 +170,8 @@ const TECH_GROUPS: { title: string; subtitle: string; techs: Tech[] }[] = [
 // ---------------------------------------------------------------------------
 
 const QUALITY_STATS: { value: string; label: string }[] = [
-  { value: '261',     label: 'testes automatizados' },
-  { value: '19',      label: 'suítes de teste' },
+  { value: '265',     label: 'testes automatizados' },
+  { value: '20',      label: 'suítes de teste' },
   { value: '0',       label: 'falhas na suíte' },
   { value: '88–91%',  label: 'cobertura das rotas críticas' },
 ];
@@ -220,6 +220,21 @@ interface Release {
 
 // Mais recente primeiro.
 const RELEASES: Release[] = [
+  {
+    version: 'v1.6.0',
+    title:   'Hora extra no ponto & correções de gestão',
+    date:    '11 Jun 2026',
+    changes: [
+      { type: 'novo',     text: 'Registrar hora extra aprovada direto no ponto: o que passa da carga do dia vira hora extra automaticamente, respeitando o limite aprovado' },
+      { type: 'novo',     text: 'Dia com hora extra liberada exibe o selo "H.Extra liberada" e o botão Registrar (some após o lançamento) — na lista de pendentes e no calendário' },
+      { type: 'melhoria', text: 'Aprovação de hora extra em painel lateral com escolha Banco de Horas ou Pagamento em Folha; reprovar agora pede confirmação' },
+      { type: 'melhoria', text: 'Calendário do mês: botões só aparecem quando há ação possível, horas com tamanho padronizado e sem informação duplicada' },
+      { type: 'fix',      text: 'Hora extra gravava a data trocada (dia/mês); agora envia no formato correto e o dia solicitado é respeitado' },
+      { type: 'fix',      text: 'Gestão: aba Equipe voltou a carregar (mesmo endpoint do app) e uma falha nela não derruba mais as outras abas' },
+      { type: 'fix',      text: 'Percentual: leitura correta das horas por mês; menu Ponto × Percentual estável (sem oscilação)' },
+      { type: 'infra',    text: 'Suíte de testes: 265 testes em 20 suítes (Vitest), 0 falhas' },
+    ],
+  },
   {
     version: 'v1.5.0',
     title:   'Ponto do gestor, Marketing & Segurança',
