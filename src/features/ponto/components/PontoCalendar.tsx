@@ -305,11 +305,9 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, gestorMo
           {c.horaExtra && <span className="block text-[0.82rem] font-bold text-red-600 leading-tight">+{c.horaExtra}</span>}
         </span>
 
-        <div
-          className="flex flex-wrap items-center justify-end gap-1.5 min-w-[120px]"
-          // Área de ações: cliques aqui (botões/barra) não abrem o drawer da linha.
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="flex flex-wrap items-center justify-end gap-1.5 min-w-[120px]">
+          {/* Barra/badges propagam o clique (abrem o drawer da linha); só os
+              botões com ação própria usam stopPropagation. */}
           {/* Barra horizontal — proporcional (jornada/pendência/hora extra) ou chapada */}
           {barProporcional ? (
             <div className={`flex-1 min-w-[40px] h-1.5 rounded-full overflow-hidden flex ${barTrack}`} title={`${dia.horasRealizadas} de ${dia.horasPrevistas}${extraMinB > 0 ? ` + ${dia.horaExtra} extra` : ''}`}>
@@ -362,7 +360,8 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, gestorMo
                     key="solicitar-inline"
                     type="button"
                     disabled={solicitando === dia.data}
-                    onClick={async () => {
+                    onClick={async (e) => {
+                      e.stopPropagation();
                       if (!onSolicitar || solicitando) return;
                       setSolicitando(dia.data);
                       const [dd, mm, yy] = dia.data.split('/');
@@ -384,7 +383,7 @@ export function PontoCalendar({ dias, loading, onDiaClick, onSolicitar, gestorMo
               <button
                 key={cta.tipo}
                 type="button"
-                onClick={() => onDiaClick(dia, cta.tipo)}
+                onClick={(e) => { e.stopPropagation(); onDiaClick(dia, cta.tipo); }}
                 className={`text-[0.7rem] font-bold rounded-md px-2.5 py-1 whitespace-nowrap ${CTA_CLS[cta.tipo]}`}
               >
                 {cta.label}
