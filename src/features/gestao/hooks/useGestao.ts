@@ -102,6 +102,8 @@ export function useGestao() {
     equipe:           equipeQuery.data     ?? [],
     pendencias:       pendenciasQuery.data ?? null,
     isPendenciasLoading: pendenciasQuery.isLoading,
+    isPendenciasError:   pendenciasQuery.isError,
+    refetchPendencias:   pendenciasQuery.refetch,
     solicitacoes:     solicitacoesQuery.data ?? null,
     servicos:         servicosQuery.data   ?? [],
     papeis:           papeisQuery.data     ?? [],

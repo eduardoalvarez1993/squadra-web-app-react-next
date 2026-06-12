@@ -258,12 +258,20 @@ function PendenciaCard({
 function PendenciasTab({
   pendencias,
   isLoading,
+  isError,
+  onRetry,
   onDetalhes,
 }: {
   pendencias: ColaboradorPendencia[] | null;
   isLoading: boolean;
+  isError: boolean;
+  onRetry: () => void;
   onDetalhes: (c: ColaboradorPendencia) => void;
 }) {
+  if (isError) {
+    return <ErrorSection message="Não foi possível carregar suas pendências." onRetry={onRetry} />;
+  }
+
   if (isLoading || pendencias === null) {
     return <PendenciasLoader />;
   }
@@ -311,7 +319,7 @@ export default function GestaoPage() {
   const [drawerPendencia, setDrawerPendencia] = useState<ColaboradorPendencia | null>(null);
 
   const {
-    equipe, pendencias, isPendenciasLoading,
+    equipe, pendencias, isPendenciasLoading, isPendenciasError, refetchPendencias,
     solicitacoes, servicos, papeis,
     isLoading, isError, refetchEquipe,
     aprovar,
@@ -396,6 +404,8 @@ export default function GestaoPage() {
         <PendenciasTab
           pendencias={pendencias}
           isLoading={isPendenciasLoading}
+          isError={isPendenciasError}
+          onRetry={() => refetchPendencias()}
           onDetalhes={abrirDrawerPendencia}
         />
       )}
